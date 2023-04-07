@@ -6,7 +6,7 @@ marketdata:
   module: bin
   symbol: IF.CFFEX
   config:
-    # input_dir:
+    input_dir: /global/wlsim/data/cffex_snapshot/localtime_bin
     insinfo_dir: data/insinfo
 
 signals:
