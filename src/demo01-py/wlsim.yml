@@ -1,0 +1,26 @@
+calendar: data/ChinaTradingDates.txt
+start: 20220701
+end: 20230301
+
+marketdata:
+  module: bin
+  symbol: IF.CFFEX
+  config:
+    # input_dir:
+    insinfo_dir: data/insinfo
+
+signals:
+  - module: pybar
+    config:
+      pylib: libpython3.9.so
+      pypath:
+        - build/Debug/src/demo01-py/
+      freq: 15
+      sigsaver:
+        module: csv
+        config:
+          output_dir: output
+      signals:
+        - name: demo01
+          module: nickchenyj-demo01_py
+          config_file: src/demo01-py/sig.yml
