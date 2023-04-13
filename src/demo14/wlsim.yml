@@ -2,21 +2,35 @@ calendar: data/ChinaTradingDates.txt
 start: 20220701
 end: 20230301
 
-marketdata:
-  module: bin
-  symbol: IF.CFFEX
+secmaster:
   config:
-    input_dir: /global/wlsim/data/cffex_snapshot/localtime_bin
-    insinfo_dir: data/insinfo
+    input_dir: data/insinfo
 
-signals:
-  - module: tick
+marketdata:
+  - module: snapshot
+    symbols:
+      # - IF.CFFEX
+      - IC.CFFEX
     config:
-      sigsaver:
-        module: csv
-        config:
-          output_dir: output
-      signals:
-        - name: demo14
-          module: nickchenyj-demo14
-          config_file: src/demo14/sig.yml
+      # input_dir: data/cffex_snapshot/localtime_bin
+      input_dir: /global/wlsim/data/cffex_snapshot/localtime_bin
+
+  - module: bar
+    symbols:
+      # - IF.CFFEX
+      - IC.CFFEX
+    config:
+      freq: 5
+      # input_dir: data/cffex_snapshot/localtime_bin
+      input_dir: /global/wlsim/data/cffex_snapshot/localtime_bin
+
+signal:
+  module: cpp
+  config:
+    name: demo14
+    module: nickchenyj-demo14
+    config_file: src/demo14/sig.yml
+    output:
+      module: csv
+      config:
+        output_dir: output

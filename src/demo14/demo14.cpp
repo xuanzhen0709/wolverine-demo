@@ -19,8 +19,9 @@ public:
   void initialize(const Config *root);
   void initialize(std::string_view config_file);
 
-  void on_sod(uint32_t date, const MdStatic *ms);
-  double on_snapshot(const MdStatic *ms, const MdSnapshot *md);
+  void on_sod(uint32_t date, const SodEvent *ev);
+  double on_snapshot(const SnapshotEvent *ev);
+  double on_bar(const BarEvent *ev);
   void on_eod(uint32_t date);
 
 private:
@@ -44,29 +45,36 @@ void MyFeature::initialize(std::string_view config_file) {
   initialize(&cfg);
 }
 
-void MyFeature::on_sod(uint32_t date, const MdStatic *ms) {
+void MyFeature::on_sod(uint32_t date, const SodEvent *ev) {
   m_cnt = 0;
   m_sum = 0;
 }
 
-double MyFeature::on_snapshot(const MdStatic *ms, const MdSnapshot *md) {
+double MyFeature::on_snapshot(const SnapshotEvent *ev) {
   // market data update
+  // fmt::print("received {},{},{}\n", ev->snapshot->exchtime,
+  //            ev->snapshot->localtime, ev->ms->instrument);
   const auto size = m_volumes.size();
   const auto idx = (m_cnt++) % size;
 
   const auto old_val = m_volumes[idx];
-  m_volumes[idx] = md->volume;
+  m_volumes[idx] = ev->snapshot->volume;
 
   if ((likely(m_cnt > size))) {
-    m_sum = m_sum - old_val + md->volume;
+    m_sum = m_sum - old_val + ev->snapshot->volume;
     return m_sum;
   } else if (m_cnt == size) {
-    m_sum = m_sum + md->volume;
+    m_sum = m_sum + ev->snapshot->volume;
     return m_sum;
   } else {
-    m_sum = m_sum + md->volume;
+    m_sum = m_sum + ev->snapshot->volume;
     return NAN;
   }
+}
+
+double MyFeature::on_bar(const BarEvent *ev) {
+  fmt::print("on_bar\n");
+  return NAN;
 }
 
 void MyFeature::on_eod(uint32_t date) {
@@ -93,17 +101,23 @@ static void on_init_from_cfg(void *hdl, const cfi::wolverine::Config *root) {
   ptr->initialize(root);
 }
 
-static void on_sod(void *hdl, uint32_t date, const MdStatic *ms) {
+static void on_sod(void *hdl, uint32_t date,
+                   const cfi::wolverine::SodEvent *ev) {
   auto *ptr = reinterpret_cast<MyFeature *>(hdl);
   // DEBUG_LOG("nickchenyj::snapshot1::{:s},{:p},{:d}\n", __func__, hdl, date);
-  ptr->on_sod(date, ms);
+  ptr->on_sod(date, ev);
 }
 
-static double on_snapshot(void *hdl, const cfi::wolverine::MdStatic *ms,
-                          const cfi::wolverine::MdSnapshot *md) {
+static double on_snapshot(void *hdl, const cfi::wolverine::SnapshotEvent *ev) {
   auto *ptr = reinterpret_cast<MyFeature *>(hdl);
   // DEBUG_LOG("nickchenyj::snapshot1::{:s},{:p}\n", __func__, hdl);
-  return ptr->on_snapshot(ms, md);
+  return ptr->on_snapshot(ev);
+}
+
+static double on_bar(void *hdl, const cfi::wolverine::BarEvent *ev) {
+  auto *ptr = reinterpret_cast<MyFeature *>(hdl);
+  // DEBUG_LOG("nickchenyj::snapshot1::{:s},{:p}\n", __func__, hdl);
+  return ptr->on_bar(ev);
 }
 
 static void on_eod(void *hdl, uint32_t date) {
@@ -117,6 +131,7 @@ static SignalOps my_ops = {
     .init_from_file = on_init_from_file,
     .on_sod = on_sod,
     .on_snapshot = on_snapshot,
+    .on_bar = on_bar,
     .on_eod = on_eod,
 };
 
