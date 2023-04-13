@@ -1,10 +1,10 @@
 #include "wolverine/common.hpp"
 #include "wolverine/config.hpp"
+#include "wolverine/fmt/core.h"
 #include "wolverine/marketdata.hpp"
 #include "wolverine/signal.hpp"
 #include <array>
 #include <cmath>
-#include <fmt/core.h>
 #include <string_view>
 
 using namespace cfi::wolverine;
