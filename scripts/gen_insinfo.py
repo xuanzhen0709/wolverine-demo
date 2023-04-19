@@ -149,7 +149,7 @@ def get_session(cal: Calendar, date: int, mkttype: int) -> str:
     return ";".join(session_strs)
 
 
-def run_date(cal, engine, meta, date: int) -> pd.DataFrame:
+def get_future_insinfo(cal, engine, meta, date: int) -> pd.DataFrame:
     pc_table: sa.Table = sa.Table("PrimaryContract",
                                   meta,
                                   autoload_with=engine)
@@ -183,6 +183,38 @@ def run_date(cal, engine, meta, date: int) -> pd.DataFrame:
         return df
 
 
+# /mnt/nas-v/StockData/ConfigDailyStore/20230413/signaldb-config/20230413-insinfo.csv
+def get_stock_insinfo(date: int, prefix_path:Path) -> pd.DataFrame:
+    origin_csv: Path = prefix_path.joinpath(f"{date}",
+                                            "signaldb-config",
+                                            f"{date}-insinfo.csv")
+    origin_df = pd.read_csv(origin_csv,
+                            header=0,
+                            index_col=None,
+                            encoding="gbk")
+    
+    if 'IF2304' in origin_df['id'].values:
+        origin_df = origin_df.drop(index = origin_df[origin_df['id'] == 'IF2304'].index[0])
+    if 'IC2304' in origin_df['id'].values:
+        origin_df = origin_df.drop(index = origin_df[origin_df['id'] == 'IC2304'].index[0])
+    if 'IH2304' in origin_df['id'].values:
+        origin_df = origin_df.drop(index = origin_df[origin_df['id'] == 'IH2304'].index[0])
+
+    new_df = pd.DataFrame(origin_df, columns = ['id', 'tick', 'multiplier',
+                                               'preclose', 'lowlimit', 'highlimit'])
+    new_df.rename(columns={'id':'Instrument',
+                           'tick':'TickSize',
+                           'multiplier':'Multiplier',
+                           'preclose':'Close',
+                           'lowlimit':'LimitDown',
+                           'highlimit':'LimitUp'},
+                           inplace = True)
+    new_df['Exchange'] = new_df['Instrument'].str[:2] 
+    new_df['Ticker'] = new_df['Instrument'].str[2:]
+    new_df.set_index("Ticker", inplace=True, verify_integrity=True)
+    return new_df
+
+
 def main():
     parser = argparse.ArgumentParser("generate primary contract info")
     parser.add_argument("-c",
@@ -195,6 +227,11 @@ def main():
                         type=lambda x: Path(x).resolve(),
                         default=Path("data/insinfo"),
                         help="output dir")
+    parser.add_argument("-sp",
+                        "--stock-path",
+                        type=lambda x: Path(x).resolve(),
+                        default=Path("/mnt/nas-v/StockData/ConfigDailyStore/"),
+                        help="stock insinfo path")
     parser.add_argument("-sd",
                         "--start",
                         type=parse_date,
@@ -215,13 +252,34 @@ def main():
     meta = sa.MetaData()
 
     output_dir: Path = args.output_dir
+    stock_path: Path = args.stock_path
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    errors = {}
     for date in cal.date_range(args.start, args.end):
         print(f"running date {date}")
-        df = run_date(cal, engine, meta, date)
-        df.to_csv(output_dir.joinpath(f"{date}.csv"), index=True)
+        try:
+            future_df = get_future_insinfo(cal, engine, meta, date)
+        except Exception as future_error:
+            errors[date] = [future_error]
 
+        try:
+            stock_df = get_stock_insinfo(date, stock_path)
+        except Exception as stock_error:
+            if date in errors.keys():
+                errors[date].append(stock_error)
+            else:
+                errors[date] = [stock_error]
+
+        if date not in errors.keys():
+            df = pd.concat([future_df, stock_df])
+            df.to_csv(output_dir.joinpath(f"{date}.csv"))
+
+    if errors:
+        str_error = '\n'
+        for (date, error) in errors.items():
+            str_error += "  " + str(date) + " : " + " ".join(str(x) for x in error) + '\n'
+        raise RuntimeError(str_error)
 
 if __name__ == "__main__":
     main()
