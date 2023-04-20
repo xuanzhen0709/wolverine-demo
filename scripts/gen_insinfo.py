@@ -184,27 +184,31 @@ def get_future_insinfo(cal, engine, meta, date: int) -> pd.DataFrame:
 
 
 # /mnt/nas-v/StockData/ConfigDailyStore/20230413/signaldb-config/20230413-insinfo.csv
-def get_stock_insinfo(cal, date: int, prefix_path:Path) -> pd.DataFrame:
-    origin_csv: Path = prefix_path.joinpath(f"{date}",
-                                            "signaldb-config",
+def get_stock_insinfo(cal, date: int, prefix_path: Path) -> pd.DataFrame:
+    origin_csv: Path = prefix_path.joinpath(f"{date}", "signaldb-config",
                                             f"{date}-insinfo.csv")
     origin_df = pd.read_csv(origin_csv,
                             header=0,
                             index_col=None,
                             encoding="gbk")
-    
-    new_df = pd.DataFrame(origin_df, columns = ['id', 'tick', 'multiplier',
-                                               'preclose', 'lowlimit', 'highlimit'])
-    new_df.rename(columns={'id':'Instrument',
-                           'tick':'TickSize',
-                           'multiplier':'Multiplier',
-                           'preclose':'Close',
-                           'lowlimit':'LimitDown',
-                           'highlimit':'LimitUp'},
-                           inplace = True)
+
+    new_df = pd.DataFrame(origin_df,
+                          columns=[
+                              'id', 'tick', 'multiplier', 'preclose',
+                              'lowlimit', 'highlimit'
+                          ])
+    new_df.rename(columns={
+        'id': 'Instrument',
+        'tick': 'TickSize',
+        'multiplier': 'Multiplier',
+        'preclose': 'Close',
+        'lowlimit': 'LimitDown',
+        'highlimit': 'LimitUp'
+    },
+                  inplace=True)
     new_df = new_df[~new_df["Instrument"].str.startswith("I")]
 
-    new_df['Exchange'] = new_df['Instrument'].str[:2] 
+    new_df['Exchange'] = new_df['Instrument'].str[:2]
     new_df['Ticker'] = new_df['Instrument'].str[2:]
     sessions = get_session(cal, date, 11)
     new_df["Session"] = sessions
@@ -275,8 +279,10 @@ def main():
     if errors:
         str_error = '\n'
         for (date, error) in errors.items():
-            str_error += "  " + str(date) + " : " + " ".join(str(x) for x in error) + '\n'
+            str_error += "  " + str(date) + " : " + " ".join(
+                str(x) for x in error) + '\n'
         raise RuntimeError(str_error)
+
 
 if __name__ == "__main__":
     main()
