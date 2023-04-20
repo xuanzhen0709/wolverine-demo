@@ -184,7 +184,7 @@ def get_future_insinfo(cal, engine, meta, date: int) -> pd.DataFrame:
 
 
 # /mnt/nas-v/StockData/ConfigDailyStore/20230413/signaldb-config/20230413-insinfo.csv
-def get_stock_insinfo(date: int, prefix_path:Path) -> pd.DataFrame:
+def get_stock_insinfo(cal, date: int, prefix_path:Path) -> pd.DataFrame:
     origin_csv: Path = prefix_path.joinpath(f"{date}",
                                             "signaldb-config",
                                             f"{date}-insinfo.csv")
@@ -206,6 +206,8 @@ def get_stock_insinfo(date: int, prefix_path:Path) -> pd.DataFrame:
 
     new_df['Exchange'] = new_df['Instrument'].str[:2] 
     new_df['Ticker'] = new_df['Instrument'].str[2:]
+    sessions = get_session(cal, date, 11)
+    new_df["Session"] = sessions
     new_df.set_index("Ticker", inplace=True, verify_integrity=True)
     return new_df
 
@@ -259,7 +261,7 @@ def main():
             errors[date] = [future_error]
 
         try:
-            stock_df = get_stock_insinfo(date, stock_path)
+            stock_df = get_stock_insinfo(cal, date, stock_path)
         except Exception as stock_error:
             if date in errors.keys():
                 errors[date].append(stock_error)
