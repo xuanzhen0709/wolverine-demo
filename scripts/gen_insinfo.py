@@ -193,13 +193,6 @@ def get_stock_insinfo(date: int, prefix_path:Path) -> pd.DataFrame:
                             index_col=None,
                             encoding="gbk")
     
-    if 'IF2304' in origin_df['id'].values:
-        origin_df = origin_df.drop(index = origin_df[origin_df['id'] == 'IF2304'].index[0])
-    if 'IC2304' in origin_df['id'].values:
-        origin_df = origin_df.drop(index = origin_df[origin_df['id'] == 'IC2304'].index[0])
-    if 'IH2304' in origin_df['id'].values:
-        origin_df = origin_df.drop(index = origin_df[origin_df['id'] == 'IH2304'].index[0])
-
     new_df = pd.DataFrame(origin_df, columns = ['id', 'tick', 'multiplier',
                                                'preclose', 'lowlimit', 'highlimit'])
     new_df.rename(columns={'id':'Instrument',
@@ -209,6 +202,8 @@ def get_stock_insinfo(date: int, prefix_path:Path) -> pd.DataFrame:
                            'lowlimit':'LimitDown',
                            'highlimit':'LimitUp'},
                            inplace = True)
+    new_df = new_df[~new_df["Instrument"].str.startswith("I")]
+
     new_df['Exchange'] = new_df['Instrument'].str[:2] 
     new_df['Ticker'] = new_df['Instrument'].str[2:]
     new_df.set_index("Ticker", inplace=True, verify_integrity=True)
