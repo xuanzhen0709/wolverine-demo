@@ -1,0 +1,7 @@
+marketdata:
+  - type: section
+    symbols:
+      - all_stocks
+
+# freq can be 60/120/180
+freq: 120
