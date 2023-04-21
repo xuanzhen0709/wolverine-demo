@@ -119,9 +119,7 @@ void MyFeature::on_cs_snapshot(const CsSnapshotEvent *ev) {
              ev->ins_nr, ev->fld_nr);
 }
 
-void MyFeature::on_eod(uint32_t date) {
-  // eod
-}
+void MyFeature::on_eod(uint32_t date) {}
 
 } // namespace demo14
 } // namespace nickchenyj
