@@ -139,7 +139,7 @@ def get_session(cal: Calendar, date: int, mkttype: int) -> str:
         date_pre_str, "%Y%m%d")
 
     has_night: bool = (dt.weekday() == 0 and pre_dt == dt - datetime.timedelta(days=3)) or \
-            (pre_dt == dt - datetime.timedelta(days=1))
+        (pre_dt == dt - datetime.timedelta(days=1))
 
     sessions = markettype_to_session(mkttype, has_night)
 
@@ -183,37 +183,21 @@ def get_future_insinfo(cal, engine, meta, date: int) -> pd.DataFrame:
         return df
 
 
-# /mnt/nas-v/StockData/ConfigDailyStore/20230413/signaldb-config/20230413-insinfo.csv
-def get_stock_insinfo(cal, date: int, prefix_path: Path) -> pd.DataFrame:
-    origin_csv: Path = prefix_path.joinpath(f"{date}", "signaldb-config",
-                                            f"{date}-insinfo.csv")
-    origin_df = pd.read_csv(origin_csv,
-                            header=0,
-                            index_col=None,
-                            encoding="gbk")
+def get_stock_insinfo(cal, engine, date):
+    str_sql_info = "select S_INFO_WINDCODE as [Instrument], " \
+        "S_DQ_OPEN as [Open], S_DQ_HIGH as [High], S_DQ_LOW as [Low], S_DQ_CLOSE as [Close], " \
+        "S_DQ_VOLUME as [Volume], S_DQ_LIMIT as [LimitUp], S_DQ_STOPPING as [LimitDown], " \
+        f"S_DQ_ADJFACTOR as [AdjFactor] from AShareEODPrices where TRADE_DT = '{date}';"
+    df = pd.read_sql(str_sql_info, engine)
 
-    new_df = pd.DataFrame(origin_df,
-                          columns=[
-                              'id', 'tick', 'multiplier', 'preclose',
-                              'lowlimit', 'highlimit'
-                          ])
-    new_df.rename(columns={
-        'id': 'Instrument',
-        'tick': 'TickSize',
-        'multiplier': 'Multiplier',
-        'preclose': 'Close',
-        'lowlimit': 'LimitDown',
-        'highlimit': 'LimitUp'
-    },
-                  inplace=True)
-    new_df = new_df[~new_df["Instrument"].str.startswith("I")]
-
-    new_df['Exchange'] = new_df['Instrument'].str[:2]
-    new_df['Ticker'] = new_df['Instrument'].str[2:]
+    tmp_df = df['Instrument'].str.split('.', expand=True)
+    tmp_df.rename(columns={0: 'Ticker', 1: 'Exchange'}, inplace=True)
+    df = pd.concat([df, tmp_df], axis=1)
+    df['Instrument'] = df['Ticker']
     sessions = get_session(cal, date, 11)
-    new_df["Session"] = sessions
-    new_df.set_index("Ticker", inplace=True, verify_integrity=True)
-    return new_df
+    df["Session"] = sessions
+    df.set_index("Ticker", inplace=True, verify_integrity=True)
+    return df
 
 
 def main():
@@ -228,11 +212,6 @@ def main():
                         type=lambda x: Path(x).resolve(),
                         default=Path("data/insinfo"),
                         help="output dir")
-    parser.add_argument("-sp",
-                        "--stock-path",
-                        type=lambda x: Path(x).resolve(),
-                        default=Path("/mnt/nas-v/StockData/ConfigDailyStore/"),
-                        help="stock insinfo path")
     parser.add_argument("-sd",
                         "--start",
                         type=parse_date,
@@ -247,25 +226,25 @@ def main():
 
     cal = Calendar(args.calendar)
 
-    engine = sa.create_engine(
+    future_engine = sa.create_engine(
         "mssql+pymssql://public_data:public_data@dbs.cfi/RefData?charset=utf8")
-
+    stock_engine = sa.create_engine(
+        "mssql+pymssql://public_data:public_data@dbs.cfi/WDDB")
     meta = sa.MetaData()
 
     output_dir: Path = args.output_dir
-    stock_path: Path = args.stock_path
     output_dir.mkdir(parents=True, exist_ok=True)
 
     errors = {}
     for date in cal.date_range(args.start, args.end):
         print(f"running date {date}")
         try:
-            future_df = get_future_insinfo(cal, engine, meta, date)
+            future_df = get_future_insinfo(cal, future_engine, meta, date)
         except Exception as future_error:
             errors[date] = [future_error]
 
         try:
-            stock_df = get_stock_insinfo(cal, date, stock_path)
+            stock_df = get_stock_insinfo(cal, stock_engine, date)
         except Exception as stock_error:
             if date in errors.keys():
                 errors[date].append(stock_error)
