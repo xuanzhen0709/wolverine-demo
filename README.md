@@ -1,8 +1,15 @@
 # wolverine-demo
 
-* install wolverine-runtime and wolverine-dev packages to ~/.local
+* ask the maintainer for a copy of the runtime and development packages.
 
-* then you should be able to build this projects
+* run install_runtime.sh, then you should be able to build this projects
+```
+mkdir -p build/Debug
+pushd build/Debug
+cmake -DCMAKE_BUILD_TYPE=Debug ../../
+make -j8 install
+popd
+```
 
 * at the project root dir, run:
 ```
