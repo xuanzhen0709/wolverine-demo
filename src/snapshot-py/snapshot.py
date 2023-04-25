@@ -27,20 +27,19 @@ class MySig(SignalBase):
 
     def on_sod(self, date: int, ev: SodEvent):
         self.cnt = 0
-        print(f"on_sod:{date}")
-        print(f"\tins_nr:{ev.ins_nr}")
-        mss = ctypes.POINTER(MdStatic).from_address(ev.ms)
+        print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
-            ms: MdStatic = mss[i]
+            ms: MdStatic = ev.ms[i].contents
             print(f"\t{i+1},{ms.instrument}")
 
     def on_snapshot(self, ev: SnapshotEvent):
-        print("on_snapshot")
         self.cnt += 1
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
         level1: MdLevel = ss.levels[0]
-        print(f"{ms.instrument},{ss.exchtime},{ss.last_price},{level1.av}@{level1.ap},{level1.bv}@{level1.bp}")
+        print(
+            f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{level1.av}@{level1.ap},{level1.bv}@{level1.bp}"
+        )
         self.sigval[0] = self.cnt
         self.update_signal(ss.exchtime, self.sigval)
 

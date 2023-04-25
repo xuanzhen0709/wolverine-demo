@@ -28,24 +28,25 @@ class MySig(SignalBase):
 
     def on_sod(self, date: int, ev: SodEvent):
         self.cnt = 0
-        print(f"on_sod:{date}")
-        print(f"\tins_nr:{ev.ins_nr}")
-        mss = ctypes.POINTER(MdStatic).from_address(ev.ms)
+        print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
-            ms: MdStatic = mss[i]
+            ms: MdStatic = ev.ms[i].contents
             print(f"\t{i+1},{ms.instrument}")
 
     def on_snapshot(self, ev: SnapshotEvent):
-        print("on_snapshot")
+        ms: MdStatic = ev.ms.contents
+        ss: MdSnapshot = ev.snapshot.contents
+        print(
+            f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
+        )
         raise NotImplementedError
 
     def on_bar(self, ev: BarEvent):
-        print("on_bar")
         self.cnt += 1
         ms: MdStatic = ev.ms.contents
         bar: MdBar = ev.bar.contents
         print(
-            f"{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
+            f"on_bar:{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
         )
         self.sigval[0] = self.cnt
         self.update_signal(bar.exchtime, self.sigval)
@@ -55,7 +56,7 @@ class MySig(SignalBase):
         raise NotImplementedError
 
     def on_eod(self, date: int):
-        print(f"total tick cnt:{self.cnt}")
+        print(f"on_eod:{date},total tick cnt:{self.cnt}")
 
 
 def pysig_create():

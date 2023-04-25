@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import time
 import yaml
 
 from cfi.wolverine.marketdata import *
@@ -10,9 +12,10 @@ class MySig(SignalBase):
     def __init__(self):
         super().__init__()
         self.cnt: int = 0
-        self.ins_nr: int = 0
         self.mss = []
-        self.sigval: np.ndarray = np.full((1, ), np.nan, dtype=np.float64)
+        self.last_price = []
+        self.exchtime = []
+        self.start_ts: float = 0
 
     def initialize(self, path: str):
         if not path:
@@ -27,40 +30,62 @@ class MySig(SignalBase):
             self.set_targets(cfg["targets"])
 
     def on_sod(self, date: int, ev: SodEvent):
+        self.start_ts = time.time()
         self.cnt = 0
         self.mss.clear()
 
-        print(f"on_sod:{date}")
-        print(f"\tins_nr:{ev.ins_nr}")
-        mss = ctypes.POINTER(ctypes.POINTER(MdStatic)).from_address(ev.ms)
+        print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
-            print(mss.contents[i])
-            print(mss.contents[i].contents)
-            # ms: MdStatic = mss[i].contents
-            # self.mss.append(ms)
+            ms: MdStatic = ev.ms[i].contents
+            self.mss.append(ms)
             # print(f"\t{i+1},{ms.instrument}")
+        self.last_price.clear()
+        self.exchtime.clear()
 
     def on_snapshot(self, ev: SnapshotEvent):
-        print("on_snapshot")
+        ms: MdStatic = ev.ms.contents
+        ss: MdSnapshot = ev.snapshot.contents
+        print(
+            f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
+        )
         raise NotImplementedError
 
     def on_bar(self, ev: BarEvent):
-        print("on_bar")
+        ms: MdStatic = ev.ms.contents
+        bar: MdBar = ev.bar.contents
+        print(
+            f"on_bar:{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
+        )
         raise NotImplementedError
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
-        print("on_cs_snapshot")
-        exchtime = ev.exchtime
-        ins_nr = ev.ins_nr
-        fld_nr = ev.fld_nr
-
+        # print("on_cs_snapshot")
+        self.exchtime.append(ev.exchtime)
         for (fld, data) in ev.data:
-            print(f"{fld},{data}")
+            if MdFld(fld) == MdFld.last_price:
+                # NOTE: we must explicitly create a copy of the data if we cache it in any way
+                self.last_price.append(np.ndarray.copy(data))
 
     def on_eod(self, date: int):
-        print(f"total tick cnt:{self.cnt}")
-        pass
+        now: float = time.time()
+        sod_eod_ts: float = now - self.start_ts
+        print(
+            f"on_eod:{date},total time:{sod_eod_ts:.2f}s,total tick cnt:{self.cnt}"
+        )
+        # concat cached data
+        exchtime: np.ndarray = np.array(self.exchtime, dtype=np.int64)
+        last_price: np.ndarray = np.array(self.last_price, dtype=np.float64)
+        now_2: float = time.time()
+        concat_ts: float = now_2 - now
+        print(f"concat time:{concat_ts:.2}s")
+
+        # just for demonstration purposes, we try to update signals using dummy values
+        ins_nr: int = len(self.mss)
+        for idx, _time in enumerate(exchtime):
+            self.update_signal(_time, np.full((ins_nr, ),
+                                              idx,
+                                              dtype=np.float64))
 
 
 def pysig_create():
