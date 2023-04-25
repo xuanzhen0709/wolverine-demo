@@ -1,4 +1,4 @@
-calendar: data/ChinaTradingDates.txt
+calendar: scripts/ChinaTradingDates.txt
 start: 20230101
 end: 20230109
 
@@ -11,7 +11,7 @@ marketdata:
     module: bar
     config:
       freq: 5
-      # input_dir: /global/wlsim/data/cffex_snapshot/localtime_bin
+      # input_dir: /global/wlsim/data/cffex_snapshot/
 
 signal:
   module: py
