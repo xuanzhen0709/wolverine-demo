@@ -1,8 +1,13 @@
 # wolverine-demo
 
-* ask the maintainer for a copy of the runtime and development packages.
+* ask the maintainer for a copy of the runtime and development packages, usually the packages are placed under
+  * /global/wlsim/packages
+  * /localdata/wlsim/packages
 
-* run install_runtime.sh, then you should be able to build this projects
+* run install_runtime.py to install the package. please view the commandline help message "-h" before running it.
+on centos 7/8 servers, please use "-P python3.8".
+
+* then you should be able to build this projects
 ```
 mkdir -p build/Debug
 pushd build/Debug
