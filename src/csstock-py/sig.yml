@@ -1,0 +1,8 @@
+targets:
+  - all_stocks
+
+marketdata:
+  - type: section
+    symbols:
+      - all_stocks
+# user defined params can go below

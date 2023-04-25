@@ -13,7 +13,7 @@
 using namespace cfi::wolverine;
 
 namespace nickchenyj {
-namespace stock_cs {
+namespace csstock {
 
 class Signal {
 public:
@@ -29,6 +29,7 @@ public:
 
 private:
   SignalApis m_apis = {nullptr};
+  size_t m_cnt = 0;
 };
 
 // function definitions
@@ -56,30 +57,31 @@ void Signal::initialize(const Config *root) {
 void Signal::set_apis(SignalApis apis) { m_apis = apis; }
 
 void Signal::on_sod(uint32_t date, const SodEvent *ev) {
+  m_cnt = 0;
   if (!ev) {
     return;
   }
   // for now in cross-sectional mode, we get the full list of stock names on
   // start of each day call set_targets() everyday
   std::vector<std::string> targets;
-  fmt::print("Signal on_sod ins_nr={},", ev->ins_nr);
-  for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
-    const auto *ms = ev->ms[i];
-    if (i) {
-      fmt::print(";{}", ms->instrument);
-    } else {
-      fmt::print("{}", ms->instrument);
-    }
-    std::string ins{ms->instrument};
-    ins.erase(std::find(ins.begin(), ins.end(), '\0'), ins.end());
+  fmt::print("Signal on_sod ins_nr={}\n", ev->ins_nr);
+  // for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
+  //   const auto *ms = ev->ms[i];
+  //   if (i) {
+  //     fmt::print(";{}", ms->instrument);
+  //   } else {
+  //     fmt::print("{}", ms->instrument);
+  //   }
+  //   std::string ins{ms->instrument};
+  //   ins.erase(std::find(ins.begin(), ins.end(), '\0'), ins.end());
 
-    std::string exch{ms->exchange};
-    exch.erase(std::find(exch.begin(), exch.end(), '\0'), exch.end());
+  //   std::string exch{ms->exchange};
+  //   exch.erase(std::find(exch.begin(), exch.end(), '\0'), exch.end());
 
-    std::string symbol = ins + "." + exch;
-    targets.emplace_back(symbol);
-  }
-  fmt::print("\n");
+  //   std::string symbol = ins + "." + exch;
+  //   targets.emplace_back(symbol);
+  // }
+  // fmt::print("\n");
   // set trading targets
   m_apis.set_targets(m_apis.token, targets);
 }
@@ -93,16 +95,20 @@ void Signal::on_snapshot(const SnapshotEvent *ev) {
 void Signal::on_bar(const BarEvent *ev) { fmt::print("on_bar\n"); }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
-  fmt::print("on_cs_snapshot,exchtime:{},ins_nr:{},fld_nr:{}\n", ev->exchtime,
-             ev->ins_nr, ev->fld_nr);
+  // fmt::print("on_cs_snapshot,exchtime:{},ins_nr:{},fld_nr:{}\n",
+  // ev->exchtime,
+  //            ev->ins_nr, ev->fld_nr);
+  ++m_cnt;
 }
 
-void Signal::on_eod(uint32_t date) { fmt::print("on_eod\n"); }
+void Signal::on_eod(uint32_t date) {
+  fmt::print("on_eod,{} updates received\n", m_cnt);
+}
 
-} // namespace stock_cs
+} // namespace csstock
 } // namespace nickchenyj
 
-using namespace nickchenyj::stock_cs;
+using namespace nickchenyj::csstock;
 
 C_DECLARATION_BEGIN;
 

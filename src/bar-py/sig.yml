@@ -1,0 +1,9 @@
+targets:
+  - IC.CFFEX
+
+marketdata:
+  - type: bar_5min
+    symbols:
+      - IC.CFFEX
+
+# user defined params can go below

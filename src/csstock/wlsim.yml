@@ -1,0 +1,24 @@
+calendar: data/ChinaTradingDates.txt
+start: 20230103
+end: 20230103
+
+secmaster:
+  config:
+    # input_dir: /global/wlsim/data/secmaster
+
+marketdata:
+  - type: section
+    module: section
+    config:
+    # input_dir: /global/wlsim/data/stock_section
+
+signal:
+  module: cpp
+  config:
+    name: csstock
+    module: nickchenyj-csstock
+    config_file: src/csstock/sig.yml
+    output:
+      module: csv
+      config:
+        output_dir: output

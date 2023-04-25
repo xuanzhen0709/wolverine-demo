@@ -1,5 +1,5 @@
 set(SIG_USERNAME nickchenyj)
-set(SIG_NAME demo01)
+set(SIG_NAME bar)
 
 add_wolverine_library(
     NAME ${SIG_USERNAME}-${SIG_NAME}_py

@@ -1,5 +1,5 @@
 set(SIG_USERNAME nickchenyj)
-set(SIG_NAME demo14)
+set(SIG_NAME csstock)
 
 set(MYSRCS ${SIG_NAME}.cpp)
 set(MYLIBS wolverine::fmt-header-only wolverine::headers)

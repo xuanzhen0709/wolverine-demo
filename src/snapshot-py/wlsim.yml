@@ -1,0 +1,27 @@
+calendar: data/ChinaTradingDates.txt
+start: 20230101
+end: 20230109
+
+secmaster:
+  config:
+    # input_dir: /global/wlsim/data/secmaster
+
+marketdata:
+  - type: snapshot
+    module: snapshot
+    config:
+    # input_dir: /global/wlsim/data/cffex_snapshot/localtime_bin
+
+signal:
+  module: py
+  config:
+    name: pysnapshot
+    module: nickchenyj-snapshot_py
+    pylib: libpython3.9.so
+    pypath:
+      - build/Debug/src/snapshot-py/
+    config_file: src/snapshot-py/sig.yml
+    output:
+      module: csv
+      config:
+        output_dir: output

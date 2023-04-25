@@ -1,0 +1,9 @@
+targets:
+  - IC.CFFEX
+
+marketdata:
+  - type: snapshot
+    symbols:
+      - IC.CFFEX
+
+# user defined params can go below
