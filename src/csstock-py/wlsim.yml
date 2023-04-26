@@ -15,7 +15,7 @@ marketdata:
 signal:
   module: py
   config:
-    name: cstock-py
+    name: csstock-py
     module: nickchenyj-csstock_py
     pylib: libpython3.9.so
     pypath:
