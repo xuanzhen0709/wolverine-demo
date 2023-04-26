@@ -111,10 +111,10 @@ void Signal::on_bar(const BarEvent *ev) { LOG_INFO("on_bar\n"); }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   LOG_INFO("on_cs_snapshot,exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
-  for (int i = 0; i < static_cast<int>(MdFld::_MAX); ++i) {
-    const auto &fld = ev->flds[i];
-    LOG_INFO_CONT("\n{},{}\n", i, fmt::ptr(fld.void_ptr));
-  }
+  // for (int i = 0; i < static_cast<int>(MdFld::_MAX); ++i) {
+  //   const auto &fld = ev->flds[i];
+  //   LOG_INFO_CONT("{},{}\n", i, fmt::ptr(fld.void_ptr));
+  // }
   ++m_cnt;
 }
 
