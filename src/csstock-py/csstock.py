@@ -27,18 +27,22 @@ class MySig(SignalBase):
             for _i in cfg["marketdata"]:
                 self.subscribe(_i["type"], _i["fields"], _i["symbols"])
 
-            self.set_targets(cfg["targets"])
-
     def on_sod(self, date: int, ev: SodEvent):
         self.start_ts = time.time()
         self.cnt = 0
         self.mss.clear()
 
+        targets = []
         print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
             ms: MdStatic = ev.ms[i].contents
             self.mss.append(ms)
+
+            targets.append(
+                ms.instrument.decode("utf8") + "." +
+                ms.exchange.decode("utf8"))
             # print(f"\t{i+1},{ms.instrument}")
+        self.set_targets(targets)
         self.last_price.clear()
         self.exchtime.clear()
 
