@@ -3,6 +3,9 @@ targets:
 
 marketdata:
   - type: section
+    fields:
+      - last_price
+      - volume
     symbols:
       - all_stocks
 # user defined params can go below

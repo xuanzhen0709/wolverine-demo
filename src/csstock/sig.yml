@@ -1,5 +1,9 @@
 marketdata:
   - type: section
+    fields:
+      - ap1
+      - last_price
+      - volume
     symbols:
       - all_stocks
 

@@ -22,7 +22,7 @@ class MySig(SignalBase):
             cfg = yaml.safe_load(fin)
 
             for _i in cfg["marketdata"]:
-                self.subscribe(_i["type"], _i["symbols"])
+                self.subscribe(_i["type"], [], _i["symbols"])
 
             self.set_targets(cfg["targets"])
 

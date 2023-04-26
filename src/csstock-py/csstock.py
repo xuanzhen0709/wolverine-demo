@@ -25,7 +25,7 @@ class MySig(SignalBase):
             cfg = yaml.safe_load(fin)
 
             for _i in cfg["marketdata"]:
-                self.subscribe(_i["type"], _i["symbols"])
+                self.subscribe(_i["type"], _i["fields"], _i["symbols"])
 
             self.set_targets(cfg["targets"])
 
@@ -62,10 +62,11 @@ class MySig(SignalBase):
         self.cnt += 1
         # print("on_cs_snapshot")
         self.exchtime.append(ev.exchtime)
-        for (fld, data) in ev.data:
-            if MdFld(fld) == MdFld.last_price:
-                # NOTE: we must explicitly create a copy of the data if we cache it in any way
-                self.last_price.append(np.ndarray.copy(data))
+
+        # ev.data is a dictionary mapping from int -> np.ndarray
+        last_price_data = ev.data[MdFld.last_price.value]
+        # NOTE: we must explicitly create a copy of the data if we cache it in any way
+        self.last_price.append(np.ndarray.copy(last_price_data))
 
     def on_eod(self, date: int):
         now: float = time.time()

@@ -1,8 +1,8 @@
-#include <limits>
 #include <wolverine/common.hpp>
 #include <wolverine/config.hpp>
 #include <wolverine/event.hpp>
 #include <wolverine/fmt/core.h>
+#include <wolverine/logging.hpp>
 #include <wolverine/marketdata.hpp>
 #include <wolverine/signal.hpp>
 
@@ -44,12 +44,26 @@ void Signal::initialize(const Config *root) {
     for (size_t md_idx = 0; md_idx < md_nr; ++md_idx) {
       const auto &this_cfg = md_cfg.getChildNodeByIdx(md_idx);
       const auto type = this_cfg.getValue<std::string>("type");
-      const auto symbols_cfg = this_cfg.getChildNode("symbols");
-      std::vector<std::string> symbols;
-      for (size_t sym_idx = 0; sym_idx < symbols_cfg.getSize(); ++sym_idx) {
-        symbols.push_back(symbols_cfg.getChildElement<std::string>(sym_idx));
+
+      std::vector<std::string> fields;
+      {
+        const auto fields_cfg = this_cfg.getChildNode("fields");
+        for (size_t fld_idx = 0; fld_idx < fields_cfg.getSize(); ++fld_idx) {
+          fields.push_back(fields_cfg.getChildElement<std::string>(fld_idx));
+        }
       }
-      m_apis.subscribe(m_apis.token, type, symbols);
+
+      std::vector<std::string> symbols;
+      {
+        const auto symbols_cfg = this_cfg.getChildNode("symbols");
+        for (size_t sym_idx = 0; sym_idx < symbols_cfg.getSize(); ++sym_idx) {
+          symbols.push_back(symbols_cfg.getChildElement<std::string>(sym_idx));
+        }
+      }
+      // NOTE:
+      // support for "fields" is marketdata-module dependent
+      // for cross-sectional data, an empty fields list indicates all fields.
+      m_apis.subscribe(m_apis.token, type, fields, symbols);
     }
   }
 }
@@ -61,16 +75,17 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   if (!ev) {
     return;
   }
-  // for now in cross-sectional mode, we get the full list of stock names on
-  // start of each day call set_targets() everyday
+  // NOTE:
+  // for now in cross-sectional mode, we get the full list of stock names
+  // on start of each day call set_targets() everyday
   std::vector<std::string> targets;
-  fmt::print("Signal on_sod ins_nr={}\n", ev->ins_nr);
+  LOG_INFO("Signal on_sod ins_nr={}\n", ev->ins_nr);
   // for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
   //   const auto *ms = ev->ms[i];
   //   if (i) {
-  //     fmt::print(";{}", ms->instrument);
+  //     LOG_INFO(";{}", ms->instrument);
   //   } else {
-  //     fmt::print("{}", ms->instrument);
+  //     LOG_INFO("{}", ms->instrument);
   //   }
   //   std::string ins{ms->instrument};
   //   ins.erase(std::find(ins.begin(), ins.end(), '\0'), ins.end());
@@ -81,28 +96,30 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   //   std::string symbol = ins + "." + exch;
   //   targets.emplace_back(symbol);
   // }
-  // fmt::print("\n");
+  // LOG_INFO("\n");
   // set trading targets
   m_apis.set_targets(m_apis.token, targets);
 }
 
 void Signal::on_snapshot(const SnapshotEvent *ev) {
   // market data update
-  fmt::print("on_snapshot,{},{},{}\n", ev->snapshot->exchtime,
-             ev->snapshot->localtime, ev->ms->instrument);
+  LOG_INFO("on_snapshot,{},{},{}\n", ev->snapshot->exchtime,
+           ev->snapshot->localtime, ev->ms->instrument);
 }
 
-void Signal::on_bar(const BarEvent *ev) { fmt::print("on_bar\n"); }
+void Signal::on_bar(const BarEvent *ev) { LOG_INFO("on_bar\n"); }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
-  // fmt::print("on_cs_snapshot,exchtime:{},ins_nr:{},fld_nr:{}\n",
-  // ev->exchtime,
-  //            ev->ins_nr, ev->fld_nr);
+  LOG_INFO("on_cs_snapshot,exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
+  for (int i = 0; i < static_cast<int>(MdFld::_MAX); ++i) {
+    const auto &fld = ev->flds[i];
+    LOG_INFO_CONT("\n{},{}\n", i, fmt::ptr(fld.void_ptr));
+  }
   ++m_cnt;
 }
 
 void Signal::on_eod(uint32_t date) {
-  fmt::print("on_eod,{} updates received\n", m_cnt);
+  LOG_INFO("on_eod,{} updates received\n", m_cnt);
 }
 
 } // namespace csstock
