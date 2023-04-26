@@ -21,7 +21,7 @@
   
   if you are using an older version, locate the following file (or a file named 'enable' of a similar path)
   ```
-  /opt/rh-/gcc-toolset-11/enable
+  /opt/rh/gcc-toolset-11/enable
   ```
   then add the following line to your ~/.bashrc
   ```
