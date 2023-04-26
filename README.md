@@ -1,26 +1,72 @@
-# wolverine-demo
+# System Environment Setup
 
-* ask the maintainer for a copy of the runtime and development packages, usually the packages are placed under
-  * /global/wlsim/packages
+* make sure the following lines are added to your ~/.bashrc
+
+  ```
+  export PATH=$PATH:~/.local/bin
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/lib
+  ```
+  
+  re-login after making the changes, and verify the variable are successfully updated by running
+  ```
+  echo $PATH
+  echo $LD_LIBRARY_PATH
+  ```
+
+* gcc-11 is required. check the gcc version by
+
+  ```
+  gcc -v
+  ```
+  
+  if you are using an older version, locate the following file (or a file named 'enable' of a similar path)
+  ```
+  /opt/rh-/gcc-toolset-11/enable
+  ```
+  then add the following line to your ~/.bashrc
+  ```
+  source ##THE_ENABLE_FILE_YOU_JUST_FOUND##
+  ```
+  re-login and check the gcc version.
+
+* check that you are using python3.8 by running
+  ```
+  python3 -V
+  ```
+  if it's an older version, try 'python3.8 -v' instead.
+
+---
+
+# Development Paackage Setup
+
+* ask the maintainer for a copy of the runtime and development packages, the packages are usually placed under
+  * /global/wlsim/packages, or
   * /localdata/wlsim/packages
 
 * run install_runtime.py to install the package. please view the commandline help message "-h" before running it.
-on centos 7/8 servers, please use "-P python3.8".
 
-* then you should be able to build this projects
-```
-mkdir -p build/Debug
-pushd build/Debug
-cmake -DCMAKE_BUILD_TYPE=Debug ../../
-make -j8 install
-popd
-```
+  do make sure to specify "-P" if your default python3 interpreter is not python3.8.
+
+* build this projects
+  ```
+  mkdir -p build/Debug
+  pushd build/Debug
+  cmake -DCMAKE_BUILD_TYPE=Debug ../../
+  # or Release build
+  # mkdir -p build/Release
+  # pushd build/Release
+  # cmake -DCMAKE_BUILD_TYPE=Release ../../
+
+  make -j8 install
+  popd
+  ```
 
 * at the project root dir, run:
-```
-wl-sim src/demo01-py/wlsim.yml
-# wl-sim src/demo14/wlsim.yml
-```
+  ```
+  wl-sim src/csstock/wlsim.yml
+  ```
+
+---
 
 # Usage
 * there are two key data structures that deal with the communication between the system and user-defined implementation.
