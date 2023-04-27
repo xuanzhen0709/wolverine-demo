@@ -82,3 +82,7 @@
   * (mostly likely) a user-defined signal class that actually handles all the requests.
 
   * in the implementation, users will need to explicitly call subscribe() and then set_targets() during initialization, and call update_signal() to update signal values.
+
+# Caveats
+
+* some dataset is not accessible from our test servers (s15/s19/s23 etc) and dev servers (dev VMs) due to permission constraints. please refer to the "input_dir" fields in the config file and uncomment the relevant lines. you may also need to slightly change the path of the directory to '/localdata/xxx' on some servers.
