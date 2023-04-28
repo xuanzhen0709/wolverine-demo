@@ -33,7 +33,11 @@
   ```
   python3 -V
   ```
-  if it's an older version, try 'python3.8 -v' instead.
+  if it's an older version, try 'python3.8 -v' instead. if it's not installed, try enable 
+  ```
+  /opt/rh/rh-python38/enable
+  ```
+  just as in the gcc case.
 
 ---
 
