@@ -1,12 +1,9 @@
-set(SIG_USERNAME nickchenyj)
-set(SIG_NAME csstock)
-
-set(MYSRCS ${SIG_NAME}.cpp)
 set(MYLIBS wolverine::fmt-header-only wolverine::headers)
 
 add_wolverine_library(
-    NAME ${SIG_USERNAME}-${SIG_NAME}
+    NAME csstock
+    USER nickchenyj
     TYPE signal
-    SRCS ${MYSRCS}
+    SRCS csstock.cpp
     LIBS ${MYLIBS}
 )

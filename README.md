@@ -89,6 +89,18 @@
 
 ---
 
+# Signal CMakeLists.txt
+
+* NAME should be the signal name
+
+* USER should be the username
+
+* SRCS should be all the source files. 
+
+* for the python version specifically, all the pysig_* functions MUST be defined in the main.py
+
+---
+
 # Caveats
 
 * some dataset is not accessible from our test servers (s15/s19/s23 etc) and dev servers (dev VMs) due to permission constraints. please refer to the "input_dir" fields in the config file and uncomment the relevant lines. you may also need to slightly change the path of the directory to '/localdata/xxx' on some servers.
