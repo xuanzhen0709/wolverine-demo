@@ -1,3 +1,5 @@
+from .mytest import *
+
 import numpy as np
 import pandas as pd
 import time
@@ -16,6 +18,7 @@ class MySig(SignalBase):
         self.last_price = []
         self.exchtime = []
         self.start_ts: float = 0
+        haha()
 
     def initialize(self, path: str):
         if not path:

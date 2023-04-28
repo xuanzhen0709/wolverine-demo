@@ -1,8 +1,6 @@
-set(SIG_USERNAME nickchenyj)
-set(SIG_NAME bar)
-
 add_wolverine_library(
-    NAME ${SIG_USERNAME}-${SIG_NAME}_py
+    NAME bar
+    USER nickchenyj
     TYPE pysig
-    SRCS ${SIG_NAME}.py
+    SRCS main.py
 )

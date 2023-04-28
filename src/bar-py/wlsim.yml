@@ -11,13 +11,13 @@ marketdata:
     module: bar
     config:
       freq: 5
-      # input_dir: /global/wlsim/data/cffex_snapshot/
+      # input_dir: /global/wlsim/data/snapshot_bin
 
 signal:
   module: py
   config:
     name: pybar
-    module: nickchenyj-bar_py
+    module: nickchenyj.bar
     pylib: libpython3.9.so
     pypath:
       - build/Debug/src/bar-py/

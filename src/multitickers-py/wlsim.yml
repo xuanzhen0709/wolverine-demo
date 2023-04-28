@@ -10,13 +10,13 @@ marketdata:
   - type: snapshot
     module: snapshot
     config:
-    # input_dir: /global/wlsim/data/cffex_snapshot
+    # input_dir: /global/wlsim/data/snapshot_bin
 
 signal:
   module: py
   config:
-    name: pymultiticker
-    module: nickchenyj-multitickers_py
+    name: multiticker-py
+    module: nickchenyj.multitickers
     pylib: libpython3.9.so
     pypath:
       - build/Debug/src/multitickers-py/

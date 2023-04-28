@@ -73,15 +73,17 @@
 
   * SignalApis: this structure holds all the necessary information needed by users when users want to request certain functionalities from the system
 
+    * users need to call subscribe(type: str, fields: vector[str], symbols: vector[str]) during initialization. 'fields' is marketdata-type dependent. for example, the 'section' md loader which loads cross-sectional snapshots for stocks allow specifying a list of fields to load, while other loaders don't handle 'fields' at all for now.
+
+    * set_targets(symbols: vector[str]) is used to set the targets that users intend to trade. and update_signal(exchtime, sigs: np.ndarray) is used to update signal values (note that sigs should always be a vector whose values correspond to the trading targets). set_targets() thus needs to be called before upate_signal(). for single-target trading, users may call set_targets() during initialization. for cross-sectional research where the list of stocks may change inter-day, users may choose to set_targets() on sod, as long as update_signal() uses a numpy array of the right length during that trading day.
+
   * SignalOps: this structure describes all the available event callbacks that users can receive, and users should create an instance of it and pass back to the system on creation. and the system will callback into user implementations accordingly.
+  
+    * on_sod: this callback is triggered during start of day, and it provides ins_nr (number of instruments), and the static data for each of the instruments.
 
-* a likely implementation involves 
+    * other callbacks: see examples and notes.
 
-  * some boilerplate code (SignalOps instantiation and callback forwarding at the bottom of the file, and an "on_create" function)
-
-  * (mostly likely) a user-defined signal class that actually handles all the requests.
-
-  * in the implementation, users will need to explicitly call subscribe() and then set_targets() during initialization, and call update_signal() to update signal values.
+---
 
 # Caveats
 

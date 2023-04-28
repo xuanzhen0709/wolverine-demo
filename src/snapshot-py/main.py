@@ -37,18 +37,18 @@ class MySig(SignalBase):
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
         level1: MdLevel = ss.levels[0]
-        print(
-            f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{level1.av}@{level1.ap},{level1.bv}@{level1.bp}"
-        )
+        # print(
+        #     f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{level1.av}@{level1.ap},{level1.bv}@{level1.bp}"
+        # )
         self.sigval[0] = self.cnt
         self.update_signal(ss.exchtime, self.sigval)
 
     def on_bar(self, ev: BarEvent):
-        print("on_bar")
+        # print("on_bar")
         raise NotImplementedError
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
-        print("on_cs_snapshot")
+        # print("on_cs_snapshot")
         raise NotImplementedError
 
     def on_eod(self, date: int):
