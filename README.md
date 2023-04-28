@@ -29,7 +29,7 @@
   ```
   re-login and check the gcc version.
 
-* check that you are using python3.8 by running
+* check that you are using at least python3.8
   ```
   python3 -V
   ```
@@ -37,7 +37,10 @@
   ```
   /opt/rh/rh-python38/enable
   ```
-  just as in the gcc case.
+  in this case, please install Cython the after enabling python 3.8 the first time
+  ```
+  python3.8 -m pip install Cython --user
+  ```
 
 ---
 
@@ -49,7 +52,7 @@
 
 * run install_runtime.py to install the package. please view the commandline help message "-h" before running it.
 
-  do make sure to specify "-P" if your default python3 interpreter is not python3.8.
+  do make sure to specify "-P" if your default python interpreter is not 'python3' but 'python3.8'/'python3.9' etc.
 
 * build this projects
   ```
