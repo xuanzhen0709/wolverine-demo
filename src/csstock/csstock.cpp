@@ -79,7 +79,7 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day call set_targets() everyday
   std::vector<std::string> targets;
-  LOG_INFO("Signal on_sod ins_nr={}\n", ev->ins_nr);
+  LOG_INFO("ins_nr={}\n", ev->ins_nr);
   // for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
   //   const auto *ms = ev->ms[i];
   //   if (i) {
@@ -103,14 +103,14 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
 
 void Signal::on_snapshot(const SnapshotEvent *ev) {
   // market data update
-  LOG_INFO("on_snapshot,{},{},{}\n", ev->snapshot->exchtime,
+  LOG_INFO("{},{},{}\n", ev->snapshot->exchtime,
            ev->snapshot->localtime, ev->ms->instrument);
 }
 
-void Signal::on_bar(const BarEvent *ev) { LOG_INFO("on_bar\n"); }
+void Signal::on_bar(const BarEvent *ev) { LOG_INFO("callback received\n"); }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
-  LOG_INFO("on_cs_snapshot,exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
+  LOG_INFO("exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
   // for (int i = 0; i < static_cast<int>(MdFld::_MAX); ++i) {
   //   const auto &fld = ev->flds[i];
   //   LOG_INFO_CONT("{},{}\n", i, fmt::ptr(fld.void_ptr));
@@ -119,7 +119,7 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
 }
 
 void Signal::on_eod(uint32_t date) {
-  LOG_INFO("on_eod,{} updates received\n", m_cnt);
+  LOG_INFO("{} updates received\n", m_cnt);
 }
 
 } // namespace csstock
