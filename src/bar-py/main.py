@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Dict, Tuple
 import yaml
 
 from cfi.wolverine.marketdata import *
@@ -36,10 +35,11 @@ class MySig(SignalBase):
     def on_snapshot(self, ev: SnapshotEvent):
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
+
         print(
-            f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
+            f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
         )
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def on_bar(self, ev: BarEvent):
         self.cnt += 1
@@ -53,7 +53,7 @@ class MySig(SignalBase):
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         print("on_cs_snapshot")
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def on_eod(self, date: int):
         print(f"on_eod:{date},total tick cnt:{self.cnt}")

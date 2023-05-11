@@ -1,7 +1,6 @@
 from .mytest import *
 
 import numpy as np
-import pandas as pd
 import time
 import yaml
 
@@ -53,9 +52,8 @@ class MySig(SignalBase):
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
         print(
-            f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
+            f"on_snapshot:{ms.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
         )
-        raise NotImplementedError
 
     def on_bar(self, ev: BarEvent):
         ms: MdStatic = ev.ms.contents
@@ -63,7 +61,6 @@ class MySig(SignalBase):
         print(
             f"on_bar:{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
         )
-        raise NotImplementedError
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1

@@ -103,8 +103,13 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
 
 void Signal::on_snapshot(const SnapshotEvent *ev) {
   // market data update
-  LOG_INFO("{},{},{}\n", ev->snapshot->exchtime,
-           ev->snapshot->localtime, ev->ms->instrument);
+  const auto *ms = ev->ms;
+  const auto *ss = ev->snapshot;
+  LOG_INFO("{},{},{},{}\n", static_cast<int>(ss->md_type), ss->exchtime,
+           ss->localtime, ms->instrument);
+  // if (ss->md_type == MdType::Level1) {
+  // } else if (ss->md_type == MdType::Level5) {
+  // }
 }
 
 void Signal::on_bar(const BarEvent *ev) { LOG_INFO("callback received\n"); }
@@ -118,9 +123,7 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   ++m_cnt;
 }
 
-void Signal::on_eod(uint32_t date) {
-  LOG_INFO("{} updates received\n", m_cnt);
-}
+void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
 
 } // namespace csstock
 } // namespace nickchenyj
