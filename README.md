@@ -57,6 +57,9 @@
 
 # Development Paackage Setup
 
+NOTE: before installing the packages and using the framework, do check that the necessary python/gcc versions are already enabled.
+It will lead to incompatibility/missing components/various other issues otherwise.
+
 * ask the maintainer for a copy of the runtime and development packages, the packages are usually placed under
   * /global/wlsim/packages, or
   * /localdata/wlsim/packages
