@@ -80,23 +80,17 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   // on start of each day call set_targets() everyday
   std::vector<std::string> targets;
   LOG_INFO("ins_nr={}\n", ev->ins_nr);
-  // for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
-  //   const auto *ms = ev->ms[i];
-  //   if (i) {
-  //     LOG_INFO(";{}", ms->instrument);
-  //   } else {
-  //     LOG_INFO("{}", ms->instrument);
-  //   }
-  //   std::string ins{ms->instrument};
-  //   ins.erase(std::find(ins.begin(), ins.end(), '\0'), ins.end());
+  for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
+    const auto *ms = ev->ms[i];
+    std::string ins{ms->instrument};
+    ins.erase(std::find(ins.begin(), ins.end(), '\0'), ins.end());
 
-  //   std::string exch{ms->exchange};
-  //   exch.erase(std::find(exch.begin(), exch.end(), '\0'), exch.end());
+    std::string exch{ms->exchange};
+    exch.erase(std::find(exch.begin(), exch.end(), '\0'), exch.end());
 
-  //   std::string symbol = ins + "." + exch;
-  //   targets.emplace_back(symbol);
-  // }
-  // LOG_INFO("\n");
+    std::string symbol = ins + "." + exch;
+    targets.emplace_back(symbol);
+  }
   // set trading targets
   m_apis.set_targets(m_apis.token, targets);
 }
