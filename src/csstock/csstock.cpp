@@ -115,6 +115,9 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   //   LOG_INFO_CONT("{},{}\n", i, fmt::ptr(fld.void_ptr));
   // }
   ++m_cnt;
+  // we use m_cnt as the sig value for each target
+  std::vector<double> sigs(ev->ins_nr, double(m_cnt));
+  m_apis.update_signal(m_apis.token, ev->exchtime, ev->ins_nr, sigs.data());
 }
 
 void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
