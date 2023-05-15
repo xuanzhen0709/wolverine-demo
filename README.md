@@ -42,6 +42,17 @@
   python3.8 -m pip install Cython --user
   ```
 
+* on some Linux distributions, adding the above 'enable xxx' lines to ~/.bashrc doesn't guarantee auto-enabling them in new terminals.
+  you may try and validate whether the changes persist by opening a new terminal. if not, you may add the following lines to your ~/.profile
+  ```
+  if [ -n "${BASH_VERSION}" ]; then
+    if [ -f "${HOME}/.bashrc" ]; then
+        source "${HOME}/.bashrc"
+    fi
+  fi
+  ```
+
+
 ---
 
 # Development Paackage Setup
@@ -52,7 +63,7 @@
 
 * run install_runtime.py to install the package. please view the commandline help message "-h" before running it.
 
-  do make sure to specify "-P" if your default python interpreter is not 'python3' but 'python3.8'/'python3.9' etc.
+  do make sure to specify "-P" if your default python interpreter is not 'python3' (for example, python3.8 /python3.9 etc).
 
 * build this projects
   ```
