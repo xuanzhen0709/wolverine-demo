@@ -57,7 +57,7 @@
 
 # Development Paackage Setup
 
-NOTE: before installing the packages and using the framework, do check that the necessary python/gcc versions are already enabled.
+NOTE: before installing the packages and using the framework, do check that the required python/gcc versions are already enabled.
 It will lead to incompatibility/missing components/various other issues otherwise.
 
 * ask the maintainer for a copy of the runtime and development packages, the packages are usually placed under
@@ -89,7 +89,14 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
 ---
 
-# Usage
+# Quick Note
+
+* Build System
+
+  * CMake is used throughout the project, and most functionalities have been encapsulated in helper functions.
+
+  * when adding new implementations, simply call add_wolverine_library() as seen in the demos
+
 * there are two key data structures that deal with the communication between the system and user-defined implementation.
 
   * SignalApis: this structure holds all the necessary information needed by users when users want to request certain functionalities from the system
@@ -104,17 +111,13 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
     * other callbacks: see examples and notes.
 
----
+* python version
 
-# Signal CMakeLists.txt
+  * main.py MUST exist and contains the pysig_* functions.
 
-* NAME should be the signal name
+  * when calling update_signal(), please make sure a contiguous array (signal array) is provided. Sometimes we might not always get a contiguous array as expected, especially when the calculation involves complicated merging/concatenation of dataframes, and the underlying buffer is not contiguous.
 
-* USER should be the username
-
-* SRCS should be all the source files. 
-
-* for the python version specifically, all the pysig_* functions MUST be defined in the main.py
+  in that case, simply call df.copy().values or alternatively, pre-allocate a buffer and fill in the calculated values.
 
 ---
 
