@@ -116,7 +116,6 @@ It will lead to incompatibility/missing components/various other issues otherwis
   * main.py MUST exist and contains the pysig_* functions.
 
   * when calling update_signal(), please make sure a contiguous array (signal array) is provided. Sometimes we might not always get a contiguous array as expected, especially when the calculation involves complicated merging/concatenation of dataframes, and the underlying buffer is not contiguous.
-
   in that case, simply call df.copy().values or alternatively, pre-allocate a buffer and fill in the calculated values.
 
 ---
