@@ -118,6 +118,8 @@ It will lead to incompatibility/missing components/various other issues otherwis
   * when calling update_signal(), please make sure a contiguous array (signal array) is provided. Sometimes we might not always get a contiguous array as expected, especially when the calculation involves complicated merging/concatenation of dataframes, and the underlying buffer is not contiguous.
   in that case, simply call df.copy().values or alternatively, pre-allocate a buffer and fill in the calculated values.
 
+  * to adpat to various python environments, the correct python runtime library must be specified in the "pylib" section of the config file. change the version according to your python version.
+
 ---
 
 # Caveats

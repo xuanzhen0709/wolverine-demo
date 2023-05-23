@@ -18,7 +18,7 @@ signal:
   config:
     name: pybar
     module: nickchenyj.bar
-    pylib: libpython3.9.so
+    pylib: libpython3.8.so
     pypath:
       - build/Debug/src/bar-py/
     config_file: src/bar-py/sig.yml
