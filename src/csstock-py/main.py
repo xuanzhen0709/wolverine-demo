@@ -52,7 +52,7 @@ class MySig(SignalBase):
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
         print(
-            f"on_snapshot:{ms.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
+            f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
         )
 
     def on_bar(self, ev: BarEvent):

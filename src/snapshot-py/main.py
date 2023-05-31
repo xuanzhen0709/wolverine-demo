@@ -1,9 +1,8 @@
 import numpy as np
-from typing import Dict, Tuple
 import yaml
 
 from cfi.wolverine.marketdata import *
-from cfi.wolverine.signal import SignalBase
+from cfi.wolverine.signal import *
 
 
 class MySig(SignalBase):
@@ -38,7 +37,7 @@ class MySig(SignalBase):
         ss: MdSnapshot = ev.snapshot.contents
         level1: MdLevel = ss.levels[0]
         print(
-            f"on_snapshot:{ms.instrument},{ss.exchtime},{ss.last_price},{level1.bv}@{level1.bp},{level1.av}@{level1.ap}"
+            f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{level1.bv}@{level1.bp},{level1.av}@{level1.ap}"
         )
         self.sigval[0] = self.cnt
         self.update_signal(ss.exchtime, self.sigval)
@@ -58,35 +57,3 @@ class MySig(SignalBase):
 
 def pysig_create():
     return MySig()
-
-
-def pysig_set_apis(hdl, apis: dict):
-    hdl.set_apis(apis)
-
-
-def pysig_initialize(hdl, path: str):
-    hdl.initialize(path)
-
-
-def pysig_on_sod(hdl, date: int, ev_ptr: int):
-    ev: SodEvent = SodEvent.from_address(ev_ptr)
-    hdl.on_sod(date, ev)
-
-
-def pysig_on_snapshot(hdl, ev_ptr: int):
-    ev: SnapshotEvent = SnapshotEvent.from_address(ev_ptr)
-    return hdl.on_snapshot(ev)
-
-
-def pysig_on_bar(hdl, ev_ptr: int):
-    ev: BarEvent = BarEvent.from_address(ev_ptr)
-    return hdl.on_bar(ev)
-
-
-def pysig_on_cs_snapshot(hdl, ev_ptr: int):
-    ev: CsSnapshotEvent = CsSnapshotEvent.from_address(ev_ptr)
-    return hdl.on_cs_snapshot(ev)
-
-
-def pysig_on_eod(hdl, date: int):
-    hdl.on_eod(date)

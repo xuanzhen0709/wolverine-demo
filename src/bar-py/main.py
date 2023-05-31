@@ -2,7 +2,7 @@ import numpy as np
 import yaml
 
 from cfi.wolverine.marketdata import *
-from cfi.wolverine.signal import SignalBase
+from cfi.wolverine.signal import *
 
 
 class MySig(SignalBase):
@@ -61,35 +61,3 @@ class MySig(SignalBase):
 
 def pysig_create():
     return MySig()
-
-
-def pysig_set_apis(hdl, apis: dict):
-    hdl.set_apis(apis)
-
-
-def pysig_initialize(hdl, path: str):
-    hdl.initialize(path)
-
-
-def pysig_on_sod(hdl, date: int, ev_ptr: int):
-    ev: SodEvent = SodEvent.from_address(ev_ptr)
-    hdl.on_sod(date, ev)
-
-
-def pysig_on_snapshot(hdl, ev_ptr: int):
-    ev: SnapshotEvent = SnapshotEvent.from_address(ev_ptr)
-    return hdl.on_snapshot(ev)
-
-
-def pysig_on_bar(hdl, ev_ptr: int):
-    ev: BarEvent = BarEvent.from_address(ev_ptr)
-    return hdl.on_bar(ev)
-
-
-def pysig_on_cs_snapshot(hdl, ev_ptr: int):
-    ev: CsSnapshotEvent = CsSnapshotEvent.from_address(ev_ptr)
-    return hdl.on_cs_snapshot(ev)
-
-
-def pysig_on_eod(hdl, date: int):
-    hdl.on_eod(date)
