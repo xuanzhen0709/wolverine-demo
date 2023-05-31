@@ -4,7 +4,6 @@ import numpy as np
 import time
 import yaml
 
-from cfi.wolverine.marketdata import *
 from cfi.wolverine.signal import SignalBase
 
 
