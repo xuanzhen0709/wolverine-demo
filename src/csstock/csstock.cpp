@@ -95,6 +95,8 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   m_apis.set_targets(m_apis.token, targets);
 }
 
+void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
+
 void Signal::on_snapshot(const SnapshotEvent *ev) {
   // market data update
   const auto *ms = ev->ms;
@@ -120,8 +122,6 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   m_apis.update_signal(m_apis.token, ev->exchtime, ev->ins_nr, sigs.data());
 }
 
-void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
-
 } // namespace csstock
 } // namespace nickchenyj
 
@@ -146,6 +146,10 @@ static SignalOps my_ops = {
       ptr->on_sod(date, ev);
     },
 
+    .on_eod = [](void *hdl, uint32_t date) -> void {
+      auto *ptr = reinterpret_cast<Signal *>(hdl);
+      ptr->on_eod(date);
+    },
     .on_snapshot = [](void *hdl,
                       const cfi::wolverine::SnapshotEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
@@ -161,11 +165,6 @@ static SignalOps my_ops = {
                          const cfi::wolverine::CsSnapshotEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_snapshot(ev);
-    },
-
-    .on_eod = [](void *hdl, uint32_t date) -> void {
-      auto *ptr = reinterpret_cast<Signal *>(hdl);
-      ptr->on_eod(date);
     },
 };
 
