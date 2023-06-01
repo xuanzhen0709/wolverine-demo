@@ -1,5 +1,3 @@
-from .mytest import *
-
 import numpy as np
 import time
 import yaml
@@ -16,7 +14,6 @@ class MySig(SignalBase):
         self.last_price = []
         self.exchtime = []
         self.start_ts: float = 0
-        haha()
 
     def initialize(self, path: str):
         if not path:
@@ -83,13 +80,41 @@ class MySig(SignalBase):
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
-        # print("on_cs_snapshot")
+        print(f"on_cs_snapshot", {ev.exchtime})
         self.exchtime.append(ev.exchtime)
 
         # ev.data is a dictionary mapping from int -> np.ndarray
         last_price_data = ev.data[MdFld.last_price.value]
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
         self.last_price.append(np.ndarray.copy(last_price_data))
+
+    def on_new_order(self, ev: NewOrderEvent):
+        ms: MdStatic = ev.ms.contents
+        order: NewOrder = ev.order.contents
+        print(
+            f"on_new_order,{ms.instrument},{order.chan_id},{order.exchtime},{order.localtime},{order.oid}"
+        )
+
+    def on_cancel_order(self, ev: CancelOrderEvent):
+        ms: MdStatic = ev.ms.contents
+        cancel: NewOrder = ev.cancel.contents
+        print(
+            f"on_cancel_order,{ms.instrument},{cancel.chan_id},{cancel.exchtime},{cancel.localtime},{cancel.oid}"
+        )
+
+    def on_trade(self, ev: TradeEvent):
+        ms: MdStatic = ev.ms.contents
+        trade: Trade = ev.trade.contents
+        print(
+            f"on_trade,{ms.instrument},{trade.chan_id},{trade.exchtime},{trade.localtime},{trade.bid_oid},{trade.ask_oid}"
+        )
+
+    def on_mbp(self, ev: MbpEvent):
+        ms: MdStatic = ev.ms.contents
+        mbp: MBP = ev.mbp.contents
+        print(
+            f"on_mbp,{ms.instrument},{mbp.chan_id},{mbp.exchtime},{mbp.localtime}"
+        )
 
 
 def pysig_create():

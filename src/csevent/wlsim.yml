@@ -1,0 +1,29 @@
+calendar: scripts/ChinaTradingDates.txt
+start: 20230505
+end: 20230505
+
+secmaster:
+  config:
+    # input_dir: /global/wlsim/data/secmaster
+
+marketdata:
+  - type: section
+    module: section
+    config:
+      input_dir: /mnt/nas-3/ProcessedData/stock_snapshot_bin/binary_tick
+
+  - type: mbp
+    module: mbp
+    config:
+    # input_dir: /global/wlsim/data/stock_section
+
+signal:
+  module: cpp
+  config:
+    name: csevent
+    module: nickchenyj-csevent
+    config_file: src/csevent/sig.yml
+    output:
+      module: csv
+      config:
+        output_dir: output

@@ -1,0 +1,16 @@
+marketdata:
+  - type: section
+    fields:
+      - ap1
+      - last_price
+      - volume
+    symbols:
+      - all_stocks
+
+  - type: mbp
+    fields: []
+    symbols:
+      - all_stocks
+
+# freq can be 60/120/180
+freq: 120

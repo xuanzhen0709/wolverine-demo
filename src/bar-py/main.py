@@ -31,6 +31,9 @@ class MySig(SignalBase):
             ms: MdStatic = ev.ms[i].contents
             print(f"\t{i+1},{ms.instrument}")
 
+    def on_eod(self, date: int):
+        print(f"on_eod:{date},total tick cnt:{self.cnt}")
+
     def on_snapshot(self, ev: SnapshotEvent):
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
@@ -53,9 +56,6 @@ class MySig(SignalBase):
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         print("on_cs_snapshot")
         # raise NotImplementedError
-
-    def on_eod(self, date: int):
-        print(f"on_eod:{date},total tick cnt:{self.cnt}")
 
 
 def pysig_create():
