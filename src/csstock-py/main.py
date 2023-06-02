@@ -66,7 +66,7 @@ class MySig(SignalBase):
         # just for demonstration purposes, we try to update signals using dummy values
         ins_nr: int = len(self.mss)
         for idx in range(len(exchtime)):
-            self.update_signal(exchtime[idx], localtime[idx],
+            self.update_signal(int(exchtime[idx]), int(localtime[idx]),
                                np.full((ins_nr, ), idx, dtype=np.float64))
 
     def on_snapshot(self, ev: SnapshotEvent):
