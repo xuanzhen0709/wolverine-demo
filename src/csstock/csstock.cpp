@@ -123,7 +123,8 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   ++m_cnt;
   // we use m_cnt as the sig value for each target
   std::vector<double> sigs(ev->ins_nr, double(m_cnt));
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->ins_nr, sigs.data());
+  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
+                       sigs.data());
 }
 
 } // namespace csstock

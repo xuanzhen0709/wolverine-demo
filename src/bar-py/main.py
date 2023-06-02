@@ -51,7 +51,7 @@ class MySig(SignalBase):
             f"on_bar:{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
         )
         self.sigval[0] = self.cnt
-        self.update_signal(bar.exchtime, self.sigval)
+        self.update_signal(bar.exchtime, bar.localtime, self.sigval)
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         print("on_cs_snapshot")

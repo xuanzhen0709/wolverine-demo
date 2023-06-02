@@ -15,6 +15,7 @@ class MySig(SignalBase):
         self.mss = []
         self.last_price = []
         self.exchtime = []
+        self.localtime = []
         self.start_ts: float = 0
         haha()
 
@@ -46,6 +47,7 @@ class MySig(SignalBase):
         self.set_targets(targets)
         self.last_price.clear()
         self.exchtime.clear()
+        self.localtime.clear()
 
     def on_eod(self, date: int):
         now: float = time.time()
@@ -55,6 +57,7 @@ class MySig(SignalBase):
         )
         # concat cached data
         exchtime: np.ndarray = np.array(self.exchtime, dtype=np.int64)
+        localtime: np.ndarray = np.array(self.localtime, dtype=np.uint64)
         last_price: np.ndarray = np.array(self.last_price, dtype=np.float64)
         now_2: float = time.time()
         concat_ts: float = now_2 - now
@@ -62,10 +65,9 @@ class MySig(SignalBase):
 
         # just for demonstration purposes, we try to update signals using dummy values
         ins_nr: int = len(self.mss)
-        for idx, _time in enumerate(exchtime):
-            self.update_signal(_time, np.full((ins_nr, ),
-                                              idx,
-                                              dtype=np.float64))
+        for idx in range(len(exchtime)):
+            self.update_signal(exchtime[idx], localtime[idx],
+                               np.full((ins_nr, ), idx, dtype=np.float64))
 
     def on_snapshot(self, ev: SnapshotEvent):
         ms: MdStatic = ev.ms.contents
@@ -85,6 +87,7 @@ class MySig(SignalBase):
         self.cnt += 1
         # print("on_cs_snapshot")
         self.exchtime.append(ev.exchtime)
+        self.localtime.append(ev.localtime)
 
         # ev.data is a dictionary mapping from int -> np.ndarray
         last_price_data = ev.data[MdFld.last_price.value]

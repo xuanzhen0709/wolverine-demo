@@ -41,7 +41,7 @@ class MySig(SignalBase):
             f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
         )
         self.sigval[0] = self.cnt
-        self.update_signal(ss.exchtime, self.sigval)
+        self.update_signal(ss.exchtime, ss.localtime, self.sigval)
 
     def on_bar(self, ev: BarEvent):
         ms: MdStatic = ev.ms.contents
