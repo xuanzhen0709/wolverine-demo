@@ -20,9 +20,9 @@ marketdata:
 signal:
   module: cpp
   config:
-    name: csevent
-    module: nickchenyj-csevent
-    config_file: src/csevent/sig.yml
+    name: mbp
+    module: nickchenyj-mbp
+    config_file: src/mbp/sig.yml
     output:
       module: csv
       config:

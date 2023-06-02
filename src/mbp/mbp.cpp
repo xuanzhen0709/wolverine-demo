@@ -13,7 +13,7 @@
 using namespace cfi::wolverine;
 
 namespace nickchenyj {
-namespace csevent {
+namespace mbp {
 
 class Signal {
 public:
@@ -208,10 +208,10 @@ void Signal::on_mbp(const MbpEvent *ev) {
   m_mbp_stats.last = std::max(m_mbp_stats.last, mbp->exchtime);
 }
 
-} // namespace csevent
+} // namespace mbp
 } // namespace nickchenyj
 
-using namespace nickchenyj::csevent;
+using namespace nickchenyj::mbp;
 
 C_DECLARATION_BEGIN;
 
