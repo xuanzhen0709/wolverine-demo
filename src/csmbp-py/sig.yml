@@ -9,7 +9,7 @@ marketdata:
     symbols:
       - all_stocks
 
-  - type: mbp
+  - type: cs-mbp
     fields: []
     symbols:
       - all_stocks

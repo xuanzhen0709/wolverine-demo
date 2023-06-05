@@ -66,20 +66,6 @@ class MySig(SignalBase):
             self.update_signal(int(exchtime[idx]), int(localtime[idx]),
                                np.full((ins_nr, ), idx, dtype=np.float64))
 
-    def on_snapshot(self, ev: SnapshotEvent):
-        ms: MdStatic = ev.ms.contents
-        ss: MdSnapshot = ev.snapshot.contents
-        print(
-            f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
-        )
-
-    def on_bar(self, ev: BarEvent):
-        ms: MdStatic = ev.ms.contents
-        bar: MdBar = ev.bar.contents
-        print(
-            f"on_bar:{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
-        )
-
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
         print(f"on_cs_snapshot", {ev.exchtime})
@@ -91,33 +77,36 @@ class MySig(SignalBase):
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
         self.last_price.append(np.ndarray.copy(last_price_data))
 
-    def on_new_order(self, ev: NewOrderEvent):
-        ms: MdStatic = ev.ms.contents
-        order: NewOrder = ev.order.contents
-        print(
-            f"on_new_order,{ms.instrument},{order.chan_id},{order.exchtime},{order.localtime},{order.oid}"
-        )
+    def on_cs_mbp(self, ev: CsMbpEvent):
+        exchtime: ctypes.c_int64 = ev.exchtime
+        localtime: ctypes.c_uint64 = ev.localtime
+        ins_nr: ctypes.c_int64 = ev.ins_nr
+        print(f"on_cs_mbp:{exchtime},{localtime},{ins_nr}")
 
-    def on_cancel_order(self, ev: CancelOrderEvent):
-        ms: MdStatic = ev.ms.contents
-        cancel: NewOrder = ev.cancel.contents
-        print(
-            f"on_cancel_order,{ms.instrument},{cancel.chan_id},{cancel.exchtime},{cancel.localtime},{cancel.oid}"
-        )
+        # for idx in range(ins_nr):
+        #     ins_data: CsMbpInsData = ev.ins_data[idx].contents
+        #     ms: MdStatic = ins_data.ms.contents
 
-    def on_trade(self, ev: TradeEvent):
-        ms: MdStatic = ev.ms.contents
-        trade: Trade = ev.trade.contents
-        print(
-            f"on_trade,{ms.instrument},{trade.chan_id},{trade.exchtime},{trade.localtime},{trade.bid_oid},{trade.ask_oid}"
-        )
-
-    def on_mbp(self, ev: MbpEvent):
-        ms: MdStatic = ev.ms.contents
-        mbp: MBP = ev.mbp.contents
-        print(
-            f"on_mbp,{ms.instrument},{mbp.chan_id},{mbp.exchtime},{mbp.localtime}"
-        )
+        #     print(f"\t{ms.instrument},{ins_data.msg_nr}")
+        #     for i in range(ins_data.msg_nr):
+        #         msg: CsMbpMsg = ins_data.msgs[i].contents
+        #         if msg.type == CsMbpMsg.MsgType_NewOrder.value:
+        #             order: NewOrder = msg.ptr.order.contents
+        #             print(f"\t\t{msg.type},order,{order.qty}@{order.price},{order.side},{order.type}")
+        #         elif msg.type == CsMbpMsg.MsgType_CancelOrder.value:
+        #             cancel: CancelOrder = msg.ptr.cancel.contents
+        #             print(f"\t\t{msg.type},cancel,{cancel.qty}@{cancel.price},{cancel.side},{cancel.type}")
+        #         elif msg.type == CsMbpMsg.MsgType_Trade.value:
+        #             trade: CancelOrder = msg.ptr.trade.contents
+        #             print(f"\t\t{msg.type},trade,{trade.qty}@{trade.price},{trade.bid_oid}/{trade.ask_oid}")
+        #         elif msg.type == CsMbpMsg.MsgType_Mbp.value:
+        #             mbp: MBP = msg.ptr.mbp.contents
+        #             print(f"\t\t{msg.type},mbp,{mbp.bid_qty[0]}@{mbp.bid_px[0]},{mbp.ask_qty[0]}/{mbp.ask_px[0]}")
+        #         else:
+        #             print(f"\t\t{msg.type},unknown,{type(msg.type)},{CsMbpMsg.MsgType_NewOrder},{type(CsMbpMsg.MsgType_NewOrder)}")
+                
+        #         if i >= 9:
+        #             break
 
 
 def pysig_create():

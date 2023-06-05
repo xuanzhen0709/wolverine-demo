@@ -17,11 +17,11 @@ signal:
   config:
     name: snapshot-py
     module: nickchenyj.snapshot
-    pylib: libpython3.8.so
+    pylib: libpython3.9.so
     pypath:
       - build/Debug/src/snapshot-py/
     config_file: src/snapshot-py/sig.yml
     output:
-      module: csv
+      module: npy
       config:
         output_dir: output
