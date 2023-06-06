@@ -9,11 +9,13 @@ secmaster:
 marketdata:
   - type: section
     module: section
+    priority: 10
     config:
-      input_dir: /mnt/nas-3/ProcessedData/stock_snapshot_bin/binary_tick
+      # input_dir: /mnt/nas-3/ProcessedData/stock_snapshot_bin/binary_tick
 
   - type: mbp
     module: mbp
+    priority: 0
     config:
     # input_dir: /global/wlsim/data/stock_section
 

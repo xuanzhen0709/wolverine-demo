@@ -1,3 +1,12 @@
+- [System Environment Setup](#system-environment-setup)
+- [Development Paackage Setup](#development-paackage-setup)
+- [Quick Note](#quick-note)
+- [Data Types](#data-types)
+- [Sim Configs](#sim-configs)
+  - [Demo](#demo)
+
+-----
+
 # System Environment Setup
 
 * make sure the following lines are added to your ~/.bashrc
@@ -122,6 +131,70 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
 ---
 
-# Caveats
+# Data Types
 
-* some dataset is not accessible from our test servers (s15/s19/s23 etc) and dev servers (dev VMs) due to permission constraints. please refer to the "input_dir" fields in the config file and uncomment the relevant lines. you may also need to slightly change the path of the directory to '/localdata/xxx' on some servers.
+the detailed documentation/definition of various data types used can be easily found by following the "included headers" or "imported modules".
+
+for c++, the headers are located under ~/.local/include/wolverine
+
+for python, the modules can be found under ~/.local/lib/python3.X/site-packages/cfi/wolverine
+
+---
+
+# Sim Configs
+
+(for now) each test case requires at two config files:
+
+* wlsim.yml (or a different name): used as the main config, and contains all the signal-independent config items.
+
+* sig.yml (or a different name): referenced in the main config, and contains signal-internal config items.
+
+the two-config layout serves multifolded purposes:
+
+* allow expanding existing signals to new instruments/universes. for example, simple alter sig.yml to test new instruments
+* allow testing various sets of parameters during the research process (with the help of some simple userside batch generator of config files)
+* allow "plugging" signal modules to other research platforms by segregating signal-specific and signal-independent config items.
+
+
+## Demo
+
+```yaml
+# location of the calendar file
+calendar: scripts/ChinaTradingDates.txt
+# date range
+start: 20230101
+end: 20230103
+
+# Secmaster section
+# secmaster is the module that provides reference data (aka static data)
+secmaster:
+  config:
+    # change input_dir to override the default data dir
+    # input_dir: /global/wlsim/data/secmaster
+
+# marketdata section
+# multiple market data sources can be defined as a list
+marketdata:
+  # each market data source has a 'type' - which is the unique name across the whole system, specified by the user
+  # module: is the name of the underlying data modules
+  # priority[optional]: used when we need to arbitrate between multiple data sources if they happen to have the same timestamp. a lower value indicates a higher priority and thus the callback will be received earlier
+  - type: section
+    module: section
+    priority: 0
+    config:
+    # input_dir: /global/wlsim/data/stock_section
+
+signal:
+  module: py
+  config:
+    name: csstock-py
+    module: nickchenyj.csstock
+    pylib: libpython3.8.so
+    pypath:
+      - build/Debug/src/csstock-py/
+    config_file: src/csstock-py/sig.yml
+    output:
+      module: csv
+      config:
+        output_dir: output
+```

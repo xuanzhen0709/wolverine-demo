@@ -85,7 +85,7 @@ class MySig(SignalBase):
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
-        # print("on_cs_snapshot")
+        # print(f"on_cs_snapshot,{ev.exchtime},{ev.localtime}")
         self.exchtime.append(ev.exchtime)
         self.localtime.append(ev.localtime)
 
