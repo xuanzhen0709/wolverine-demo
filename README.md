@@ -1,5 +1,5 @@
 - [System Environment Setup](#system-environment-setup)
-- [Development Paackage Setup](#development-paackage-setup)
+- [Development Package Setup](#development-package-setup)
 - [Quick Note](#quick-note)
 - [Data Types](#data-types)
 - [Sim Configs](#sim-configs)
@@ -64,7 +64,7 @@
 
 ---
 
-# Development Paackage Setup
+# Development Package Setup
 
 NOTE: before installing the packages and using the framework, do check that the required python/gcc versions are already enabled.
 It will lead to incompatibility/missing components/various other issues otherwise.
@@ -111,9 +111,9 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
   * SignalApis: this structure holds all the necessary information needed by users when users want to request certain functionalities from the system
 
-    * users need to call subscribe(type: str, fields: vector[str], symbols: vector[str]) during initialization. 'fields' is marketdata-type dependent. for example, the 'section' md loader which loads cross-sectional snapshots for stocks allow specifying a list of fields to load, while other loaders don't handle 'fields' at all for now.
+    * users need to call subscribe(type: str, fields: vector[str], symbols: vector[str]) during initialization. 'fields' is md-module dependent. for example, the 'section' md loader which loads cross-sectional snapshots for stocks allow specifying a list of fields to load, while other loaders don't handle 'fields' at all for now.
 
-    * set_targets(symbols: vector[str]) is used to set the targets that users intend to trade. and update_signal(exchtime, sigs: np.ndarray) is used to update signal values (note that sigs should always be a vector whose values correspond to the trading targets). set_targets() thus needs to be called before upate_signal(). for single-target trading, users may call set_targets() during initialization. for cross-sectional research where the list of stocks may change inter-day, users may choose to set_targets() on sod, as long as update_signal() uses a numpy array of the right length during that trading day.
+    * set_targets(symbols: vector[str]) is used to set the targets that users intend to trade. and update_signal(exchtime, localtime, sigs: np.ndarray) is used to update signal values (note that sigs should always be a vector whose values correspond to the trading targets). set_targets() thus needs to be called before upate_signal(). for single-target trading, users may call set_targets() during initialization. for cross-sectional research where the list of stocks may change inter-day, users may choose to set_targets() on sod, as long as update_signal() uses a numpy array of the right length during that trading day.
 
   * SignalOps: this structure describes all the available event callbacks that users can receive, and users should create an instance of it and pass back to the system on creation. and the system will callback into user implementations accordingly.
   
