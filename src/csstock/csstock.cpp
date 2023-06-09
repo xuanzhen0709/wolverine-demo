@@ -43,25 +43,25 @@ Signal::Signal() { on_sod(0, nullptr); }
 void Signal::initialize(const Config *root) {
   // subscribe data
   {
-    const auto &md_cfg = root->getChildNode("marketdata");
-    const size_t md_nr = md_cfg.getSize();
+    const auto &md_cfg = root->get_child("marketdata");
+    const size_t md_nr = md_cfg.size();
     for (size_t md_idx = 0; md_idx < md_nr; ++md_idx) {
-      const auto &this_cfg = md_cfg.getChildNodeByIdx(md_idx);
-      const auto type = this_cfg.getValue<std::string>("type");
+      const auto &this_cfg = md_cfg.get_child(md_idx);
+      const auto type = this_cfg.get_value<std::string>("type");
 
       std::vector<std::string> fields;
       {
-        const auto fields_cfg = this_cfg.getChildNode("fields");
-        for (size_t fld_idx = 0; fld_idx < fields_cfg.getSize(); ++fld_idx) {
-          fields.push_back(fields_cfg.getChildElement<std::string>(fld_idx));
+        const auto fields_cfg = this_cfg.get_child("fields");
+        for (size_t fld_idx = 0; fld_idx < fields_cfg.size(); ++fld_idx) {
+          fields.push_back(fields_cfg.get_value<std::string>(fld_idx));
         }
       }
 
       std::vector<std::string> symbols;
       {
-        const auto symbols_cfg = this_cfg.getChildNode("symbols");
-        for (size_t sym_idx = 0; sym_idx < symbols_cfg.getSize(); ++sym_idx) {
-          symbols.push_back(symbols_cfg.getChildElement<std::string>(sym_idx));
+        const auto symbols_cfg = this_cfg.get_child("symbols");
+        for (size_t sym_idx = 0; sym_idx < symbols_cfg.size(); ++sym_idx) {
+          symbols.push_back(symbols_cfg.get_value<std::string>(sym_idx));
         }
       }
       // NOTE:
