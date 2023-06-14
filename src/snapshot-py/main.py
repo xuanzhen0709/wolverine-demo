@@ -18,11 +18,6 @@ class MySig(SignalBase):
         with open(path) as fin:
             cfg = yaml.safe_load(fin)
 
-            for _i in cfg["marketdata"]:
-                self.subscribe(_i["type"], [], _i["symbols"])
-
-            self.set_targets(cfg["targets"])
-
     def on_sod(self, date: int, ev: SodEvent):
         self.cnt = 0
         print(f"on_sod:{date},ins_nr:{ev.ins_nr}")

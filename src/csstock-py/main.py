@@ -26,9 +26,6 @@ class MySig(SignalBase):
         with open(path) as fin:
             cfg = yaml.safe_load(fin)
 
-            for _i in cfg["marketdata"]:
-                self.subscribe(_i["type"], _i["fields"], _i["symbols"])
-
     def on_sod(self, date: int, ev: SodEvent):
         self.start_ts = time.time()
         self.cnt = 0
@@ -44,7 +41,6 @@ class MySig(SignalBase):
                 ms.instrument.decode("utf8") + "." +
                 ms.exchange.decode("utf8"))
             # print(f"\t{i+1},{ms.instrument}")
-        self.set_targets(targets)
         self.last_price.clear()
         self.exchtime.clear()
         self.localtime.clear()
@@ -68,20 +64,6 @@ class MySig(SignalBase):
         for idx in range(len(exchtime)):
             self.update_signal(int(exchtime[idx]), int(localtime[idx]),
                                np.full((ins_nr, ), idx, dtype=np.float64))
-
-    def on_snapshot(self, ev: SnapshotEvent):
-        ms: MdStatic = ev.ms.contents
-        ss: MdSnapshot = ev.snapshot.contents
-        print(
-            f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
-        )
-
-    def on_bar(self, ev: BarEvent):
-        ms: MdStatic = ev.ms.contents
-        bar: MdBar = ev.bar.contents
-        print(
-            f"on_bar:{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
-        )
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1

@@ -2,26 +2,20 @@ calendar: scripts/ChinaTradingDates.txt
 start: 20230101
 end: 20230109
 
-secmaster:
+refdata:
   config:
-    # input_dir: /global/wlsim/data/secmaster
-
-marketdata:
-  - type: snapshot
-    module: snapshot
-    config:
-    # input_dir: /global/wlsim/data/snapshot_bin
+    # data_dir: /global/wlsim/data/refdata
 
 signal:
+  name: multiticker-py
   module: py
   config:
-    name: multiticker-py
     module: nickchenyj.multitickers
     pylib: libpython3.8.so
     pypath:
       - build/Debug/src/multitickers-py/
     config_file: src/multitickers-py/sig.yml
-    output:
-      module: csv
-      config:
-        output_dir: output
+  output:
+    module: csv
+    config:
+      output_dir: output

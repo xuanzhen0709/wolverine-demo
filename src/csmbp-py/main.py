@@ -23,8 +23,6 @@ class MySig(SignalBase):
         with open(path) as fin:
             cfg = yaml.safe_load(fin)
 
-            for _i in cfg["marketdata"]:
-                self.subscribe(_i["type"], _i["fields"], _i["symbols"])
 
     def on_sod(self, date: int, ev: SodEvent):
         self.start_ts = time.time()
@@ -41,7 +39,6 @@ class MySig(SignalBase):
                 ms.instrument.decode("utf8") + "." +
                 ms.exchange.decode("utf8"))
             # print(f"\t{i+1},{ms.instrument}")
-        self.set_targets(targets)
         self.last_price.clear()
         self.exchtime.clear()
         self.localtime.clear()
@@ -68,7 +65,7 @@ class MySig(SignalBase):
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
-        print(f"on_cs_snapshot", {ev.exchtime})
+        print(f"on_cs_snapshot,{ev.exchtime}")
         self.exchtime.append(ev.exchtime)
         self.localtime.append(ev.localtime)
 

@@ -49,37 +49,7 @@ private:
 
 Signal::Signal() { on_sod(0, nullptr); }
 
-void Signal::initialize(const Config *root) {
-  // subscribe data
-  {
-    const auto &md_cfg = root->get_child("marketdata");
-    const size_t md_nr = md_cfg.size();
-    for (size_t md_idx = 0; md_idx < md_nr; ++md_idx) {
-      const auto &this_cfg = md_cfg.get_child(md_idx);
-      const auto type = this_cfg.get_value<std::string>("type");
-
-      std::vector<std::string> fields;
-      {
-        const auto fields_cfg = this_cfg.get_child("fields");
-        for (size_t fld_idx = 0; fld_idx < fields_cfg.size(); ++fld_idx) {
-          fields.push_back(fields_cfg.get_value<std::string>(fld_idx));
-        }
-      }
-
-      std::vector<std::string> symbols;
-      {
-        const auto symbols_cfg = this_cfg.get_child("symbols");
-        for (size_t sym_idx = 0; sym_idx < symbols_cfg.size(); ++sym_idx) {
-          symbols.push_back(symbols_cfg.get_value<std::string>(sym_idx));
-        }
-      }
-      // NOTE:
-      // support for "fields" is marketdata-module dependent
-      // for cross-sectional data, an empty fields list indicates all fields.
-      m_apis.subscribe(m_apis.token, type, fields, symbols);
-    }
-  }
-}
+void Signal::initialize(const Config *root) {}
 
 void Signal::set_apis(SignalApis apis) { m_apis = apis; }
 
@@ -91,8 +61,7 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   }
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
-  // on start of each day call set_targets() everyday
-  std::vector<std::string> targets;
+  // on start of each day
   LOG_INFO("ins_nr={}\n", ev->ins_nr);
   for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
     const auto *ms = ev->ms[i];
@@ -103,26 +72,10 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
     exch.erase(std::find(exch.begin(), exch.end(), '\0'), exch.end());
 
     std::string symbol = ins + "." + exch;
-    targets.emplace_back(symbol);
   }
-  // set trading targets
-  m_apis.set_targets(m_apis.token, targets);
 }
 
 void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
-
-void Signal::on_snapshot(const SnapshotEvent *ev) {
-  // market data update
-  const auto *ms = ev->ms;
-  const auto *ss = ev->snapshot;
-  LOG_INFO("{},{},{},{}\n", static_cast<int>(ss->md_type), ss->exchtime,
-           ss->localtime, ms->instrument);
-  // if (ss->md_type == MdType::Level1) {
-  // } else if (ss->md_type == MdType::Level5) {
-  // }
-}
-
-void Signal::on_bar(const BarEvent *ev) { LOG_INFO("callback received\n"); }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   LOG_INFO("exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
@@ -220,16 +173,6 @@ static SignalOps my_ops = {
     .on_eod = [](void *hdl, uint32_t date) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_eod(date);
-    },
-    .on_snapshot = [](void *hdl,
-                      const cfi::wolverine::SnapshotEvent *ev) -> void {
-      auto *ptr = reinterpret_cast<Signal *>(hdl);
-      ptr->on_snapshot(ev);
-    },
-
-    .on_bar = [](void *hdl, const cfi::wolverine::BarEvent *ev) -> void {
-      auto *ptr = reinterpret_cast<Signal *>(hdl);
-      ptr->on_bar(ev);
     },
 
     .on_cs_snapshot = [](void *hdl,

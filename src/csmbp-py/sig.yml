@@ -1,16 +1,16 @@
 targets:
-  - all_stocks
+  - dynamic:stocks
 
 marketdata:
-  - type: section
-    fields:
-      - last_price
-      - volume
+  - module: cs-snapshot
     symbols:
-      - all_stocks
+      - stocks
+    options:
+      fields:
+        - last_price
+        - volume
 
-  - type: cs-mbp
-    fields: []
+  - module: cs-mbp
     symbols:
-      - all_stocks
+      - stocks
 # user defined params can go below

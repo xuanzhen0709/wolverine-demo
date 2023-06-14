@@ -2,9 +2,8 @@ targets:
   - IC.CFFEX
 
 marketdata:
-  - type: snapshot
+  - module: snapshot
     symbols:
       - IC.CFFEX
       - IF.CFFEX
-
 # user defined params can go below

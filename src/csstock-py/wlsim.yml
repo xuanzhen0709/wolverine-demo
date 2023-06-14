@@ -2,26 +2,20 @@ calendar: scripts/ChinaTradingDates.txt
 start: 20230101
 end: 20230103
 
-secmaster:
+refdata:
   config:
-    # input_dir: /global/wlsim/data/secmaster
-
-marketdata:
-  - type: section
-    module: section
-    config:
-    # input_dir: /global/wlsim/data/stock_section
+    # data_dir: /global/wlsim/data/refdata
 
 signal:
+  name: csstock-py
   module: py
   config:
-    name: csstock-py
     module: nickchenyj.csstock
     pylib: libpython3.8.so
     pypath:
       - build/Debug/src/csstock-py/
     config_file: src/csstock-py/sig.yml
-    output:
-      module: csv
-      config:
-        output_dir: output
+  output:
+    module: csv
+    config:
+      output_dir: output

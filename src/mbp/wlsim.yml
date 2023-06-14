@@ -2,30 +2,15 @@ calendar: scripts/ChinaTradingDates.txt
 start: 20230505
 end: 20230505
 
-secmaster:
+refdata:
   config:
-    # input_dir: /global/wlsim/data/secmaster
-
-marketdata:
-  - type: section
-    module: section
-    priority: 10
-    config:
-      # input_dir: /mnt/nas-3/ProcessedData/stock_snapshot_bin/binary_tick
-
-  - type: mbp
-    module: mbp
-    priority: 0
-    config:
-    # input_dir: /global/wlsim/data/stock_section
+    # data_dir: /global/wlsim/data/refdata
 
 signal:
-  module: cpp
-  config:
-    name: mbp
-    module: nickchenyj-mbp
-    config_file: src/mbp/sig.yml
-    output:
-      module: csv
-      config:
-        output_dir: output
+  name: mbp
+  module: nickchenyj-mbp
+  config_file: src/mbp/sig.yml
+  output:
+    module: csv
+    config:
+      output_dir: output

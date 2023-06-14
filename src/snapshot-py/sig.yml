@@ -2,7 +2,7 @@ targets:
   - IC.CFFEX
 
 marketdata:
-  - type: snapshot
+  - module: snapshot
     symbols:
       - IC.CFFEX
 

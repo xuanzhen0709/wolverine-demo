@@ -2,8 +2,11 @@ targets:
   - IC.CFFEX
 
 marketdata:
-  - type: bar_5min
+  - module: bar
     symbols:
       - IC.CFFEX
+    options:
+      # data_dir: /global/wlsim/data/snapshot_bin
+      freq: 5
 
 # user defined params can go below

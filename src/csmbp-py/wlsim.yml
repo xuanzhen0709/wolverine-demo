@@ -2,33 +2,20 @@ calendar: scripts/ChinaTradingDates.txt
 start: 20230505
 end: 20230505
 
-secmaster:
+refdata:
   config:
-    # input_dir: /global/wlsim/data/secmaster
-
-marketdata:
-  - type: section
-    module: section
-    priority: 10
-    config:
-      input_dir: /mnt/nas-3/ProcessedData/stock_snapshot_bin/binary_tick
-
-  - type: cs-mbp
-    module: cs-mbp
-    priority: 0
-    config:
-    # input_dir: /global/wlsim/data/stock_section
+    # data_dir: /global/wlsim/data/refdata
 
 signal:
+  name: csmbp-py
   module: py
   config:
-    name: csmbp-py
     module: nickchenyj.csmbp
     pylib: libpython3.8.so
     pypath:
       - build/Debug/src/csmbp-py/
     config_file: src/csmbp-py/sig.yml
-    output:
-      module: csv
-      config:
-        output_dir: output
+  output:
+    module: csv
+    config:
+      output_dir: output

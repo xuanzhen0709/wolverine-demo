@@ -1,16 +1,20 @@
-marketdata:
-  - type: section
-    fields:
-      - ap1
-      - last_price
-      - volume
-    symbols:
-      - all_stocks
+targets:
+  - dynamic:stocks
 
-  - type: cs-mbp
-    fields: []
+marketdata:
+  - module: cs-snapshot
     symbols:
-      - all_stocks
+      - stocks
+    options:
+      fields:
+        - ap1
+        - last_price
+        - volume
+      # data_dir: /data/
+
+  - module: cs-mbp
+    symbols:
+      - stocks
 
 # freq can be 60/120/180
 freq: 120

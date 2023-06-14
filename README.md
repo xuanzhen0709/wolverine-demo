@@ -111,9 +111,7 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
   * SignalApis: this structure holds all the necessary information needed by users when users want to request certain functionalities from the system
 
-    * users need to call subscribe(type: str, fields: vector[str], symbols: vector[str]) during initialization. 'fields' is md-module dependent. for example, the 'section' md loader which loads cross-sectional snapshots for stocks allow specifying a list of fields to load, while other loaders don't handle 'fields' at all for now.
-
-    * set_targets(symbols: vector[str]) is used to set the targets that users intend to trade. and update_signal(exchtime, localtime, sigs: np.ndarray) is used to update signal values (note that sigs should always be a vector whose values correspond to the trading targets). set_targets() thus needs to be called before upate_signal(). for single-target trading, users may call set_targets() during initialization. for cross-sectional research where the list of stocks may change inter-day, users may choose to set_targets() on sod, as long as update_signal() uses a numpy array of the right length during that trading day.
+    * update_signal(exchtime, localtime, sigs: np.ndarray) is used to update signal values (note that sigs should always be a vector whose values correspond to the trading targets). set_targets() thus needs to be called before upate_signal(). for single-target trading, users may call set_targets() during initialization. for cross-sectional research where the list of stocks may change inter-day, users may choose to set_targets() on sod, as long as update_signal() uses a numpy array of the right length during that trading day.
 
   * SignalOps: this structure describes all the available event callbacks that users can receive, and users should create an instance of it and pass back to the system on creation. and the system will callback into user implementations accordingly.
   
@@ -166,36 +164,48 @@ calendar: scripts/ChinaTradingDates.txt
 start: 20230101
 end: 20230103
 
-# Secmaster section
-# secmaster is the module that provides reference data (aka static data)
-secmaster:
+# refdata section
+# refdata is the module that provides reference data (aka static data)
+refdata:
   config:
-    # change input_dir to override the default data dir
-    # input_dir: /global/wlsim/data/secmaster
-
-# marketdata section
-# multiple market data sources can be defined as a list
-marketdata:
-  # each market data source has a 'type' - which is the unique name across the whole system, specified by the user
-  # module: is the name of the underlying data modules
-  # priority[optional]: used when we need to arbitrate between multiple data sources if they happen to have the same timestamp. a lower value indicates a higher priority and thus the callback will be received earlier
-  - type: section
-    module: section
-    priority: 0
-    config:
-    # input_dir: /global/wlsim/data/stock_section
+    # uncomment to override data_dir
+    # data_dir: /global/wlsim/data/refdata
 
 signal:
+  name: csstock-py
   module: py
   config:
-    name: csstock-py
     module: nickchenyj.csstock
     pylib: libpython3.8.so
     pypath:
       - build/Debug/src/csstock-py/
     config_file: src/csstock-py/sig.yml
-    output:
-      module: csv
-      config:
-        output_dir: output
+  output:
+    module: csv
+    config:
+      output_dir: output
+```
+
+```yaml
+# location of the calendar file
+calendar: scripts/ChinaTradingDates.txt
+# date range
+start: 20230101
+end: 20230103
+
+# refdata section
+# refdata is the module that provides reference data (aka static data)
+refdata:
+  config:
+    # uncomment to override data_dir
+    # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: csstock-py
+  module: nickchenyj-csstock
+  config_file: src/csstock-py/sig.yml
+  output:
+    module: csv
+    config:
+      output_dir: output
 ```

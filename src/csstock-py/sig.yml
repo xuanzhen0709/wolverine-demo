@@ -1,11 +1,12 @@
 targets:
-  - all_stocks
+  - dynamic:stocks
 
 marketdata:
-  - type: section
-    fields:
-      - last_price
-      - volume
+  - module: cs-snapshot
     symbols:
-      - all_stocks
+      - stocks
+    options:
+      fields:
+        - last_price
+        - volume
 # user defined params can go below
