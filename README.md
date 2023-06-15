@@ -1,7 +1,8 @@
 - [System Environment Setup](#system-environment-setup)
 - [Development Package Setup](#development-package-setup)
 - [Quick Note](#quick-note)
-- [Data Types](#data-types)
+- [Docs and Types](#docs-and-types)
+  - [Timestamp](#timestamp)
 - [Sim Configs](#sim-configs)
   - [Demo](#demo)
 
@@ -130,13 +131,23 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
 ---
 
-# Data Types
+# Docs and Types
 
 the detailed documentation/definition of various data types used can be easily found by following the "included headers" or "imported modules".
 
-for c++, the headers are located under ~/.local/include/wolverine
+for c++, the headers are located under ~/.local/include/wolverine.
 
 for python, the modules can be found under ~/.local/lib/python3.X/site-packages/cfi/wolverine
+
+## Timestamp
+
+all the timestamps are in nanosecond precision, although their meaning may vary.
+
+* exchtime(int64_t): nanoseconds since the LOGICAL start of day. 9AM is represented as 9 * NS_PER_HOUR, and 21:30PM as -2.5 * NS_PER_HOUR. we consider a LOGICAL trading day as a continuous 24-hour span, hence exchtime always sits in (-24 * NS_PER_HOUR, 24 * NS_PER_HOUR).
+
+* localtime(uint64_t): nanoseconds since epoch.
+
+the time.hpp header that comes with the development package provides some useful utility functions. do bear in mind that time strinifications are extremely slow by nature, and do not use them in any hot paths.
 
 ---
 
