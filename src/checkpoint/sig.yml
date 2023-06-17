@@ -8,6 +8,9 @@ marketdata:
     options:
       # data_dir: /global/wlsim/data/cs_snapshot
       fields:
+        - ap1
         - last_price
         - volume
-# user defined params can go below
+
+# freq can be 60/120/180
+freq: 120

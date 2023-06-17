@@ -163,23 +163,22 @@ void Signal::on_mbp(const MbpEvent *ev) {
 } // namespace mbp
 } // namespace nickchenyj
 
-using namespace nickchenyj::mbp;
+using nickchenyj::mbp::Signal;
 
 C_DECLARATION_BEGIN;
 
 static SignalOps my_ops = {
-    .initialize = [](void *hdl, const cfi::wolverine::Config *root) -> void {
+    .initialize = [](void *hdl, const Config *root) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->initialize(root);
     },
 
-    .set_apis = [](void *hdl, cfi::wolverine::SignalApis apis) -> void {
+    .set_apis = [](void *hdl, SignalApis apis) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->set_apis(apis);
     },
 
-    .on_sod = [](void *hdl, uint32_t date,
-                 const cfi::wolverine::SodEvent *ev) -> void {
+    .on_sod = [](void *hdl, uint32_t date, const SodEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_sod(date, ev);
     },
@@ -189,30 +188,27 @@ static SignalOps my_ops = {
       ptr->on_eod(date);
     },
 
-    .on_cs_snapshot = [](void *hdl,
-                         const cfi::wolverine::CsSnapshotEvent *ev) -> void {
+    .on_cs_snapshot = [](void *hdl, const CsSnapshotEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_snapshot(ev);
     },
 
-    .on_new_order = [](void *hdl,
-                       const cfi::wolverine::NewOrderEvent *ev) -> void {
+    .on_new_order = [](void *hdl, const NewOrderEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_new_order(ev);
     },
 
-    .on_cancel_order = [](void *hdl,
-                          const cfi::wolverine::CancelOrderEvent *ev) -> void {
+    .on_cancel_order = [](void *hdl, const CancelOrderEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cancel_order(ev);
     },
 
-    .on_trade = [](void *hdl, const cfi::wolverine::TradeEvent *ev) -> void {
+    .on_trade = [](void *hdl, const TradeEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_trade(ev);
     },
 
-    .on_mbp = [](void *hdl, const cfi::wolverine::MbpEvent *ev) -> void {
+    .on_mbp = [](void *hdl, const MbpEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_mbp(ev);
     },

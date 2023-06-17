@@ -1,3 +1,7 @@
+# 20230617
+* MAJOR (Signal API): added load_state()/save_state() which allow users to preserve states across multiple runs
+* MAJOR (MarketData): renamed "section" marketdata to "cs-snapshot", which better aligns with other modules
+
 # 20230615
 * MAJOR (Signal API): users don't need to call subscribe() and set_targets() manually, and they are handled automatically
 * MAJOR (Config): the main config no longer holds a marketdata section

@@ -6,10 +6,16 @@ refdata:
   config:
     # data_dir: /global/wlsim/data/refdata
 
+checkpoint:
+  dir: checkpoint
+  load_date: 20230103
+  save_dates:
+    - 20230104
+
 signal:
-  name: csstock
-  module: nickchenyj-csstock
-  config_file: src/csstock/sig.yml
+  name: checkpoint
+  module: nickchenyj-checkpoint
+  config_file: src/checkpoint/sig.yml
   output:
     module: csv
     config:

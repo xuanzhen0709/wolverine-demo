@@ -1,5 +1,3 @@
-from .mytest import *
-
 import pickle
 import numpy as np
 from pathlib import Path
@@ -19,7 +17,6 @@ class MySig(SignalBase):
         self.exchtime = []
         self.localtime = []
         self.start_ts: float = 0
-        haha()
 
     def initialize(self, path: str):
         if not path:
@@ -27,6 +24,22 @@ class MySig(SignalBase):
         print(f"loadding config:{path}")
         with open(path) as fin:
             cfg = yaml.safe_load(fin)
+
+    def load_state(self, path: str):
+        print(f"loading state from {path}", flush=True)
+        indir: Path = Path(path)
+        with open(indir.joinpath("state1.bin"), "rb") as fin:
+            val1 = pickle.load(fin)
+            val2 = pickle.load(fin)
+            print(f"loaded data {val1},{val2}")
+
+    def save_state(self, path: str):
+        print(f"saving state to {path}", flush=True)
+        outdir: Path = Path(path)
+        with open(outdir.joinpath("state1.bin"), "wb") as fout:
+            pickle.dump(self.cnt, fout)
+            pickle.dump(self.cnt + 1, fout)
+            print(f"saved data {self.cnt},{self.cnt+1}")
 
     def on_sod(self, date: int, ev: SodEvent):
         self.start_ts = time.time()

@@ -149,23 +149,22 @@ void Signal::on_cs_mbp(const CsMbpEvent *ev) {
 } // namespace csmbp
 } // namespace nickchenyj
 
-using namespace nickchenyj::csmbp;
+using nickchenyj::csmbp::Signal;
 
 C_DECLARATION_BEGIN;
 
 static SignalOps my_ops = {
-    .initialize = [](void *hdl, const cfi::wolverine::Config *root) -> void {
+    .initialize = [](void *hdl, const Config *root) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->initialize(root);
     },
 
-    .set_apis = [](void *hdl, cfi::wolverine::SignalApis apis) -> void {
+    .set_apis = [](void *hdl, SignalApis apis) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->set_apis(apis);
     },
 
-    .on_sod = [](void *hdl, uint32_t date,
-                 const cfi::wolverine::SodEvent *ev) -> void {
+    .on_sod = [](void *hdl, uint32_t date, const SodEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_sod(date, ev);
     },
@@ -175,13 +174,12 @@ static SignalOps my_ops = {
       ptr->on_eod(date);
     },
 
-    .on_cs_snapshot = [](void *hdl,
-                         const cfi::wolverine::CsSnapshotEvent *ev) -> void {
+    .on_cs_snapshot = [](void *hdl, const CsSnapshotEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_snapshot(ev);
     },
 
-    .on_cs_mbp = [](void *hdl, const cfi::wolverine::CsMbpEvent *ev) -> void {
+    .on_cs_mbp = [](void *hdl, const CsMbpEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_mbp(ev);
     },

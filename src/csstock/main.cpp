@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <string_view>
 
 using namespace cfi::wolverine;
@@ -21,6 +22,8 @@ public:
 
   void initialize(const Config *root);
   void set_apis(SignalApis);
+  void load_state(const std::string &indir);
+  void save_state(const std::string &outdir);
   void on_sod(uint32_t date, const SodEvent *ev);
   void on_eod(uint32_t date);
 
@@ -38,6 +41,14 @@ Signal::Signal() { on_sod(0, nullptr); }
 void Signal::initialize(const Config *root) {}
 
 void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+
+void Signal::load_state(const std::string &indir) {
+  LOG_INFO("loading state from dir {}\n", indir);
+}
+
+void Signal::save_state(const std::string &outdir) {
+  LOG_INFO("saving state to dir {}\n", outdir);
+}
 
 void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   m_cnt = 0;
@@ -78,23 +89,32 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
 } // namespace csstock
 } // namespace nickchenyj
 
-using namespace nickchenyj::csstock;
+using nickchenyj::csstock::Signal;
 
 C_DECLARATION_BEGIN;
 
 static const SignalOps my_ops = {
-    .initialize = [](void *hdl, const cfi::wolverine::Config *root) -> void {
+    .initialize = [](void *hdl, const Config *root) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->initialize(root);
     },
 
-    .set_apis = [](void *hdl, cfi::wolverine::SignalApis apis) -> void {
+    .set_apis = [](void *hdl, SignalApis apis) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->set_apis(apis);
     },
 
-    .on_sod = [](void *hdl, uint32_t date,
-                 const cfi::wolverine::SodEvent *ev) -> void {
+    .load_state = [](void *hdl, const std::string &indir) -> void {
+      auto *ptr = reinterpret_cast<Signal *>(hdl);
+      ptr->load_state(indir);
+    },
+
+    .save_state = [](void *hdl, const std::string &outdir) -> void {
+      auto *ptr = reinterpret_cast<Signal *>(hdl);
+      ptr->save_state(outdir);
+    },
+
+    .on_sod = [](void *hdl, uint32_t date, const SodEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_sod(date, ev);
     },
@@ -104,8 +124,7 @@ static const SignalOps my_ops = {
       ptr->on_eod(date);
     },
 
-    .on_cs_snapshot = [](void *hdl,
-                         const cfi::wolverine::CsSnapshotEvent *ev) -> void {
+    .on_cs_snapshot = [](void *hdl, const CsSnapshotEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_snapshot(ev);
     },

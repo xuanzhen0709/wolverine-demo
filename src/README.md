@@ -1,10 +1,16 @@
-# 1. bar-py
+# bar-py
 
 a simple python demo for time-series bar data (currently available for futures).
 
 &nbsp;
 
-# 1. csmbp/csmbp-py
+# checkpoint/checkpoint-py
+
+these two demonstrate the use cases of checkpoints - which allows user implementations to preserve internal state across multiple runs.
+
+&nbsp;
+
+# csmbp/csmbp-py
 
 cross-sectional event driven market-by-price data provided at 3s interval.
 
