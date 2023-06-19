@@ -32,22 +32,11 @@ class MySig(SignalBase):
         self.cnt += 1
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
-        print(
-            f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
-        )
+        # print(
+        #     f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.levels[0]}"
+        # )
         self.sigval[0] = self.cnt
         self.update_signal(ss.exchtime, ss.localtime, self.sigval)
-
-    def on_bar(self, ev: BarEvent):
-        ms: MdStatic = ev.ms.contents
-        bar: MdBar = ev.bar.contents
-        print(
-            f"on_bar:{ms.instrument},{ms.exchange},{bar.exchtime},{bar.localtime},{bar.open}/{bar.high}/{bar.low}/{bar.close},{bar.volume},{bar.turnover}"
-        )
-
-    def on_cs_snapshot(self, ev: CsSnapshotEvent):
-        print("on_cs_snapshot")
-
 
 def pysig_create():
     return MySig()

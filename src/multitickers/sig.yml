@@ -1,5 +1,63 @@
 targets:
   - IC.CFFEX
+  - IF.CFFEX
+  - IH.CFFEX
+  - T.CFFEX
+  - TF.CFFEX
+  - TS.CFFEX
+  - a.DCE
+  - b.DCE
+  - c.DCE
+  - cs.DCE
+  - eb.DCE
+  - eg.DCE
+  - i.DCE
+  - j.DCE
+  - jd.DCE
+  - jm.DCE
+  - l.DCE
+  - lh.DCE
+  - m.DCE
+  - p.DCE
+  - pg.DCE
+  - pp.DCE
+  - rr.DCE
+  - v.DCE
+  - y.DCE
+  - ag.SHFE
+  - al.SHFE
+  - au.SHFE
+  - bc.SHFE
+  - bu.SHFE
+  - cu.SHFE
+  - fu.SHFE
+  - hc.SHFE
+  - lu.SHFE
+  - ni.SHFE
+  - pb.SHFE
+  - rb.SHFE
+  - ru.SHFE
+  - sc.SHFE
+  - sn.SHFE
+  - sp.SHFE
+  - ss.SHFE
+  - zn.SHFE
+  - AP.CZCE
+  - CF.CZCE
+  - CJ.CZCE
+  - FG.CZCE
+  - MA.CZCE
+  - OI.CZCE
+  - PF.CZCE
+  - PK.CZCE
+  - RM.CZCE
+  - SA.CZCE
+  - SF.CZCE
+  - SM.CZCE
+  - SR.CZCE
+  - TA.CZCE
+  - UR.CZCE
+  - IM.CFFEX
 
 marketdata:
   - module: snapshot
@@ -7,10 +65,60 @@ marketdata:
       - IC.CFFEX
       - IF.CFFEX
       - IH.CFFEX
+      - T.CFFEX
+      - TF.CFFEX
+      - TS.CFFEX
       - a.DCE
       - b.DCE
       - c.DCE
       - cs.DCE
       - eb.DCE
       - eg.DCE
+      - i.DCE
+      - j.DCE
+      - jd.DCE
+      - jm.DCE
+      - l.DCE
+      - lh.DCE
+      - m.DCE
+      - p.DCE
+      - pg.DCE
+      - pp.DCE
+      - rr.DCE
+      - v.DCE
+      - y.DCE
+      - ag.SHFE
+      - al.SHFE
+      - au.SHFE
+      - bc.SHFE
+      - bu.SHFE
+      - cu.SHFE
+      - fu.SHFE
+      - hc.SHFE
+      - lu.SHFE
+      - ni.SHFE
+      - pb.SHFE
+      - rb.SHFE
+      - ru.SHFE
+      - sc.SHFE
+      - sn.SHFE
+      - sp.SHFE
+      - ss.SHFE
+      - zn.SHFE
+      - AP.CZCE
+      - CF.CZCE
+      - CJ.CZCE
+      - FG.CZCE
+      - MA.CZCE
+      - OI.CZCE
+      - PF.CZCE
+      - PK.CZCE
+      - RM.CZCE
+      - SA.CZCE
+      - SF.CZCE
+      - SM.CZCE
+      - SR.CZCE
+      - TA.CZCE
+      - UR.CZCE
+      - IM.CFFEX
 # user defined params can go below
