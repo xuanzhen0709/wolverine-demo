@@ -1,0 +1,16 @@
+calendar: scripts/ChinaTradingDates.txt
+start: 20230505
+end: 20230505
+
+refdata:
+  config:
+    # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: multitickers
+  module: nickchenyj-multitickers
+  config_file: src/multitickers/sig.yml
+  output:
+    module: csv
+    config:
+      output_dir: output
