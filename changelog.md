@@ -1,3 +1,8 @@
+# 20230627
+* MAJOR (CsSnapshotEvent): reworked subscription mechanism - cs-snapshot module now accepts a "levels" options. instead of specifying ap1/ap2/av1/av2 etc, users should specify ap/av and set levels=xxx.
+* MAJOR (Signal API): reworked api for market by order events
+* MINOR: added demos for mbo/cythonization, users may use .pyx files (in cython syntax) to speed up loops
+
 # 20230617
 * MAJOR (Signal API): added load_state()/save_state() which allow users to preserve states across multiple runs
 * MAJOR (MarketData): renamed "section" marketdata to "cs-snapshot", which better aligns with other modules

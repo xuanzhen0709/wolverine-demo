@@ -6,14 +6,15 @@ marketdata:
     symbols:
       - stocks
     options:
+      # data_dir: /data/
       fields:
-        - ap1
         - last_price
         - volume
+        - ap
+      levels: 5
 
-  - module: mbp
+  - module: cs-mbo
     symbols:
       - stocks
 
-# freq can be 60/120/180
 freq: 120

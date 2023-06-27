@@ -4,6 +4,15 @@ import yaml
 
 from cfi.wolverine.signal import *
 
+# use cython to speed up c-native types
+import cython
+# libc.stdint provide c-native types c_uint32 etc
+from libc.stdint cimport *
+
+# speed up numpy arrays
+cimport numpy as np
+np.import_array()
+
 
 class MySig(SignalBase):
 
@@ -65,45 +74,41 @@ class MySig(SignalBase):
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
-        print(f"on_cs_snapshot,{ev.exchtime}")
+        # print(f"on_cs_snapshot,{ev.exchtime}")
         self.exchtime.append(ev.exchtime)
         self.localtime.append(ev.localtime)
 
         # ev.data is a dictionary mapping from int -> np.ndarray
-        last_price_data = ev.data[MdFld.last_price.value]
+        last_price_data = ev.data[CsSnapshotEvent.FldType.LAST_PRICE.value]
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
         self.last_price.append(np.ndarray.copy(last_price_data))
 
-    def on_cs_mbp(self, ev: CsMbpEvent):
-        exchtime: ctypes.c_int64 = ev.exchtime
-        localtime: ctypes.c_uint64 = ev.localtime
-        ins_nr: ctypes.c_int64 = ev.ins_nr
-        print(f"on_cs_mbp:{exchtime},{localtime},{ins_nr}")
+    def on_cs_mbo(self, ev: CsMboEvent):
+        exchtime: int = ev.exchtime
+        localtime: int = ev.localtime
 
-        # for idx in range(ins_nr):
-        #     ins_data: CsMbpInsData = ev.ins_data[idx].contents
-        #     ms: MdStatic = ins_data.ms.contents
+        cdef int ins_nr = ev.ins_nr
+        # print(f"on_cs_mbo:{exchtime},{localtime},{ins_nr}")
+        trades: CsMboEvent.Trade = ev.trades.contents
+        cdef uint32_t* cnts = <uint32_t*><intptr_t>(ctypes.addressof(trades.cnt.contents))
+        cdef int ii = 0
+        cdef int ti = 0
+        cdef int ins_cnt = 0
+        cdef double* price_arr
+        cdef uint32_t* qty_arr
+        cdef long long haha = 0
+        for ii in range(ins_nr):
+            ins_cnt = cnts[ii]
+            price_arr = <double*><intptr_t>(ctypes.addressof(trades.price[ii].contents))
+            # price_np = np.ctypeslib.as_array(price_arr, (ins_cnt, ))
+            qty_arr = <uint32_t*><intptr_t>(ctypes.addressof(trades.qty[ii].contents))
+            # qty_np = np.ctypeslib.as_array(qty_arr, (cnt, ))
+            # print(f"type,{price_arr[0]},{qty_arr[0]}")
+            for ti in range(ins_cnt):
+                # print(f"trade,{ti}/{ins_cnt},{qty_arr[ti]}@{price_arr[ti]}")
+                haha += 1
+                pass
 
-        #     print(f"\t{ms.instrument},{ins_data.msg_nr}")
-        #     for i in range(ins_data.msg_nr):
-        #         msg: CsMbpMsg = ins_data.msgs[i].contents
-        #         if msg.type == CsMbpMsg.MsgType_NewOrder.value:
-        #             order: NewOrder = msg.ptr.order.contents
-        #             print(f"\t\t{msg.type},order,{order.qty}@{order.price},{order.side},{order.type}")
-        #         elif msg.type == CsMbpMsg.MsgType_CancelOrder.value:
-        #             cancel: CancelOrder = msg.ptr.cancel.contents
-        #             print(f"\t\t{msg.type},cancel,{cancel.qty}@{cancel.price},{cancel.side},{cancel.type}")
-        #         elif msg.type == CsMbpMsg.MsgType_Trade.value:
-        #             trade: CancelOrder = msg.ptr.trade.contents
-        #             print(f"\t\t{msg.type},trade,{trade.qty}@{trade.price},{trade.bid_oid}/{trade.ask_oid}")
-        #         elif msg.type == CsMbpMsg.MsgType_Mbp.value:
-        #             mbp: MBP = msg.ptr.mbp.contents
-        #             print(f"\t\t{msg.type},mbp,{mbp.bid_qty[0]}@{mbp.bid_px[0]},{mbp.ask_qty[0]}/{mbp.ask_px[0]}")
-        #         else:
-        #             print(f"\t\t{msg.type},unknown,{type(msg.type)},{CsMbpMsg.MsgType_NewOrder},{type(CsMbpMsg.MsgType_NewOrder)}")
-                
-        #         if i >= 9:
-        #             break
 
 
 def pysig_create():

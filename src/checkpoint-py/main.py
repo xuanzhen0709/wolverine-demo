@@ -87,7 +87,7 @@ class MySig(SignalBase):
         self.localtime.append(ev.localtime)
 
         # ev.data is a dictionary mapping from int -> np.ndarray
-        last_price_data = ev.data[MdFld.last_price.value]
+        last_price_data = ev.data[CsSnapshotEvent.FldType.LAST_PRICE.value]
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
         self.last_price.append(np.ndarray.copy(last_price_data))
 

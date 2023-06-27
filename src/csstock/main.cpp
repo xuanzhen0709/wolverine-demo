@@ -74,8 +74,18 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
 void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
-  LOG_DEBUG("exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
-  // for (int i = 0; i < static_cast<int>(MdFld::_MAX); ++i) {
+  LOG_DEBUG("exchtime:{},ins_nr:{},level_nr:{}\n", ev->exchtime, ev->ins_nr,
+            ev->level_nr);
+  // to access level-based fields
+  // const TYPE* arr = ev->flds[fld].xxx_ptrs[lvl];
+  // where arr is a pointer to an array of length ins_nr
+
+  // to access non-level-based fields
+  // const TYPE* arr = ev->flds[fld].xxx_ptr;
+  // where arr is a pointer to an array of length ins_nr
+
+  // for (int i = 0; i < static_cast<int>(CsSnapshotEvent::FldType::_MAX); ++i)
+  // {
   //   const auto &fld = ev->flds[i];
   //   LOG_INFO_CONT("{},{}\n", i, fmt::ptr(fld.void_ptr));
   // }

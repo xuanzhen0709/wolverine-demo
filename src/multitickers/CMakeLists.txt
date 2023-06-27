@@ -3,5 +3,5 @@ add_wolverine_library(
     USER nickchenyj
     TYPE signal
     SRCS main.cpp
-    LIBS wolverine::fmt-header-only wolverine::headers
+    LIBS wolverine::fmt-header-only wolverine::wl-headers
 )

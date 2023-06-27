@@ -10,4 +10,6 @@ marketdata:
       fields:
         - last_price
         - volume
+        - ap
+      levels: 1
 # user defined params can go below

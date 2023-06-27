@@ -75,10 +75,6 @@ void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   LOG_DEBUG("exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
-  // for (int i = 0; i < static_cast<int>(MdFld::_MAX); ++i) {
-  //   const auto &fld = ev->flds[i];
-  //   LOG_INFO_CONT("{},{}\n", i, fmt::ptr(fld.void_ptr));
-  // }
   ++m_cnt;
   // we use m_cnt as the sig value for each target
   std::vector<double> sigs(ev->ins_nr, double(m_cnt));

@@ -9,6 +9,7 @@ import yaml
 from cfi.wolverine.signal import *
 
 
+
 class MySig(SignalBase):
 
     def __init__(self):
@@ -69,12 +70,15 @@ class MySig(SignalBase):
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
-        # print(f"on_cs_snapshot,{ev.exchtime},{ev.localtime}")
+        print(f"on_cs_snapshot,{ev.exchtime},{ev.localtime}")
         self.exchtime.append(ev.exchtime)
         self.localtime.append(ev.localtime)
+        # k = ev.data[CsSnapshotEvent.FldType.AP.value]
+        # print(f"{type(k)},{len(k)},{k[0]}")
 
         # ev.data is a dictionary mapping from int -> np.ndarray
-        last_price_data = ev.data[MdFld.last_price.value]
+        last_price_data = ev.data[CsSnapshotEvent.FldType.LAST_PRICE.value]
+        print(f"{type(last_price_data)},{last_price_data}")
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
         self.last_price.append(np.ndarray.copy(last_price_data))
 

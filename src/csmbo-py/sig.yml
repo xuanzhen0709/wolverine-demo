@@ -7,14 +7,12 @@ marketdata:
       - stocks
     options:
       fields:
-        - ap1
         - last_price
         - volume
-      # data_dir: /data/
+        - ap
+      levels: 1
 
-  - module: cs-mbp
+  - module: cs-mbo
     symbols:
       - stocks
-
-# freq can be 60/120/180
-freq: 120
+# user defined params can go below

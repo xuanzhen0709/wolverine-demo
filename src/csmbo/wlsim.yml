@@ -1,15 +1,15 @@
 calendar: scripts/ChinaTradingDates.txt
-start: 20230505
-end: 20230505
+start: 20210513
+end: 20210513
 
 refdata:
   config:
     # data_dir: /global/wlsim/data/refdata
 
 signal:
-  name: mbp
-  module: nickchenyj-mbp
-  config_file: src/mbp/sig.yml
+  name: csmbo
+  module: nickchenyj-csmbo
+  config_file: src/csmbo/sig.yml
   output:
     module: csv
     config:

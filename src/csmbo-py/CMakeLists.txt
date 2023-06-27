@@ -1,6 +1,6 @@
 add_wolverine_library(
-    NAME csmbp
+    NAME csmbo
     USER nickchenyj
     TYPE pysig
-    SRCS main.py
+    SRCS main.pyx
 )
