@@ -96,18 +96,21 @@ class MySig(SignalBase):
         cdef int ins_cnt = 0
         cdef double* price_arr
         cdef uint32_t* qty_arr
-        cdef long long haha = 0
+        cdef long long turnover
         for ii in range(ins_nr):
             ins_cnt = cnts[ii]
+            turnover = 0
+            if ins_cnt == 0:
+                continue
             price_arr = <double*><intptr_t>(ctypes.addressof(trades.price[ii].contents))
-            # price_np = np.ctypeslib.as_array(price_arr, (ins_cnt, ))
+            price_np = np.asarray(<np.float64_t[:ins_cnt]>price_arr)
             qty_arr = <uint32_t*><intptr_t>(ctypes.addressof(trades.qty[ii].contents))
-            # qty_np = np.ctypeslib.as_array(qty_arr, (cnt, ))
-            # print(f"type,{price_arr[0]},{qty_arr[0]}")
-            for ti in range(ins_cnt):
-                # print(f"trade,{ti}/{ins_cnt},{qty_arr[ti]}@{price_arr[ti]}")
-                haha += 1
-                pass
+            qty_np = np.asarray(<np.uint32_t[:ins_cnt]>qty_arr)
+            turnover = (price_np * qty_np).sum()
+            # print(f"ins:{ii},cnt:{ins_cnt},turnover:{turnover}")
+            # for ti in range(ins_cnt):
+            #     # print(f"trade,{ti}/{ins_cnt},{qty_arr[ti]}@{price_arr[ti]}")
+            #     pass
 
 
 
