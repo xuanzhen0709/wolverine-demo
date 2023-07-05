@@ -55,6 +55,14 @@
   ```
   python3.8 -m pip install Cython --user
   ```
+* numpy 1.23.4 is required. check the numpy version by
+  ```
+  pip3 list | grep numpy
+  ```
+  if you are using an older version, try update
+  ```
+  python3 -m pip install --user numpy==1.23.4 -i https://pypi.tuna.tsinghua.edu.cn/simple
+  ```
 
 * on some Linux distributions, adding the above 'enable xxx' lines to ~/.bashrc doesn't guarantee auto-enabling them in new terminals.
   you may try and validate whether the changes persist by opening a new terminal. if not, you may add the following lines to your ~/.profile
