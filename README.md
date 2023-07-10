@@ -64,6 +64,43 @@
   python3 -m pip install --user numpy==1.23.4 -i https://pypi.tuna.tsinghua.edu.cn/simple
   ```
 
+* since wlsim currently requires a very specific setup, which may conflict with system-provided python3, users may wrap the above env-enablement statements in a bash function
+  ```
+  # in ~/.bashrc
+  # the following two lines can be enabled unconditionally
+  export PATH=$PATH:~/.local/bin
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/lib
+
+  # a wrapper that enables wlsim specific python3 and gcc
+  function enable_wlsim_env()
+  {
+      local plat=$(uname -r)
+
+      if [[ $plat =~ el8 ]]; then
+          if shopt -q login_shell; then
+              echo "el8, enabling gcc-toolset-11"
+          fi
+          source /opt/rh/gcc-toolset-11/enable
+      elif [[ $plat =~ el7 ]]; then
+          if shopt -q login_shell; then
+              echo "el7, enabling devtoolset-11"
+          fi
+          source /opt/rh/devtoolset-11/enable
+
+          if shopt -q login_shell; then
+              echo "el7, enabling rh-python38"
+          fi
+          source /opt/rh/rh-python38/enable
+      fi
+  }
+  ```
+  users can run in the console
+  ```
+  enable_wlsim_env
+  ```
+  to manually activate the environemnt before using wlsim.
+
+
 * on some Linux distributions, adding the above 'enable xxx' lines to ~/.bashrc doesn't guarantee auto-enabling them in new terminals.
   you may try and validate whether the changes persist by opening a new terminal. if not, you may add the following lines to your ~/.profile
   ```
