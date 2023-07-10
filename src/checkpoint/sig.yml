@@ -8,7 +8,7 @@ marketdata:
     options:
       # data_dir: /global/wlsim/data/cs_snapshot
       fields:
-        - ap1
+        - ap
         - last_price
         - volume
 
