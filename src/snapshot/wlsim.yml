@@ -1,0 +1,16 @@
+calendar: scripts/ChinaTradingDates.txt
+start: 20230701
+end: 20230710
+
+refdata:
+  config:
+    # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: snapshot
+  module: nickchenyj-snapshot
+  config_file: src/snapshot/sig.yml
+  output:
+    module: csv
+    config:
+      output_dir: output
