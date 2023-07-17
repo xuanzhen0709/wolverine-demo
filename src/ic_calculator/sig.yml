@@ -1,0 +1,18 @@
+targets:
+  - IC.CFFEX
+
+marketdata:
+  - module: snapshot
+    symbols:
+      - IC.CFFEX
+
+# user defined params can go below
+signame: snapshot
+sigdir: output
+file_type: csv
+output_dir: output/ic/
+
+# support m/s/h
+futret_bias:
+  - 30s
+  - 1m
