@@ -1,0 +1,22 @@
+targets:
+  - dynamic:stocks
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    options:
+      fields:
+        - ap
+        - bp
+      levels: 1
+
+
+# user defined params can go below
+signame: csstock-py
+sigdir: output
+file_type: csv
+output_dir: output/cs_ic/
+
+# support m/s/h
+futret_bias: 5m

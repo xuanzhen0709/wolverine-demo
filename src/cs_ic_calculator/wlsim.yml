@@ -1,0 +1,17 @@
+calendar: scripts/ChinaTradingDates.txt
+start: 20230701
+end: 20230709
+
+refdata:
+  config:
+    # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: ic
+  module: py
+  config:
+    module: nickchenyj.cs_ic_calculator
+    pylib: libpython3.9.so
+    pypath:
+      - build/Debug/src/cs_ic_calculator/
+    config_file: src/cs_ic_calculator/sig.yml

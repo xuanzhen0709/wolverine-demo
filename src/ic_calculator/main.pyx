@@ -45,6 +45,7 @@ def hhmmssf_to_exchtime(val: str) -> int:
     time: int = hh * 3600 * int(1e9) + mm * 60 * int(1e9) + ss * int(1e9) + ff
     if hh >= 18:
         time -= 24 * 3600 * int(1e9)
+    return time
 
 
 cdef void match_sig_with_md(
@@ -53,22 +54,22 @@ cdef void match_sig_with_md(
         np.float64_t[:] sig_mid_px,
         const np.uint64_t[:] sig_fut_localtime,
         np.float64_t[:] sig_fut_mid_px,
-        const int ret_nr,
-        const np.uint64_t[:] ret_localtime,
-        const np.float64_t[:] ret_mid_px):
+        const int md_nr,
+        const np.uint64_t[:] md_localtime,
+        const np.float64_t[:] md_mid_px):
     cdef int sig_idx = 0
     cdef int ret_idx = 0
     cdef int fut_ret_idx = 0
     while sig_idx < sig_nr:
-        while ret_idx < ret_nr and ret_localtime[ret_idx] <= sig_localtime[sig_idx]:
+        while ret_idx < md_nr and md_localtime[ret_idx] <= sig_localtime[sig_idx]:
             ret_idx += 1
         if ret_idx:
-            sig_mid_px[sig_idx] = ret_mid_px[ret_idx - 1]
+            sig_mid_px[sig_idx] = md_mid_px[ret_idx - 1]
 
-        while fut_ret_idx < ret_nr and ret_localtime[fut_ret_idx] <= sig_fut_localtime[sig_idx]:
+        while fut_ret_idx < md_nr and md_localtime[fut_ret_idx] <= sig_fut_localtime[sig_idx]:
             fut_ret_idx += 1
-        if fut_ret_idx and fut_ret_idx < ret_nr:
-            sig_fut_mid_px[sig_idx] = ret_mid_px[fut_ret_idx - 1]
+        if fut_ret_idx and fut_ret_idx < md_nr:
+            sig_fut_mid_px[sig_idx] = md_mid_px[fut_ret_idx - 1]
 
         sig_idx += 1
 
