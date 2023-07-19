@@ -1,3 +1,6 @@
+# 20230717
+* MAJOR (marketdata): added ic calculator - which requires an update to the runtime packages, please run install_runtime.py again before using
+
 # 20230627
 * MAJOR (CsSnapshotEvent): reworked subscription mechanism - cs-snapshot module now accepts a "levels" options. instead of specifying ap1/ap2/av1/av2 etc, users should specify ap/av and set levels=xxx.
 * MAJOR (Signal API): reworked api for market by order events
