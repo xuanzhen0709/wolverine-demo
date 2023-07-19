@@ -11,7 +11,7 @@ signal:
   module: py
   config:
     module: nickchenyj.cs_ic_calculator
-    pylib: libpython3.9.so
+    pylib: libpython3.8.so
     pypath:
       - build/Debug/src/cs_ic_calculator/
     config_file: src/cs_ic_calculator/sig.yml
