@@ -1,3 +1,6 @@
+# 20230720
+* MAJOR (logging): c++ implementation now uses a different set of logging functions, use wllog_xxx instead of LOG_XXX
+
 # 20230717
 * MAJOR (marketdata): added ic calculator - which requires an update to the runtime packages, please run install_runtime.py again before using
 

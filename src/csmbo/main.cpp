@@ -62,7 +62,7 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
-  LOG_INFO("ins_nr={}\n", ev->ins_nr);
+  wllog_info("ins_nr={}\n", ev->ins_nr);
   for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
     const auto *ms = ev->ms[i];
     std::string ins{ms->instrument};
@@ -75,10 +75,12 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   }
 }
 
-void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
+void Signal::on_eod(uint32_t date) {
+  wllog_info("{} updates received\n", m_cnt);
+}
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
-  // LOG_INFO("exchtime:{},ins_nr:{},level_nr:{}\n", ev->exchtime, ev->ins_nr,
+  // wllog_info("exchtime:{},ins_nr:{},level_nr:{}\n", ev->exchtime, ev->ins_nr,
   //          ev->level_nr);
   // to access level-based fields
   // const TYPE* arr = ev->flds[fld].xxx_ptrs[lvl];
@@ -92,11 +94,11 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   //   const auto &ap_ptrs =
   //       ev->flds[static_cast<int>(CsSnapshotEvent::FldType::ap)].double_ptrs;
   //   const auto *data = ap_ptrs[lvl];
-  //   LOG_INFO("lvl {}", lvl);
+  //   wllog_info("lvl {}", lvl);
   //   for (int idx = 0; idx < 5; ++idx) {
-  //     LOG_INFO_CONT(",{}", data[idx]);
+  //     wllog_info_cont(",{}", data[idx]);
   //   }
-  //   LOG_INFO_CONT("\n");
+  //   wllog_info_cont("\n");
   // }
   ++m_cnt;
   // we use m_cnt as the sig value for each target
@@ -106,7 +108,7 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
 }
 
 void Signal::on_cs_mbo(const CsMboEvent *ev) {
-  // LOG_INFO("exchtime:{},localtime:{},ins_nr:{}\n", ev->exchtime,
+  // wllog_info("exchtime:{},localtime:{},ins_nr:{}\n", ev->exchtime,
   // ev->localtime,
   //          ev->ins_nr);
   // {
@@ -115,9 +117,9 @@ void Signal::on_cs_mbo(const CsMboEvent *ev) {
   //     const auto &cnt = orders->cnt[ins];
   //     const auto &px = orders->price[ins];
   //     const auto &size = orders->qty[ins];
-  //     LOG_INFO("ORDER,ins:{},cnt:{}\n", ins, cnt);
+  //     wllog_info("ORDER,ins:{},cnt:{}\n", ins, cnt);
   //     for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
-  //       LOG_INFO("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
+  //       wllog_info("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
   //     }
   //   }
   // }
@@ -128,9 +130,9 @@ void Signal::on_cs_mbo(const CsMboEvent *ev) {
   //     const auto &cnt = cancels->cnt[ins];
   //     const auto &px = cancels->price[ins];
   //     const auto &size = cancels->qty[ins];
-  //     LOG_INFO("CANCELS,ins:{},cnt:{}\n", ins, cnt);
+  //     wllog_info("CANCELS,ins:{},cnt:{}\n", ins, cnt);
   //     for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
-  //       LOG_INFO("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
+  //       wllog_info("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
   //     }
   //   }
   // }
@@ -141,9 +143,9 @@ void Signal::on_cs_mbo(const CsMboEvent *ev) {
   //     const auto &cnt = trades->cnt[ins];
   //     const auto &px = trades->price[ins];
   //     const auto &size = trades->qty[ins];
-  //     LOG_INFO("TRADES,ins:{},cnt:{}\n", ins, cnt);
+  //     wllog_info("TRADES,ins:{},cnt:{}\n", ins, cnt);
   //     for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
-  //       LOG_INFO("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
+  //       wllog_info("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
   //     }
   //   }
   // }
@@ -166,7 +168,8 @@ void Signal::on_cs_mbo(const CsMboEvent *ev) {
       }
 
       const double vwap = turnover / vol;
-      // LOG_INFO("ins:{},turnover:{},volume:{},vwap:{}\n", ins, turnover, vol,
+      // wllog_info("ins:{},turnover:{},volume:{},vwap:{}\n", ins, turnover,
+      // vol,
       //          vwap);
     }
   }

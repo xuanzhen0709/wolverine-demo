@@ -44,11 +44,11 @@ void Signal::initialize(const Config *root) {}
 void Signal::set_apis(SignalApis apis) { m_apis = apis; }
 
 void Signal::load_state(const std::string &indir) {
-  LOG_INFO("loading state from dir {}\n", indir);
+  wllog_info("loading state from dir {}\n", indir);
 }
 
 void Signal::save_state(const std::string &outdir) {
-  LOG_INFO("saving state to dir {}\n", outdir);
+  wllog_info("saving state to dir {}\n", outdir);
 }
 
 void Signal::on_sod(uint32_t date, const SodEvent *ev) {
@@ -59,7 +59,7 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
-  LOG_INFO("ins_nr={}\n", ev->ins_nr);
+  wllog_info("ins_nr={}\n", ev->ins_nr);
   for (decltype(ev->ins_nr) i = 0; i < ev->ins_nr; ++i) {
     const auto *ms = ev->ms[i];
     std::string ins{ms->instrument};
@@ -72,13 +72,15 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   }
 }
 
-void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
+void Signal::on_eod(uint32_t date) {
+  wllog_info("{} updates received\n", m_cnt);
+}
 
 void Signal::on_snapshot(const SnapshotEvent *ev) {
-  LOG_DEBUG("exchtime:{}/{},localtime:{}/{}\n", ev->snapshot->exchtime,
-            time::exchtime_to_str(ev->snapshot->exchtime),
-            ev->snapshot->localtime,
-            time::epoch_to_str(ev->snapshot->localtime));
+  wllog_debug("exchtime:{}/{},localtime:{}/{}\n", ev->snapshot->exchtime,
+              time::exchtime_to_str(ev->snapshot->exchtime),
+              ev->snapshot->localtime,
+              time::epoch_to_str(ev->snapshot->localtime));
   // to access level-based fields
   // const TYPE* arr = ev->flds[fld].xxx_ptrs[lvl];
   // where arr is a pointer to an array of length ins_nr
@@ -90,7 +92,7 @@ void Signal::on_snapshot(const SnapshotEvent *ev) {
   // for (int i = 0; i < static_cast<int>(CsSnapshotEvent::FldType::_MAX); ++i)
   // {
   //   const auto &fld = ev->flds[i];
-  //   LOG_INFO_CONT("{},{}\n", i, fmt::ptr(fld.void_ptr));
+  //   wllog_info_cont("{},{}\n", i, fmt::ptr(fld.void_ptr));
   // }
   ++m_cnt;
   // we use m_cnt as the sig value for each target

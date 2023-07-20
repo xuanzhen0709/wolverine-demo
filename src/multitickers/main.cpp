@@ -47,10 +47,12 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
-  LOG_INFO("ins_nr={}\n", ev->ins_nr);
+  wllog_info("ins_nr={}\n", ev->ins_nr);
 }
 
-void Signal::on_eod(uint32_t date) { LOG_INFO("{} updates received\n", m_cnt); }
+void Signal::on_eod(uint32_t date) {
+  wllog_info("{} updates received\n", m_cnt);
+}
 
 void Signal::on_snapshot(const SnapshotEvent *ev) { ++m_cnt; }
 
