@@ -12,6 +12,22 @@ signal:
   config:
     module: nickchenyj.cs_ic_calculator
     pylib: libpython3.8.so
-    pypath:
-      - build/Debug/src/cs_ic_calculator/
-    config_file: src/cs_ic_calculator/sig.yml
+    config:
+      targets:
+        - dynamic:stocks
+
+      marketdata:
+        - module: cs-snapshot
+          symbols:
+            - stocks
+          config:
+            fields:
+              - ap
+              - bp
+            levels: 1
+      signame: csstock-py
+      sigdir: output
+      file_type: csv
+      output_dir: output/cs_ic/
+      # support m/s/h
+      futret_bias: 5m

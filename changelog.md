@@ -1,3 +1,15 @@
+# 20230725
+* MAJOR(config): the framework has switched to a single-config design. instead of using
+```python
+config_file: xxx/sig.yml
+```
+please use
+```python
+config:
+  # put contents of sig.yml below
+```
+* MAJOR(pysig): now pysig requires running 'make install', and the 'pypath' config item has been removed
+
 # 20230720
 * MAJOR (logging): c++ implementation now uses a different set of logging functions, use wllog_xxx instead of LOG_XXX
 

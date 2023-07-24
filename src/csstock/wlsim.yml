@@ -9,8 +9,23 @@ refdata:
 signal:
   name: csstock
   module: nickchenyj-csstock
-  config_file: src/csstock/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    targets:
+      - dynamic:stocks
+    marketdata:
+      - module: cs-snapshot
+        symbols:
+          - stocks
+        config:
+          # data_dir: /global/wlsim/data/cs_snapshot
+          fields:
+            - last_price
+            - volume
+            - ap
+          levels: 1
+    # freq can be 60/120/180
+    freq: 120

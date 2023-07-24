@@ -15,8 +15,22 @@ checkpoint:
 signal:
   name: checkpoint
   module: nickchenyj-checkpoint
-  config_file: src/checkpoint/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    targets:
+      - dynamic:stocks
+    marketdata:
+      - module: cs-snapshot
+        symbols:
+          - stocks
+        config:
+          # data_dir: /global/wlsim/data/cs_snapshot
+          fields:
+            - ap
+            - last_price
+            - volume
+          levels: 1
+    freq: 120

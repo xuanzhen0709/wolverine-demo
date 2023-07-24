@@ -9,13 +9,21 @@ refdata:
 signal:
   name: snapshot-py
   module: py
-  config:
-    module: nickchenyj.snapshot
-    pylib: libpython3.8.so
-    pypath:
-      - build/Debug/src/snapshot-py/
-    config_file: src/snapshot-py/sig.yml
   output:
     module: npy
     config:
       output_dir: output
+  config:
+    module: nickchenyj.snapshot
+    pylib: libpython3.8.so
+    config:
+      targets:
+        - IC.CFFEX
+
+      marketdata:
+        - module: snapshot
+          symbols:
+            - IC.CFFEX
+          config: {}
+
+      # user defined params can go below

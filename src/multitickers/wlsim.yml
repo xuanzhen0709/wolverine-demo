@@ -9,8 +9,20 @@ refdata:
 signal:
   name: multitickers
   module: nickchenyj-multitickers
-  config_file: src/multitickers/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    targets:
+      - IC.CFFEX
+      - IF1.CFFEX
+
+    marketdata:
+      - module: snapshot
+        symbols:
+          - IC.CFFEX
+          - IF1.CFFEX
+          - IF2.CFFEX
+        config: {}
+    # user defined params can go below

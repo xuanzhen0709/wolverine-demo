@@ -200,19 +200,15 @@ the time.hpp header that comes with the development package provides some useful
 
 ---
 
-# Sim Configs
+# Sim Config
 
-(for now) each test case requires at two config files:
+we recommend using "wlsim.yml" as the config file name, and the file, as the extension indicates, follows the YAML standard.
 
-* wlsim.yml (or a different name): used as the main config, and contains all the signal-independent config items.
+the config file has a hierarchical layout - and a few principles are followed
 
-* sig.yml (or a different name): referenced in the main config, and contains signal-internal config items.
+* any parameter or configuration items applicable to a module should be placed under the config section
 
-the two-config layout serves multifolded purposes:
-
-* allow expanding existing signals to new instruments/universes. for example, simple alter sig.yml to test new instruments
-* allow testing various sets of parameters during the research process (with the help of some simple userside batch generator of config files)
-* allow "plugging" signal modules to other research platforms by segregating signal-specific and signal-independent config items.
+* signal specific config items, along with marketdata subscription, and trading target selection, are placed together
 
 
 ## Demo
@@ -234,16 +230,15 @@ refdata:
 signal:
   name: csstock-py
   module: py
-  config:
-    module: nickchenyj.csstock
-    pylib: libpython3.8.so
-    pypath:
-      - build/Debug/src/csstock-py/
-    config_file: src/csstock-py/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    module: nickchenyj.csstock
+    pylib: libpython3.8.so
+    config:
+        # blabla
 ```
 
 ```yaml
@@ -263,9 +258,10 @@ refdata:
 signal:
   name: csstock-py
   module: nickchenyj-csstock
-  config_file: src/csstock-py/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    # blabla
 ```

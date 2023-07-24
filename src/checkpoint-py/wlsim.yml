@@ -15,13 +15,23 @@ checkpoint:
 signal:
   name: checkpoint-py
   module: py
-  config:
-    module: nickchenyj.checkpoint
-    pylib: libpython3.8.so
-    pypath:
-      - build/Debug/src/checkpoint-py/
-    config_file: src/checkpoint-py/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    module: nickchenyj.checkpoint
+    pylib: libpython3.8.so
+    config:
+      targets:
+        - dynamic:stocks
+      marketdata:
+        - module: cs-snapshot
+          symbols:
+            - stocks
+          config:
+            # data_dir: /global/wlsim/data/cs_snapshot
+            fields:
+              - last_price
+              - volume
+      # user defined params can go below

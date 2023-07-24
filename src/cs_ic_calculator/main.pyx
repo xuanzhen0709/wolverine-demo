@@ -123,31 +123,28 @@ class CsICCalculator(SignalBase):
         else:
             self.sig_df = __load_npy(self.sigdir, self.signame, self.today)
 
-    def initialize(self, path: str):
-        if not path:
-            return
-        print(f"loadding config:{path}")
-        with open(path) as fin:
-            cfg = yaml.safe_load(fin)
-            self.signame = str(cfg["signame"])
-            self.sigdir = Path(cfg["sigdir"])
-            self.sig_file_type: SigFileType = SigFileType[str(cfg["file_type"])]
-            self.futret_bias_str = str(cfg["futret_bias"])
-            if self.futret_bias_str.endswith("ns"):
-                self.futret_bias = int(self.futret_bias_str[:-2])
-            elif self.futret_bias_str.endswith("s"):
-                self.futret_bias = int(self.futret_bias_str[:-1]) * int(1e9)
-            elif self.futret_bias_str.endswith("m"):
-                self.futret_bias = int(self.futret_bias_str[:-1]) * int(1e9) * 60
-            elif self.futret_bias_str.endswith("h"):
-                self.futret_bias = int(self.futret_bias_str[:-1]) * int(1e9) * 3600
-            else:
-                raise RuntimeError("unknown unit {futret_bias_str}")
-            odir: Path = Path(cfg["output_dir"])
-            odir.mkdir(parents=True, exist_ok=True)
-            ofile: Path = odir / f"{self.signame}.csv"
-            self.fout = open(ofile, "w", buffering=1)
-            self.fout.write(f"date,exchtime,localtime,ic\n")
+    def initialize(self, cfg_str: str):
+        print(f"loading config")
+        cfg = yaml.safe_load(cfg_str)
+        self.signame = str(cfg["signame"])
+        self.sigdir = Path(cfg["sigdir"])
+        self.sig_file_type: SigFileType = SigFileType[str(cfg["file_type"])]
+        self.futret_bias_str = str(cfg["futret_bias"])
+        if self.futret_bias_str.endswith("ns"):
+            self.futret_bias = int(self.futret_bias_str[:-2])
+        elif self.futret_bias_str.endswith("s"):
+            self.futret_bias = int(self.futret_bias_str[:-1]) * int(1e9)
+        elif self.futret_bias_str.endswith("m"):
+            self.futret_bias = int(self.futret_bias_str[:-1]) * int(1e9) * 60
+        elif self.futret_bias_str.endswith("h"):
+            self.futret_bias = int(self.futret_bias_str[:-1]) * int(1e9) * 3600
+        else:
+            raise RuntimeError("unknown unit {futret_bias_str}")
+        odir: Path = Path(cfg["output_dir"])
+        odir.mkdir(parents=True, exist_ok=True)
+        ofile: Path = odir / f"{self.signame}.csv"
+        self.fout = open(ofile, "w", buffering=1)
+        self.fout.write(f"date,exchtime,localtime,ic\n")
 
     def on_sod(self, date: int, ev: SodEvent):
         if self.today != date:

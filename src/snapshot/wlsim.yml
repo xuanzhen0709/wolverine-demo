@@ -9,8 +9,19 @@ refdata:
 signal:
   name: snapshot
   module: nickchenyj-snapshot
-  config_file: src/snapshot/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    targets:
+      - IC.CFFEX
+
+    marketdata:
+      - module: snapshot
+        symbols:
+          - IC.CFFEX
+        config: {}
+
+    # freq can be 60/120/180
+    freq: 120

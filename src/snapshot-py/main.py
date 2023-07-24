@@ -11,12 +11,9 @@ class MySig(SignalBase):
         self.cnt: int = 0
         self.sigval: np.ndarray = np.full((1, ), np.nan, dtype=np.float64)
 
-    def initialize(self, path: str):
-        if not path:
-            return
-        print(f"loadding config:{path}")
-        with open(path) as fin:
-            cfg = yaml.safe_load(fin)
+    def initialize(self, cfg_str: str):
+        print(f"loading config")
+        cfg = yaml.safe_load(cfg_str)
 
     def on_sod(self, date: int, ev: SodEvent):
         self.cnt = 0

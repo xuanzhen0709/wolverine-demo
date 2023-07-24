@@ -7,6 +7,7 @@ import time
 import yaml
 
 from cfi.wolverine.signal import *
+from cfi.wolverine.event import *
 
 
 
@@ -16,18 +17,16 @@ class MySig(SignalBase):
         super().__init__()
         self.cnt: int = 0
         self.mss = []
+        self.ins_nr: int = 0
         self.last_price = []
         self.exchtime = []
         self.localtime = []
         self.start_ts: float = 0
         haha()
 
-    def initialize(self, path: str):
-        if not path:
-            return
-        print(f"loadding config:{path}")
-        with open(path) as fin:
-            cfg = yaml.safe_load(fin)
+    def initialize(self, cfg_str: str):
+        print(f"loading config")
+        cfg = yaml.safe_load(cfg_str)
 
     def on_sod(self, date: int, ev: SodEvent):
         self.start_ts = time.time()
@@ -44,6 +43,7 @@ class MySig(SignalBase):
                 ms.instrument.decode("utf8") + "." +
                 ms.exchange.decode("utf8"))
             # print(f"\t{i+1},{ms.instrument}")
+        self.ins_nr = ev.ins_nr
         self.last_price.clear()
         self.exchtime.clear()
         self.localtime.clear()
@@ -64,13 +64,13 @@ class MySig(SignalBase):
 
         # just for demonstration purposes, we try to update signals using dummy values
         ins_nr: int = len(self.mss)
-        for idx in range(len(exchtime)):
-            self.update_signal(int(exchtime[idx]), int(localtime[idx]),
-                               np.full((ins_nr, ), idx, dtype=np.float64))
+        # for idx in range(len(exchtime)):
+        #     self.update_signal(int(exchtime[idx]), int(localtime[idx]),
+        #                        np.full((ins_nr, ), idx, dtype=np.float64))
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
-        print(f"on_cs_snapshot,{ev.exchtime},{ev.localtime}")
+        # print(f"on_cs_snapshot,{ev.exchtime},{ev.localtime}")
         self.exchtime.append(ev.exchtime)
         self.localtime.append(ev.localtime)
         # k = ev.data[CsSnapshotEvent.FldType.AP.value]
@@ -78,9 +78,15 @@ class MySig(SignalBase):
 
         # ev.data is a dictionary mapping from int -> np.ndarray
         last_price_data = ev.data[CsSnapshotEvent.FldType.LAST_PRICE.value]
-        print(f"{type(last_price_data)},{last_price_data}")
+        # print(f"{type(last_price_data)},{last_price_data}")
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
-        self.last_price.append(np.ndarray.copy(last_price_data))
+        data = np.ndarray.copy(last_price_data)
+        if self.cnt == 1:
+            sigs = np.full((self.ins_nr,), np.nan, dtype=np.float64)
+        else:
+            sigs = data / self.last_price[-1] - 1
+        self.update_signal(ev.exchtime, ev.localtime, sigs)
+        self.last_price.append(data)
 
 
 def pysig_create():

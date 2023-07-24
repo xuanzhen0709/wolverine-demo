@@ -9,13 +9,27 @@ refdata:
 signal:
   name: csmbo-py
   module: py
-  config:
-    module: nickchenyj.csmbo
-    pylib: libpython3.8.so
-    pypath:
-      - build/Debug/src/csmbo-py/
-    config_file: src/csmbo-py/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    module: nickchenyj.csmbo
+    pylib: libpython3.8.so
+    config:
+      targets:
+        - dynamic:stocks
+      marketdata:
+        - module: cs-snapshot
+          symbols:
+            - stocks
+          config:
+            fields:
+              - last_price
+              - volume
+              - ap
+            levels: 1
+        - module: cs-mbo
+          symbols:
+            - stocks
+          config: {}

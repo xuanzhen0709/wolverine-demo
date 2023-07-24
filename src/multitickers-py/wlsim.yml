@@ -9,13 +9,28 @@ refdata:
 signal:
   name: multiticker-py
   module: py
-  config:
-    module: nickchenyj.multitickers
-    pylib: libpython3.8.so
-    pypath:
-      - build/Debug/src/multitickers-py/
-    config_file: src/multitickers-py/sig.yml
   output:
     module: csv
     config:
       output_dir: output
+  config:
+    module: nickchenyj.multitickers
+    pylib: libpython3.8.so
+    config:
+      targets:
+        - IC.CFFEX
+
+      marketdata:
+        - module: snapshot
+          symbols:
+            - IC.CFFEX
+            - IF.CFFEX
+            - IH.CFFEX
+            - a.DCE
+            - b.DCE
+            - c.DCE
+            - cs.DCE
+            - eb.DCE
+            - eg.DCE
+          config: {}
+      # user defined params can go below
