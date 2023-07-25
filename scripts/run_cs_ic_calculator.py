@@ -30,7 +30,7 @@ class SingalCfg:
         self.file_type: str = str(sigout_cfg["module"])
 
     def run(self, outdir_root: Path, future_bias: str):
-        outdir: Path = outdir_root.resolve() / f"ic.{self.name}.{self.start}.{self.end}.{future_bias}"
+        outdir: Path = outdir_root.resolve() / f"cs_ic.{self.name}.{self.start}.{self.end}.{future_bias}"
         outdir.mkdir(parents=True, exist_ok=True)
 
         outcfg_file: Path = outdir_root.resolve() / f"cs_ic.{self.name}.{self.start}.{self.end}.{future_bias}.yml"
