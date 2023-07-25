@@ -51,18 +51,6 @@
   ```
   /opt/rh/rh-python38/enable
   ```
-  in this case, please install Cython the after enabling python 3.8 the first time
-  ```
-  python3.8 -m pip install Cython --user
-  ```
-* numpy 1.23.4 is required. check the numpy version by
-  ```
-  pip3 list | grep numpy
-  ```
-  if you are using an older version, try update
-  ```
-  python3 -m pip install --user numpy==1.23.4 -i https://pypi.tuna.tsinghua.edu.cn/simple
-  ```
 
 * since wlsim currently requires a very specific setup, which may conflict with system-provided python3, users may wrap the above env-enablement statements in a bash function
   ```
@@ -100,6 +88,10 @@
   ```
   to manually activate the environemnt before using wlsim.
 
+* please install the following python packages (this needs to done only once)
+  ```
+  python3.8 -m pip install --user Cython wheel numpy>=1.23.4 -i https://pypi.tuna.tsinghua.edu.cn/simple
+  ```
 
 * on some Linux distributions, adding the above 'enable xxx' lines to ~/.bashrc doesn't guarantee auto-enabling them in new terminals.
   you may try and validate whether the changes persist by opening a new terminal. if not, you may add the following lines to your ~/.profile
