@@ -106,11 +106,11 @@ class CsICCalculator(SignalBase):
             date_dir: Path = sigdir.joinpath(signame, str(date))
 
             uv = np.memmap(date_dir.joinpath(f"{signame}-{date}.uv.npy"), dtype="S16", mode="r")
-            targets: List[str ] = [str(x) for x in uv]
+            targets: List[str] = [x.decode("utf8") for x in uv]
 
             exchtime = np.memmap(date_dir.joinpath(f"{signame}-{date}.ts.npy"), dtype=np.int64, mode="r")
             localtime = np.memmap(date_dir.joinpath(f"{signame}-{date}.localts.npy"), dtype=np.uint64, mode="r")
-            sigs = np.memmap(date_dir.joinpath(f"{signame}-{date}.data.npy"), dtype=np.float64, mode="r")
+            sigs = np.memmap(date_dir.joinpath(f"{signame}-{date}.data.npy"), dtype=np.float64, mode="r", shape=(exchtime.shape[0], len(targets)))
             
             df: pd.DataFrame = pd.DataFrame(sigs, columns=targets)
             df["exchtime"] = exchtime
