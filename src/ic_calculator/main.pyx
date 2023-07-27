@@ -112,7 +112,7 @@ class ICCalculator(SignalBase):
             df = df[["exchtime", "localtime"] + targets]
             return df
 
-        print(f"loading signal {today}")
+        print(f"loading signal {self.today}")
         if self.sig_file_type == SigFileType.csv:
             self.sig_df = __load_csv(self.sigdir, self.signame, self.today)
         else:
