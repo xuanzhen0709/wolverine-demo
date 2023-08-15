@@ -28,7 +28,7 @@ class SingalCfg:
         self.sigout_dir: Path = Path(sigout_cfg["config"]["output_dir"])
         self.file_type: str = str(sigout_cfg["module"])
 
-    def run(self, outdir_root: Path, future_biases: List[str]):
+    def run(self, outdir_root: Path, future_biases: List[str], mode: str):
         fut_bias_str: str = "-".join(future_biases)
         outdir: Path = outdir_root.resolve() / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}"
         outdir.mkdir(parents=True, exist_ok=True)
@@ -46,6 +46,7 @@ class SingalCfg:
             "file_type": self.file_type,
             "output_dir": str(outdir),
             "futret_bias": future_biases,
+            "mode": mode,
         }
 
         cfg["signal"] = {
@@ -69,10 +70,11 @@ def main():
     parser.add_argument("signal_config", type=Path, help="configuration file of the signal to be analyzed")
     parser.add_argument("-o", "--output", type=Path, required=True, help="output dir")
     parser.add_argument("--future-bias", type=str, action="append", required=True, help="comma separated future biases, postfixes such as 's' 'm' and 'h' are supported")
+    parser.add_argument("--mode", type=str, choices=["daily", "continuous"], default="continuous", help="calculation mode")
     args = parser.parse_args()
 
     cfg = SingalCfg(args.signal_config)
-    cfg.run(args.output, args.future_bias)
+    cfg.run(args.output, args.future_bias, args.mode)
 
 
 if __name__ == "__main__":

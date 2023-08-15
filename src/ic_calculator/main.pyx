@@ -458,8 +458,8 @@ class ICCalculator(SignalBase):
         odir.mkdir(parents=True, exist_ok=True)
         ofile: Path = odir / f"{self.signame}.csv"
         self.fout = open(ofile, "w", buffering=1)
-        cache_type: str = str(cfg["cache_type"])
-        self.cache = DailyMdCache(self.futret_bias, self.fout) if cache_type == "daily" else ContinuousMDCache(self.futret_bias, self.fout) 
+        mode: str = str(cfg["mode"])
+        self.cache = DailyMdCache(self.futret_bias, self.fout) if mode == "daily" else ContinuousMDCache(self.futret_bias, self.fout) 
 
     def on_sod(self, date: int, ev: SodEvent):
         print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
