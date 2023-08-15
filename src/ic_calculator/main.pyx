@@ -333,9 +333,8 @@ class ContinuousMDCache(MdCache):
         self.ins_cache[ms.ticker.decode("utf8") + "." + ms.exchange.decode("utf8")].push(ss)
 
     def on_eod(self, date: int):
-        if date == 20230710:
-            self.__del__()
-            
+        pass
+
     def __del__(self):
         self.ins_cache_list.append(self.ins_cache)
         print(f"calculating ic")
