@@ -32,6 +32,8 @@ signal:
       file_type: csv
       output_dir: output/ic/
       # support m/s/h
+      # In the current mode, small futret_bias are supported 
+      # futret_bias do not exceed the minimum trading period length 
       futret_bias:
         - 30s
         - 1m

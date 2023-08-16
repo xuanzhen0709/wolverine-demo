@@ -1,0 +1,82 @@
+import datetime
+import numpy as np
+from pathlib import Path
+from typing import List, Set, Union
+
+
+class Calendar:
+    """
+    This class provides trading calendar lookups.
+
+    A typical use case would be:
+
+    Calendar.get_instance().next_business_day(20211202, 1)
+    """
+    __INSTANCE = None
+
+    def __init__(self):
+        path: Path = Path("/mnt/nas-3/CTA/Data/ChinaTradingDates.txt")
+        with open(path) as fin:
+            lines = [int(x) for x in fin.read().splitlines()]
+            self.dates: np.ndarray = np.array(lines, dtype=np.uint32)
+            self.date_set: Set[int] = set(lines)
+
+    @staticmethod
+    def get_instance() -> "Calendar":
+        """
+        Return:
+            the global Calendar instance
+        """
+        if Calendar.__INSTANCE is None:
+            Calendar.__INSTANCE = Calendar()
+        return Calendar.__INSTANCE
+
+    def next_business_day(self, date: Union[str, int], shift: int = 1) -> int:
+        """
+        find the business day with a an optional shift
+
+        Args:
+            date: reference date
+            shift: offset to the reference date
+
+        Return:
+            date
+        """
+        date_int = int(date)
+        idx: int = int(np.searchsorted(self.dates, date_int, side="left"))
+        if self.dates[idx] == date_int:
+            return int(self.dates[idx + shift])
+        if shift > 0:
+            idx -= 1
+        return int(self.dates[idx + shift])
+
+    def is_business_day(self, date: Union[str, int]) -> bool:
+        """
+        tells if the given date is a business day
+
+        Args:
+            date: given date
+
+        Return:
+            whether the given date is a business day or not
+        """
+        date_int = int(date)
+        return date_int in self.date_set
+
+    def get_business_days(self, start_date: Union[str, int],
+                          end_date: Union[str, int]) -> List[int]:
+        """
+        retrieve a list of business days given a date range
+
+        Args:
+            start_date: start of the range (inclusive)
+            end_date: end of the range (inclusive)
+
+        Return:
+            list of dates (integer)
+        """
+        start: int = int(start_date)
+        end: int = int(end_date)
+        st_idx: int = np.searchsorted(self.dates, start, side="left")
+        rt_idx: int = np.searchsorted(self.dates, end, side="right")
+        return [int(x) for x in self.dates[st_idx:rt_idx]]
