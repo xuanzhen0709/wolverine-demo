@@ -66,25 +66,33 @@ def localtime_shift_in_futret_bias(x:np.uint64, futret_bias: int, session: List)
             x += (session[i+1][0] - session[i][1]) 
     return x
 
-def session_maker(date_list: List,  session: List):
-    # print("session_maker:")
-    ans :List[List] = []
-    for date in date_list:
-        daily_session = []
-        str_time = str(date) + '00:00:00'
-        time_stamp = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
-        ts = time_stamp * int(1e9)
-        for s in session:
-            daily_session.append([np.uint64(i + ts) for i in s])
+def session_maker(date: int,  session: List):
+    daily_session = []
+    str_time = str(date) + '00:00:00'
+    time_stamp = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
+    ts = time_stamp * int(1e9)
+    for s in session:
+        daily_session.append([np.uint64(i + ts) for i in s])
+    return daily_session
 
-        ans.append(daily_session)
-    # for s in ans:
-    #     for i in s:
-    #         print(i)
-    #         print(pd.to_datetime(i, unit='ns'))
-    # print("session_maker end")
-
-    return ans
+def calculate_ic_for_target(ret_df: pd.DataFrame, sig_df: pd.DataFrame, futret_bias: int) -> pd.DataFrame:
+    ret_df["localtime"] = ret_df["localtime"].astype(np.uint64)
+    ret_df["mid_px"] = (ret_df["ap"] + ret_df["bp"]) / 2
+    
+    sig_df["localtime"] = sig_df["localtime"].astype(np.uint64)
+    sig_df["mid_px"] = np.nan
+    sig_df["fut_localtime"] = sig_df["localtime"] + futret_bias
+    sig_df["fut_mid_px"] = np.nan
+    match_sig_with_md(len(sig_df.index),
+            sig_df["localtime"].values,
+            sig_df["mid_px"].values,
+            sig_df["fut_localtime"].values,
+            sig_df["fut_mid_px"].values,
+            len(ret_df.index),
+            ret_df["localtime"].values,
+            ret_df["mid_px"].values)
+    sig_df["fut_ret"] = (sig_df["fut_mid_px"] / sig_df["mid_px"]) - 1
+    return sig_df
 
 def calculate_ic_for_target(ret_df: pd.DataFrame, sig_df: pd.DataFrame, futret_bias: int) -> pd.DataFrame:
     ret_df["localtime"] = ret_df["localtime"].astype(np.uint64)
@@ -132,11 +140,12 @@ class InsDataCache:
 
 class MdCache(ABC):
 
-    def __init__(self, futret_bias: Dict[int, int], fout: _io.TextIOWrapper):
+    def __init__(self, futret_bias: Dict[int, str], fout: _io.TextIOWrapper):
         self.futret_bias: Dict[int, str] = futret_bias
         self.fout = fout
         self.name2sessions: Dict[string, List] = {}
         self.ins_cache: Dict[int, InsDataCache] = {}
+        self.sig_df: pd.DataFrame = None
     
     def futret_bias_check(self):
         for futret_bias, str_futret_bias in self.futret_bias.items():
@@ -144,32 +153,7 @@ class MdCache(ABC):
                 for session in session_list:
                     if futret_bias > session[1] - session[0]:
                         raise Exception(f"futret_bias {str_futret_bias} exceed trading period length of {tk_exch}")
-                        
-    def on_snapshot(self, ev: SnapshotEvent):
-        ms_ptr: int = ctypes.cast(ev.ms, ctypes.c_void_p).value
-        # ms: MdStatic = ev.ms.contents
-        ss: MdSnapshot = ev.snapshot.contents
-        self.ins_cache[ms_ptr].push(ss)
 
-    @abstractmethod
-    def on_sod(self, ev: SodEvent, sig_df: pd.DataFrame, today: int, date: int):
-        pass
-
-    @abstractmethod
-    def on_eod(self, date: int):
-        pass
-
-    @abstractmethod
-    def __del__(self):
-        pass
-
-class DailyMdCache(MdCache):
-
-    def __init__(self, futret_bias: Dict[int, int], fout:_io.TextIOWrapper):
-        super().__init__(futret_bias, fout)
-        self.sig_df: pd.DataFrame = None
-        self.fout.write(f"date," + ",".join(self.futret_bias.values()) + "\n")
-     
     def on_sod(self, ev: SodEvent, sig_df: pd.DataFrame, today: int, date: int):
         if today != date:
             self.ins_cache.clear()
@@ -187,14 +171,34 @@ class DailyMdCache(MdCache):
                 for j in range(ms.session_nr):
                     sessions.append([ms.session[j].begin, ms.session[j].end])
                 self.name2sessions[tk_exch] = sessions
-        
+
+    def on_snapshot(self, ev: SnapshotEvent):
+        ms_ptr: int = ctypes.cast(ev.ms, ctypes.c_void_p).value
+        # ms: MdStatic = ev.ms.contents
+        ss: MdSnapshot = ev.snapshot.contents
+        self.ins_cache[ms_ptr].push(ss)
+
+    @abstractmethod
+    def on_eod(self, date: int):
+        pass
+
+    @abstractmethod
+    def __del__(self):
+        pass
+
+class DailyMdCache(MdCache):
+
+    def __init__(self, futret_bias: Dict[int, str], fout:_io.TextIOWrapper):
+        super().__init__(futret_bias, fout)
+        self.fout.write(f"date," + ",".join(self.futret_bias.values()) + "\n")
+    
     def on_eod(self, date: int):
         self.futret_bias_check()
         print(f"{date},calculating ic")
 
-        name2all_sessions: Dict[string, List] = {}
+        name2sessions: Dict[string, List] = {}
         for tk_exch, sessions in self.name2sessions.items():       
-            name2all_sessions[tk_exch] =  session_maker([date], sessions) 
+            name2sessions[tk_exch] =  session_maker(date, sessions) 
 
         fut_ret_all = []
         for futret_bias, str_futret_bias in self.futret_bias.items():
@@ -207,7 +211,7 @@ class DailyMdCache(MdCache):
                 # sig_df.to_csv(f"{date}_{cache.tk_exch}_sig_before.csv", sep=',')
                 print(f"start shift time for {cache.tk_exch}")
                 T_shift_start = time.perf_counter()
-                sig_df['localtime'] = sig_df['localtime'].apply(localtime_shift_in_futret_bias, args = (futret_bias, name2all_sessions[cache.tk_exch]))
+                sig_df['localtime'] = sig_df['localtime'].apply(localtime_shift_in_futret_bias, args = (futret_bias, name2sessions[cache.tk_exch]))
                 T_shift_end = time.perf_counter()
                 T_shift_cost = (T_shift_end - T_shift_start)*1000
                 print(f"end shift time, total cost {T_shift_cost}ms.")
@@ -226,7 +230,7 @@ class DailyMdCache(MdCache):
 
                 sigs.append(sig_df[cache.tk_exch])
                 fut_ret.append(sig_df["fut_ret"])
-           
+
             print(f"start calculating ic")
             T_calculate_start = time.perf_counter()
             sig_1d = np.ma.masked_invalid(np.ravel(sigs))
@@ -247,89 +251,64 @@ class DailyMdCache(MdCache):
 
 class ContinuousMDCache(MdCache):
 
-    def __init__(self, futret_bias: Dict[int, int], fout: _io.TextIOWrapper):
+    def __init__(self, futret_bias: Dict[int, str], fout: _io.TextIOWrapper):
         super().__init__(futret_bias, fout)
-        self.cache_list: Dict[string, List] = {}
-        self.sig_df_list: List = []
-        self.date_list: List = []
         self.fout.write(",".join(self.futret_bias.values()) + "\n")
-        self.check_fb: bool = False
+        self.matched_sig_ret: Dict[int, Dict] = {}
+        for fb in futret_bias:
+            self.matched_sig_ret[fb]  = {}
 
-    def on_sod(self, ev: SodEvent, sig_df: pd.DataFrame, today: int, date: int):
-        # For a new day, save the previous day's data 
-        if today != date:
-            # print("today:"+ str(today)+ " date" + str(date))
-            self.ins_cache.clear()
-            self.sig_df_list.append(sig_df)
-            self.date_list.append(date)
-
-        for i in range(ev.ins_nr):
-            ms_ptr: int = ctypes.cast(ev.ms[i], ctypes.c_void_p).value
-            ms: MdStatic = ev.ms[i].contents
-            print(f"\t{i+1}, {ms.instrument}")
-            tk_exch = ms.ticker.decode("utf8") + "." + ms.exchange.decode("utf8")
-            if tk_exch not in self.name2sessions:
-                print("collect sessions info")
-                sessions = []
-                for j in range(ms.session_nr):
-                    sessions.append([ms.session[j].begin, ms.session[j].end])
-                self.name2sessions[tk_exch] = sessions
-            self.ins_cache[ms_ptr] = InsDataCache(tk_exch)
-            
     def on_eod(self, date: int):
-        if not self.check_fb:
-            self.futret_bias_check()
-            self.check_fb = True
+        self.futret_bias_check()
+        print(f"{date}, shift time and match")
 
-        for cache in self.ins_cache.values():
-            if cache.tk_exch in self.cache_list:
-                self.cache_list[cache.tk_exch].append(cache)
-            else:
-                self.cache_list[cache.tk_exch] = [cache]
+        name2sessions: Dict[string, List] = {}
+        for tk_exch, sessions in self.name2sessions.items():       
+            name2sessions[tk_exch] = session_maker(date, sessions) 
+
+        fut_ret_all = []
+        for futret_bias, str_futret_bias in self.futret_bias.items():
+            for cache in self.ins_cache.values():
+                sig_df = self.sig_df[["exchtime", "localtime", cache.tk_exch]].copy()
+                # sig_df.to_csv(f"{date}_{cache.tk_exch}_sig_before.csv", sep=',')
+                print(f"start shift time for {cache.tk_exch}")
+                T_shift_start = time.perf_counter()
+                sig_df['localtime'] = sig_df['localtime'].apply(localtime_shift_in_futret_bias, args = (futret_bias, name2sessions[cache.tk_exch]))
+                T_shift_end = time.perf_counter()
+                T_shift_cost = (T_shift_end - T_shift_start)*1000
+                print(f"end shift time, total cost {T_shift_cost}ms.")
+
+                # sig_df.to_csv(f"{date}_{cache.tk_exch}_sig_after.csv", sep=',')
+                ret_df = cache.cache2ret_df()
+
+                print(f"start match sig & md for {cache.tk_exch}")
+                T_match_start = time.perf_counter()
+                sig_df: pd.DataFrame = calculate_ic_for_target(ret_df, sig_df, futret_bias)
+                # sig_df["time"] = pd.to_datetime(sig_df['localtime'],unit='ns')
+                # sig_df.to_csv(f"{date}_{cache.tk_exch}_sig_latest.csv", sep=',')
+                T_match_end = time.perf_counter()
+                T_match_cost = (T_match_end - T_match_start)*1000
+                print(f"end match sig & md for {cache.tk_exch}, total cost {T_match_cost}ms.")
+
+                if  cache.tk_exch in self.matched_sig_ret[futret_bias]:
+                    self.matched_sig_ret[futret_bias][cache.tk_exch]['sig'].append(sig_df[cache.tk_exch])
+                    self.matched_sig_ret[futret_bias]["fut_ret"]["fut_ret"].append(sig_df["fut_ret"])
+                else:
+                    self.matched_sig_ret[futret_bias][cache.tk_exch] = {}
+                    self.matched_sig_ret[futret_bias][cache.tk_exch]['sig'] = [ sig_df[cache.tk_exch] ]
+                    self.matched_sig_ret[futret_bias][cache.tk_exch]["fut_ret"] = [ sig_df["fut_ret"] ]
 
     def __del__(self):
         print(f"calculating ic")
-   
-        name2all_sessions: Dict[string, List] = {}
-        for tk_exch, sessions in self.name2sessions.items():
-            name2all_sessions[tk_exch] = session_maker(self.date_list, sessions)
-
         fut_ret_all = []
         for futret_bias, str_futret_bias in self.futret_bias.items():
             print(f"start ic calculating for futret_bias {str_futret_bias}")
             T_fb_start = time.perf_counter()
             sigs = []
             fut_ret = []
-            for tk_exch, cache_list in self.cache_list.items():
-                matched_sig_df = []
-                matched_fut_ret = []
-                for i in range(len(self.date_list)):
-                    sig_df = self.sig_df_list[i][["exchtime", "localtime", tk_exch]].copy()
-                    
-                    print(f"start shift time for {tk_exch}")
-                    T_shift_start = time.perf_counter()
-
-                    sig_df['localtime'] = sig_df['localtime'].apply(localtime_shift_in_futret_bias, args = (futret_bias, name2all_sessions[tk_exch][i]))
-
-                    T_shift_end = time.perf_counter()
-                    T_shift_cost = (T_shift_end - T_shift_start)*1000
-                    print(f"end shift time, total cost {T_shift_cost}ms.")
-                    print(f"start match sig & md for {tk_exch}")
-                    T_match_start = time.perf_counter()
-                    
-                    ret_df = cache_list[i].cache2ret_df()
-
-                    sig_df: pd.DataFrame = calculate_ic_for_target(ret_df, sig_df, futret_bias)
-                    # sig_df.to_csv(f"{cache.tk_exch}_sig.csv", sep=',')
-                    T_match_end = time.perf_counter()
-                    T_match_cost = (T_match_end - T_match_start)*1000
-                    print(f"end match sig & md for {tk_exch}, total cost {T_match_cost}ms.")
-
-                    matched_sig_df.append(sig_df[tk_exch])
-                    matched_fut_ret.append(sig_df["fut_ret"])
-
-                sigs.append(pd.concat(matched_sig_df))
-                fut_ret.append(pd.concat(matched_fut_ret))
+            for tk_exch in self.matched_sig_ret[futret_bias]:
+                sigs.append(pd.concat(self.matched_sig_ret[futret_bias][tk_exch]['sig']))
+                fut_ret.append(pd.concat(self.matched_sig_ret[futret_bias][tk_exch]["fut_ret"]))
 
             print(f"start calculating ic")
             T_calculate_start = time.perf_counter()
@@ -337,7 +316,7 @@ class ContinuousMDCache(MdCache):
             fut_ret_1d = np.ma.masked_invalid(np.ravel(fut_ret))
             corr = np.ma.corrcoef(sig_1d, fut_ret_1d)
             T_calculate_end = time.perf_counter()
-            T_calculate_cost = (T_calculate_end - T_calculate_start)*1000
+            T_calculate_cost = (T_calculate_end - T_calculate_start) * 1000
             print(f"end calculating ic, total cost {T_calculate_cost}ms.")
 
             fut_ret_all.append(corr[0][1])
