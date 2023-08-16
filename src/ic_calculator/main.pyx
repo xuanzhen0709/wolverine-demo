@@ -292,7 +292,7 @@ class ContinuousMDCache(MdCache):
 
                 if  cache.tk_exch in self.matched_sig_ret[futret_bias]:
                     self.matched_sig_ret[futret_bias][cache.tk_exch]['sig'].append(sig_df[cache.tk_exch])
-                    self.matched_sig_ret[futret_bias]["fut_ret"]["fut_ret"].append(sig_df["fut_ret"])
+                    self.matched_sig_ret[futret_bias][cache.tk_exch]["fut_ret"].append(sig_df["fut_ret"])
                 else:
                     self.matched_sig_ret[futret_bias][cache.tk_exch] = {}
                     self.matched_sig_ret[futret_bias][cache.tk_exch]['sig'] = [ sig_df[cache.tk_exch] ]
