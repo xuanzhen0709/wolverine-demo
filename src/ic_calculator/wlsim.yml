@@ -1,7 +1,7 @@
 calendar: scripts/ChinaTradingDates.txt
 start: 20230701
 # end: 20230710
-end: 20230703
+end: 20230710
 
 refdata:
   config:
@@ -20,13 +20,10 @@ signal:
         - module: snapshot
           symbols:
             - IC.CFFEX
-            # - a.DCE
-            # - b.DCE
-            # - c.DCE
           config: {}
       # user defined params can go below
       # support continuous/daily
-      cache_type: daily
+      mode: daily
       signame: snapshot
       sigdir: output
       file_type: csv
