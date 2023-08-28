@@ -198,12 +198,10 @@ class MdCache(ABC):
             print(f"\t{i+1},{ms_ptr},{ms.instrument}")            
             tk_exch = ms.ticker.decode("utf8") + "." + ms.exchange.decode("utf8")            
             self.ins_cache[ms_ptr] = InsDataCache(tk_exch)
-            if tk_exch not in self.name2sessions.keys():
-                print("collect sessions info")
-                sessions = []
-                for j in range(ms.session_nr):
-                    sessions.append([ms.session[j].begin, ms.session[j].end])
-                self.name2sessions[tk_exch] = sessions
+            sessions = []
+            for j in range(ms.session_nr):
+                sessions.append([ms.session[j].begin, ms.session[j].end])
+            self.name2sessions[tk_exch] = sessions
 
     def on_snapshot(self, ev: SnapshotEvent):
         ms_ptr: int = ctypes.cast(ev.ms, ctypes.c_void_p).value
