@@ -6,6 +6,7 @@ import pandas as pd
 from typing import Dict, Set, List
 from abc import ABC, abstractmethod
 from cfi.wolverine.signal import *
+from .business_calendar import *
 
 import cython
 # libc.stdint provide c-native types c_uint32 etc
@@ -109,12 +110,19 @@ def shift_fut_localtime(fut_localtime_df: pd.DataFrame, shift_info: List):
             start_idx -= 1
 
 def make_sessions(date: int,  session: List):
-    daily_session = []
-    str_time = str(date) + '00:00:00'
-    time_stamp = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
-    ts = time_stamp * int(1e9)
+    daily_session: List = []
+    str_time: str = str(date) + '00:00:00'
+    time_stamp: float = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
+    today_ts: float = time_stamp * int(1e9)
+
+    pre_business_day: int = Calendar.get_instance().next_business_day(date, -1)
+    pre_day: int = next_day(pre_business_day)
+    pre_str_time: str = str(pre_day) + '00:00:00'
+    pre_time_stamp: float = time.mktime(time.strptime(pre_str_time, '%Y%m%d%H:%M:%S'))
+    pre_ts: float = pre_time_stamp * int(1e9)
+    
     for s in session:
-        daily_session.append([np.uint64(i + ts) for i in s])
+        daily_session.append([ np.uint64(i + today_ts) if i >= 0 else np.uint64(i + pre_ts) for i in s ])
     return daily_session
 
 def calculate_ic_for_target(ret_df: pd.DataFrame, sig_df: pd.DataFrame, futret_bias: int, shift_info: List) -> pd.DataFrame:
