@@ -6,6 +6,7 @@ import pandas as pd
 import time
 
 from cfi.wolverine.signal import *
+from .business_calendar import *
 
 import cython
 # libc.stdint provide c-native types c_uint32 etc
@@ -52,6 +53,65 @@ def hhmmssf_to_exchtime(val: str) -> int:
     return time
 
 
+def make_sessions(date: int,  session: List):
+    daily_session: List = []
+    str_time: str = str(date) + '00:00:00'
+    time_stamp: float = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
+    today_ts: float = time_stamp * int(1e9)
+
+    pre_business_day: int = Calendar.get_instance().next_business_day(date, -1)
+    pre_day: int = next_day(pre_business_day)
+    pre_str_time: str = str(pre_day) + '00:00:00'
+    pre_time_stamp: float = time.mktime(time.strptime(pre_str_time, '%Y%m%d%H:%M:%S'))
+    pre_ts: float = pre_time_stamp * int(1e9)
+    
+    for s in session:
+        if s[0] < 0:
+            daily_session.append([ np.uint64(i + pre_ts) for i in s ])
+        else:
+            daily_session.append([ np.uint64(i + today_ts) for i in s ])
+
+    return daily_session
+
+
+cdef int search_session_end_index(
+        const np.uint64_t[:] sig_localtime,
+        const np.uint64_t target,
+        int left,
+        int right):
+
+    cdef int l = left, mid
+    while left <= right:
+        mid = ((right - left) >> 1) + left
+        if sig_localtime[mid] > target:
+            right = mid - 1
+        else:
+            left = mid + 1
+
+    if right < l:
+        return -1
+    return right
+
+
+def find_all_shift_info(sig_localtime_df: pd.DataFrame, sessions: List) -> List[ Dict[string, int] ]:
+    left: int = 0
+    right: int = len(sig_localtime_df) - 1
+    session_num: int = len(sessions)
+    ans: List[ Dict[string, int] ] = []
+
+    for i in range(session_num - 1):
+        idx = search_session_end_index(sig_localtime_df.values, sessions[i][1], left, right)
+        if idx != -1:
+            ans.append({
+                "session_end": sessions[i][1],
+                "start_shift_idx": idx,
+                "time_shift": sessions[i+1][0] - sessions[i][1]
+            })
+            left = idx + 1
+
+    return ans
+
+
 cdef void match_sig_with_md(
         const int sig_nr,
         const np.uint64_t[:] sig_localtime,
@@ -92,6 +152,8 @@ class CsICCalculator(SignalBase):
         self.futret_bias_str: str = ""
         self.futret_bias: int = -1
         self.cache: DataCache = DataCache()
+
+        self.session: set(tuple) = set()
 
     def load_signal(self):
 
@@ -151,28 +213,54 @@ class CsICCalculator(SignalBase):
             self.today = date
             self.load_signal()
             self.cache.clear()
+            self.session.clear()
 
         print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
         self.targets.clear()
         for i in range(ev.ins_nr):
             ms: MdStatic = ev.ms[i].contents
             self.targets.append(ms.ticker.decode("utf8") + "." + ms.exchange.decode("utf8"))
+            sessions = []
+            for j in range(ms.session_nr):
+                sessions.append(tuple([ms.session[j].begin, ms.session[j].end]))
+            self.session.add(tuple(sessions))
 
         sig_targets: List[str] = [x for x in self.sig_df.columns if x not in ["exchtime", "localtime"]]
         if self.targets != sig_targets:
             raise RuntimeError(f"sig targets mismatch")
 
     def on_eod(self, date: int):
+        if len(self.session) != 1:
+            raise Exception(f"Inconsistent trading times in cross-section data")
+        session_list = list( list(i) for i in list(self.session)[0])
+        for s in session_list:
+            if self.futret_bias > s[1] - s[0]:
+                raise Exception(f"futret_bias {self.futret_bias_str} exceed trading period length")
+        
         print(f"{date},calculating ic")
+        all_session = make_sessions(date, session_list)
+        shift_info = find_all_shift_info(self.sig_df["localtime"], all_session)
 
         cdef np.uint64_t[:] sig_localtime = self.sig_df["localtime"].values
         cdef np.ndarray[np.float64_t, ndim=2] sigs = self.sig_df[self.targets].astype(np.float64).values
-        cdef np.uint64_t[:] fut_localtime = self.sig_df["localtime"].values + self.futret_bias
         cdef np.ndarray[np.float64_t, ndim=2] mid_px = np.full_like(self.sig_df[self.targets].values, fill_value=np.nan, dtype=np.float64)
         cdef np.ndarray[np.float64_t, ndim=2] fut_mid_px = np.full_like(self.sig_df[self.targets].values, fill_value=np.nan, dtype=np.float64)
-
         cdef np.ndarray[np.uint64_t, ndim=1] md_localtime = np.array(self.cache.localtime, dtype=np.uint64)
         cdef np.ndarray[np.float64_t, ndim=2] md_mid_px = (np.array(self.cache.ap, dtype=np.float64) + np.array(self.cache.bp, dtype=np.float64)) / 2
+
+        cdef np.uint64_t[:] fut_localtime = self.sig_df["localtime"].values + self.futret_bias
+        cdef int start_idx 
+        cdef np.uint64_t session_end
+        cdef np.uint64_t time_shift 
+        
+        for info in shift_info:
+            start_idx = info['start_shift_idx']
+            session_end = info['session_end']
+            time_shift = info['time_shift']
+
+            while fut_localtime[start_idx] > session_end:
+                fut_localtime[start_idx] += time_shift
+                start_idx -= 1
 
         match_sig_with_md(len(self.sig_df.index),
                 sig_localtime,
