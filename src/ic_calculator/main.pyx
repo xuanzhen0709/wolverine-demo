@@ -203,6 +203,7 @@ class MdCache(ABC):
         if today != date:
             self.ins_cache.clear()
             self.sig_df = sig_df
+            self.name2sessions.clear()
 
         for i in range(ev.ins_nr):
             ms_ptr: int = ctypes.cast(ev.ms[i], ctypes.c_void_p).value
