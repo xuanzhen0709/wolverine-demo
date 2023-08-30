@@ -109,7 +109,7 @@ def shift_fut_localtime(fut_localtime_df: pd.DataFrame, shift_info: List):
             fut_localtime[start_idx] += time_shift
             start_idx -= 1
 
-def make_sessions(date: int,  session: List):
+def make_sessions(date: int,  session_list: List):
     daily_session: List = []
     str_time: str = str(date) + '00:00:00'
     time_stamp: float = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
@@ -121,8 +121,12 @@ def make_sessions(date: int,  session: List):
     pre_time_stamp: float = time.mktime(time.strptime(pre_str_time, '%Y%m%d%H:%M:%S'))
     pre_ts: float = pre_time_stamp * int(1e9)
     
-    for s in session:
-        daily_session.append([ np.uint64(i + today_ts) if i >= 0 else np.uint64(i + pre_ts) for i in s ])
+    for s in session_list:
+        if s[0] < 0:
+            daily_session.append([ np.uint64(i + pre_ts) for i in s ])
+        else:
+            daily_session.append([ np.uint64(i + today_ts) for i in s ])
+
     return daily_session
 
 def calculate_ic_for_target(ret_df: pd.DataFrame, sig_df: pd.DataFrame, futret_bias: int, shift_info: List) -> pd.DataFrame:
