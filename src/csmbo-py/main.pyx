@@ -29,13 +29,13 @@ class MySig(SignalBase):
         print(f"loading config")
         cfg = yaml.safe_load(cfg_str)
 
-    def on_sod(self, date: int, ev: SodEvent):
+    def on_sod(self, ev: SodEvent):
         self.start_ts = time.time()
         self.cnt = 0
         self.mss.clear()
 
         targets = []
-        print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
+        print(f"on_sod:{ev.date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
             ms: MdStatic = ev.ms[i].contents
             self.mss.append(ms)
@@ -48,7 +48,8 @@ class MySig(SignalBase):
         self.exchtime.clear()
         self.localtime.clear()
 
-    def on_eod(self, date: int):
+    def on_eod(self, ev: EodEvent):
+        date: int = int(ev.date)
         now: float = time.time()
         sod_eod_ts: float = now - self.start_ts
         print(

@@ -208,7 +208,8 @@ class CsICCalculator(SignalBase):
         self.fout = open(ofile, "w", buffering=1)
         self.fout.write(f"date,exchtime,localtime,ic\n")
 
-    def on_sod(self, date: int, ev: SodEvent):
+    def on_sod(self, ev: SodEvent):
+        date = int(ev.date)
         if self.today != date:
             self.today = date
             self.load_signal()
@@ -229,7 +230,8 @@ class CsICCalculator(SignalBase):
         if self.targets != sig_targets:
             raise RuntimeError(f"sig targets mismatch")
 
-    def on_eod(self, date: int):
+    def on_eod(self, ev: EodEvent):
+        date = int(ev.date)
         if len(self.session) != 1:
             raise Exception(f"Inconsistent trading times in cross-section data")
         session_list = list( list(i) for i in list(self.session)[0])

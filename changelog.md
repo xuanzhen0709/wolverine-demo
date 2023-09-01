@@ -1,3 +1,6 @@
+# 20230901
+* MAJOR(signal): signatures of on_sod/on_eod have been updated - the date parameter is removed and SodEvent/EodEvent now contains a "date" field
+
 # 20230725
 * MAJOR(config): the framework has switched to a single-config design. instead of using
 ```python

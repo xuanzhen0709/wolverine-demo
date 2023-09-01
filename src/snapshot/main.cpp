@@ -25,8 +25,8 @@ public:
   void set_apis(SignalApis);
   void load_state(const std::string &indir);
   void save_state(const std::string &outdir);
-  void on_sod(uint32_t date, const SodEvent *ev);
-  void on_eod(uint32_t date);
+  void on_sod(const SodEvent *ev);
+  void on_eod(const EodEvent *ev);
 
   void on_snapshot(const SnapshotEvent *ev);
 
@@ -37,7 +37,7 @@ private:
 
 // function definitions
 
-Signal::Signal() { on_sod(0, nullptr); }
+Signal::Signal() {}
 
 void Signal::initialize(const Config *root) {}
 
@@ -51,11 +51,8 @@ void Signal::save_state(const std::string &outdir) {
   wllog_info("saving state to dir {}\n", outdir);
 }
 
-void Signal::on_sod(uint32_t date, const SodEvent *ev) {
+void Signal::on_sod(const SodEvent *ev) {
   m_cnt = 0;
-  if (!ev) {
-    return;
-  }
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
@@ -72,7 +69,7 @@ void Signal::on_sod(uint32_t date, const SodEvent *ev) {
   }
 }
 
-void Signal::on_eod(uint32_t date) {
+void Signal::on_eod(const EodEvent *ev) {
   wllog_info("{} updates received\n", m_cnt);
 }
 
@@ -129,14 +126,14 @@ static const SignalOps my_ops = {
       ptr->save_state(outdir);
     },
 
-    .on_sod = [](void *hdl, uint32_t date, const SodEvent *ev) -> void {
+    .on_sod = [](void *hdl, const SodEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
-      ptr->on_sod(date, ev);
+      ptr->on_sod(ev);
     },
 
-    .on_eod = [](void *hdl, uint32_t date) -> void {
+    .on_eod = [](void *hdl, const EodEvent *ev) -> void {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
-      ptr->on_eod(date);
+      ptr->on_eod(ev);
     },
 
     .on_snapshot = [](void *hdl, const SnapshotEvent *ev) -> void {

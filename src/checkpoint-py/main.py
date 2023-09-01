@@ -38,13 +38,13 @@ class MySig(SignalBase):
             pickle.dump(self.cnt + 1, fout)
             print(f"saved data {self.cnt},{self.cnt+1}")
 
-    def on_sod(self, date: int, ev: SodEvent):
+    def on_sod(self, ev: SodEvent):
         self.start_ts = time.time()
         self.cnt = 0
         self.mss.clear()
 
         targets = []
-        print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
+        print(f"on_sod:{ev.date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
             ms: MdStatic = ev.ms[i].contents
             self.mss.append(ms)
@@ -57,11 +57,11 @@ class MySig(SignalBase):
         self.exchtime.clear()
         self.localtime.clear()
 
-    def on_eod(self, date: int):
+    def on_eod(self, ev: EodEvent):
         now: float = time.time()
         sod_eod_ts: float = now - self.start_ts
         print(
-            f"on_eod:{date},total time:{sod_eod_ts:.2f}s,total tick cnt:{self.cnt}"
+            f"on_eod:{ev.date},total time:{sod_eod_ts:.2f}s,total tick cnt:{self.cnt}"
         )
         # concat cached data
         exchtime: np.ndarray = np.array(self.exchtime, dtype=np.int64)

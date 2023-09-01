@@ -199,7 +199,8 @@ class MdCache(ABC):
                     if futret_bias > session[1] - session[0]:
                         raise Exception(f"futret_bias {str_futret_bias} exceed trading period length of {tk_exch}")
 
-    def on_sod(self, ev: SodEvent, sig_df: pd.DataFrame, today: int, date: int):
+    def on_sod(self, ev: SodEvent, sig_df: pd.DataFrame, today: int):
+        date: int = int(ev.date)
         if today != date:
             self.ins_cache.clear()
             self.sig_df = sig_df
@@ -223,7 +224,7 @@ class MdCache(ABC):
         self.ins_cache[ms_ptr].push(ss)
 
     @abstractmethod
-    def on_eod(self, date: int):
+    def on_eod(self, ev: EodEvent):
         pass
 
     @abstractmethod
@@ -236,7 +237,8 @@ class DailyMdCache(MdCache):
         super().__init__(futret_bias, file_path)
         self.fout.write(f"date," + ",".join(self.futret_bias.values()) + "\n")
     
-    def on_eod(self, date: int):
+    def on_eod(self, ev: EodEvent):
+        date: int = int(ev.date)
         self.check_futret_bias()
         print(f"{date},calculating ic")
 
@@ -294,7 +296,8 @@ class ContinuousMDCache(MdCache):
         for fb in futret_bias:
             self.matched_sig_ret[fb]  = {}
 
-    def on_eod(self, date: int):
+    def on_eod(self, ev: EodEvent):
+        date: int = int(ev.date)
         self.check_futret_bias()
         print(f"{date}, shift time and match")
 
@@ -417,17 +420,18 @@ class ICCalculator(SignalBase):
         mode: str = str(cfg["mode"])
         self.cache = DailyMdCache(self.futret_bias, ofile) if mode == "daily" else ContinuousMDCache(self.futret_bias, ofile) 
 
-    def on_sod(self, date: int, ev: SodEvent):
+    def on_sod(self, ev: SodEvent):
+        date: int = int(ev.date)
         print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
         today = self.today
         if self.today != date:
             self.today = date
             self.load_signal()
 
-        self.cache.on_sod(ev, self.sig_df, today, date)
+        self.cache.on_sod(ev, self.sig_df, today)
 
-    def on_eod(self, date: int):
-        self.cache.on_eod(date)
+    def on_eod(self, ev: EodEvent):
+        self.cache.on_eod(ev)
 
     def on_snapshot(self, ev: SnapshotEvent):
         self.cache.on_snapshot(ev)

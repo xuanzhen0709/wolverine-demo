@@ -15,14 +15,14 @@ class MySig(SignalBase):
         print(f"loading config")
         cfg = yaml.safe_load(cfg_str)
 
-    def on_sod(self, date: int, ev: SodEvent):
+    def on_sod(self, ev: SodEvent):
         self.cnt = 0
-        print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
+        print(f"on_sod:{ev.date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
             ms: MdStatic = ev.ms[i].contents
             print(f"\t{i+1},{ms.instrument}")
 
-    def on_eod(self, date: int):
+    def on_eod(self, ev: EodEvent):
         print(f"total tick cnt:{self.cnt}")
         pass
 
