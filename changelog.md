@@ -1,3 +1,7 @@
+# 20230902
+* MINOR(signal/pysignal): some enum fields have been re-organized, please check the relevant header files
+* MAJOR(Functionality): added support for pool worker
+
 # 20230901
 * MAJOR(signal): signatures of on_sod/on_eod have been updated - the date parameter is removed and SodEvent/EodEvent now contains a "date" field
 
