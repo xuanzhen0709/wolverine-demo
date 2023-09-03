@@ -11,3 +11,10 @@ add_wolverine_library(
     TYPE signal
     SRCS strat.cpp
 )
+
+add_wolverine_library(
+    NAME stratpy
+    USER nickchenyj
+    TYPE pysig
+    SRCS main.py
+)

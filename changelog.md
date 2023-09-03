@@ -1,3 +1,6 @@
+# 20230903
+* MAJOR(Functionality): added (limited) support for factors to pysignal
+
 # 20230902
 * MINOR(signal/pysignal): some enum fields have been re-organized, please check the relevant header files
 * MAJOR(Functionality): added support for pool worker
