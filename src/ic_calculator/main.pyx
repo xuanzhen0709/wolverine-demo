@@ -413,7 +413,7 @@ class ICCalculator(SignalBase):
             elif futret_bias_str.endswith("h"):
                 self.futret_bias[int(futret_bias_str[:-1]) * int(1e9) * 3600] = futret_bias_str
             else:
-                raise RuntimeError("unknown unit {futret_bias_str}")
+                raise RuntimeError(f"unknown unit {futret_bias_str}")
         odir: Path = Path(cfg["output_dir"])
         odir.mkdir(parents=True, exist_ok=True)
         ofile: Path = odir / f"{self.signame}.csv"
