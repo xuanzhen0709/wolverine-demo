@@ -6,6 +6,7 @@ from business_calendar import Calendar
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+import math
 from statistics import mean
 
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -23,7 +24,12 @@ def check_data(ic_folder_list: List,
 
     ic_file_info: List = []
     for folder_path in ic_folder_list:
-        for ic_file in folder_path.rglob('*.csv'):
+        if not folder_path.exists():
+            raise RuntimeError(f"folder {folder_path} doesn't exit!")
+        ic_file_list = list(folder_path.rglob('*.csv'))
+        if 0 == len(ic_file_list):
+            raise RuntimeError(f"ic file doesn't exit!")
+        for ic_file in ic_file_list:
             try:
                 ic_type, signal_name, start_date, end_date, future_bias = folder_path.name.split(
                     '.')
@@ -59,6 +65,7 @@ def ic_daily(output: Path, ic_file_list: List,
     continuous_average_ic: Dict = {}
     rolling_average_ic: Dict = {}
 
+    date_num = len(date_list)
     for ic_file in ic_file_list:
         csv_data = pd.read_csv(ic_file['file'], low_memory=False)
         csv_df = pd.DataFrame(csv_data)
@@ -68,7 +75,7 @@ def ic_daily(output: Path, ic_file_list: List,
         daily_average_ic[sig_name] = csv_df.groupby('date').ic.mean()
 
         rolling_ic: Dict = {}
-        for i in range(rolling_window - 1, len(date_list)):
+        for i in range(rolling_window - 1, date_num):
             selected = csv_df[(csv_df['date'] >= date_list[i -
                                                            rolling_window +
                                                            1]) & (csv_df['date'] <= date_list[i])]
@@ -82,20 +89,34 @@ def ic_daily(output: Path, ic_file_list: List,
     plt.xlabel('date')
     plt.ylabel('IC')
 
+    x = range(date_num)
+    rolling_x = range(rolling_window-1, date_num)
+
     for sig_name, date2ic in daily_average_ic.items():
-        plt.plot(date2ic.index, date2ic.values, linestyle='-',
+        plt.plot(x, date2ic.values, linestyle='-',
                  label=f"{sig_name}({ FORMAT_STR.format(continuous_average_ic[sig_name]) })")
-        plt.scatter(date2ic.index, date2ic.values)
+        if(len(date2ic) <= 1):
+            plt.scatter(x, date2ic.values)
 
     for sig_name, date2ic in rolling_average_ic.items():
         plt.plot(
-            date2ic.keys(),
+            rolling_x,
             date2ic.values(),
-            linestyle='-.',
             label=f"{sig_name}_rollingmean_{rolling_window}d({ FORMAT_STR.format(continuous_average_ic[sig_name])})")
-        plt.scatter(date2ic.keys(), date2ic.values(), marker='x')
+        if(len(date2ic) <= 1):
+            plt.scatter(rolling_x, date2ic.values(), marker='x')
 
-    plt.xticks(ticks=date_list, labels=date_list)
+    interval = math.ceil(date_num/7)
+    plt.xticks(ticks=x, labels=date_list)
+    plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(interval))
+    plt.text(date_num-1, (plt.yticks()
+             [0][-1]+plt.yticks()
+             [0][0])/2, date_list[-1])
+    plt.axvline(x=date_num-1, color='white', linestyle='dotted')
+    # plt.gca().xaxis.set_minor_locator(ticker.FixedLocator([len(date_list)-1]))
+    # plt.gca().xaxis.set_minor_formatter(
+    #     ticker.FixedFormatter([str(date_list[-1])[-4:]]))
+
     plt.tight_layout()
     plt.legend()
     plt.savefig(f"{output}/ic_daily")
@@ -111,6 +132,7 @@ def exchtime2index(exchtime: int) -> int:
 
 def ic_in_cycle(output: Path, ic_file_list: List,
                 date_list: List, cycle: str = '1d'):
+    cycle_sec = 0
     if cycle.endswith("1d"):
         pass
     elif cycle.endswith("s"):
@@ -199,12 +221,22 @@ def correlation_daily(output: Path, ic_file_list: List,
     plt.xlabel('date')
     plt.ylabel('IC')
 
-    for factor_pair, date2ic in factor_corr.items():
-        plt.plot(date2ic.keys(), date2ic.values(), linestyle='-',
-                 label=f"{factor_pair}({ FORMAT_STR.format(mean(date2ic.values())) })")
-        plt.scatter(date2ic.keys(), date2ic.values())
+    date_num = len(date_list)
+    x = range(date_num)
 
-    plt.xticks(ticks=date_list, labels=date_list)
+    for factor_pair, date2ic in factor_corr.items():
+        plt.plot(x, date2ic.values(), linestyle='-',
+                 label=f"{factor_pair}({ FORMAT_STR.format(mean(date2ic.values())) })")
+        if(len(date2ic) <= 1):
+            plt.scatter(x, date2ic.values())
+
+    plt.xticks(ticks=x, labels=date_list)
+    interval = math.ceil(date_num/7)
+    plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(interval))
+    plt.text(date_num-1, (plt.yticks()
+             [0][-1]+plt.yticks()
+             [0][0])/2, date_list[-1])
+    plt.axvline(x=date_num-1, color='white', linestyle='dotted')
     plt.tight_layout()
     plt.legend()
     plt.savefig(f"{output}/correlation_daily")
