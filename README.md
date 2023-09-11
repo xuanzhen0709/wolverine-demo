@@ -125,9 +125,7 @@ NOTE: before installing the packages and using the framework, do check that the 
 It will lead to incompatibility/missing components/various other issues otherwise.
 
 - ask the maintainer for a copy of the runtime and development packages, the packages are usually placed under
-  - /mnt/nas-3/homes/nickchenyj/wlsim/packages, or
-  - /localdata/wlsim/packages, or
-  - /global/wlsim/packages
+  - /mnt/nas-3/homes/nickchenyj/wlsim/packages
 
 - run install_runtime.py to install the package. please view the commandline help message "-h" before running it.
 
