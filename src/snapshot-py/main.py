@@ -32,7 +32,7 @@ class MySig(SignalBase):
         ss: MdSnapshot = ev.snapshot.contents
         level1: MdLevel = ss.levels[0]
         print(
-            f"on_snapshot:{ss.md_type},{ms.instrument},{ss.exchtime},{ss.last_price},{level1.bv}@{level1.bp},{level1.av}@{level1.ap}"
+            f"on_snapshot:{ss.type},{ms.instrument},{ss.exchtime},{ss.last_price},{level1.bv}@{level1.bp},{level1.av}@{level1.ap}"
         )
         self.sigval[0] = self.cnt
         self.update_signal(ss.exchtime, ss.localtime, self.sigval)
