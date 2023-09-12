@@ -31,3 +31,5 @@ signal:
       output_dir: output/cs_ic/
       # support m/s/h
       futret_bias: 5m
+      # Optional, support m/s/h
+      ffill_interval: 1s
