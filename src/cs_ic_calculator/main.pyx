@@ -206,7 +206,7 @@ class CsICCalculator(SignalBase):
         self.futret_bias_str: str = ""
         self.futret_bias: int = -1
         self.cache: DataCache = DataCache()
-        self.ffill_interval: int =0
+        self.ffill_interval: int = 0
 
         self.session: set(tuple) = set()
 
@@ -248,7 +248,7 @@ class CsICCalculator(SignalBase):
         self.sig_file_type: SigFileType = SigFileType[str(cfg["file_type"])]
         self.futret_bias_str = str(cfg["futret_bias"])
         self.futret_bias = str2ns(self.futret_bias_str)
-        if cfg['ffill_interval']:
+        if 'ffill_interval' in cfg:
             self.ffill_interval = str2ns(str(cfg["ffill_interval"]))
         
         odir: Path = Path(cfg["output_dir"])
