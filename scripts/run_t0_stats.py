@@ -149,7 +149,7 @@ def ic_in_cycle(output: Path, ic_file_list: List,
     for ic_file in ic_file_list:
         csv_data = pd.read_csv(ic_file['file'], low_memory=False)
         csv_df = pd.DataFrame(csv_data)
-        csv_df['exchtime'] = csv_df['exchtime'].astype(int)
+        csv_df['exchtime'] = csv_df['exchtime'].astype(np.int64)
         csv_df['exchtime'] = csv_df['exchtime'].apply(exchtime2index)
         if not cycle.endswith("1d"):
             csv_df['exchtime'] = csv_df['exchtime'].apply(
