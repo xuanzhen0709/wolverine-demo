@@ -203,6 +203,9 @@ def extend_sig_df(
         exchtime_list.append(exchtime)
         localtime += ffill_interval
         exchtime += ffill_interval
+    
+    return localtime_list, exchtime_list, ic_info_list
+
 
 class CsICCalculator(SignalBase):
 
