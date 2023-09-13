@@ -67,7 +67,7 @@ def hhmmssf_to_exchtime(val: str) -> int:
     return time
 
 
-def make_sessions(date: int,  session: List) -> List[List]:
+def make_localtime_session(date: int,  session: List) -> List[List]:
     daily_session: List = []
     str_time: str = str(date) + '00:00:00'
     time_stamp: float = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
@@ -156,41 +156,53 @@ def extend_sig_df(
         const int df_size,
         const np.uint64_t[:] sig_localtime,
         const np.int64_t[:] sig_exchtime,
-        session:List, 
+        local_session:List,
+        exch_session:List, 
         ffill_interval:int) -> (List, List):
     localtime_list: List = []
     exchtime_list: List = []
     ic_info_list: List = []
-    cur_session = 0
-    session_num = len(session)
+    
+    session_num = len(local_session)
     last_idx = df_size - 1 
+
+    cur_session = 0
+    cur_localtime = local_session[cur_session][0]
+    cur_exchtime = exch_session[cur_session][0]
+    while cur_localtime < sig_localtime[0]:
+        cur_localtime += ffill_interval
+        cur_exchtime += ffill_interval
+
     for i in range(last_idx):
-        cur_localtime = sig_localtime[i]
-        cur_exchtime = sig_exchtime[i]
         next_localtime = sig_localtime[i+1]
         while cur_localtime < next_localtime:
             localtime_list.append(cur_localtime)
             ic_info_list.append(i)
             exchtime_list.append(cur_exchtime)
             cur_localtime += ffill_interval
-            if cur_localtime > session[cur_session][1]:
-                if cur_session + 1 < session_num and  sig_localtime[i] >=  session[cur_session+1][0]:
-                    session_num += 1
-                else:
-                    break
             cur_exchtime += ffill_interval
-
+            if cur_localtime > local_session[cur_session][1]:
+                if cur_session + 1 < session_num and  sig_localtime[i] >=  local_session[cur_session+1][0]:
+                    cur_session += 1
+                    if i+1 < df_size:
+                        cur_localtime = local_session[cur_session][0]
+                        cur_exchtime = exch_session[cur_session][0]
+                        while cur_localtime < sig_localtime[i+1]:
+                            localtime_list.append(cur_localtime)
+                            ic_info_list.append(i)
+                            exchtime_list.append(cur_exchtime)
+                            cur_localtime += ffill_interval
+                            cur_exchtime += ffill_interval
+                break
+           
     localtime = sig_localtime[last_idx]
     exchtime = sig_exchtime[last_idx]
-    while localtime <= session[-1][1]:
+    while localtime <= local_session[-1][1]:
         localtime_list.append(localtime)
         ic_info_list.append(last_idx)
         exchtime_list.append(exchtime)
         localtime += ffill_interval
         exchtime += ffill_interval
-        
-    return localtime_list, exchtime_list, ic_info_list
-
 
 class CsICCalculator(SignalBase):
 
@@ -283,14 +295,14 @@ class CsICCalculator(SignalBase):
         date = int(ev.date)
         if len(self.session) != 1:
             raise Exception(f"Inconsistent trading times in cross-section data")
-        session_list = list( list(i) for i in list(self.session)[0])
-        for s in session_list:
+        exch_session = list( list(i) for i in list(self.session)[0])
+        for s in exch_session:
             if self.futret_bias > s[1] - s[0]:
                 raise Exception(f"futret_bias {self.futret_bias_str} exceed trading period length")
 
         print(f"{date},calculating ic")
-        all_session = make_sessions(date, session_list)
-        shift_info = find_all_shift_info(self.sig_df["localtime"], all_session)
+        local_session = make_localtime_session(date, exch_session)
+        shift_info = find_all_shift_info(self.sig_df["localtime"], local_session)
         
         localtime_array = self.sig_df["localtime"].values
         exchtime_array = self.sig_df["exchtime"].values
@@ -298,11 +310,12 @@ class CsICCalculator(SignalBase):
         sig_shape = (len(localtime_array), len(self.targets))
 
         if self.ffill_interval:
-            self.sig_df = self.sig_df[self.sig_df["localtime"]<=all_session[-1][1]]
+            self.sig_df = self.sig_df[self.sig_df["localtime"]<=local_session[-1][1]]
             localtime_list, exchtime_list, ic_info_list = extend_sig_df(len(self.sig_df), 
                                                                         self.sig_df["localtime"].values, 
                                                                         self.sig_df["exchtime"].values, 
-                                                                        all_session, 
+                                                                        local_session,
+                                                                        exch_session, 
                                                                         self.ffill_interval)
             localtime_array = np.array(localtime_list, dtype=np.uint64)
             exchtime_array = np.array(exchtime_list, dtype=np.int64)
