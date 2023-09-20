@@ -43,8 +43,8 @@ class Collector:
         self.main: Module = Module(signal)
         factors: List[Module] = [Module(_x) for _x in factors_cfg]
         factors_dict: Dict[str, Module] = {_x.canonical_name(): _x for _x in factors}
-        print(factors_dict)
         self.factors: List = list(factors_dict.values())
+        print(self.main)
         print(self.factors)
         print(f"found signal {self.main} and {len(self.factors)} factors")
 
