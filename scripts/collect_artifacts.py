@@ -73,14 +73,14 @@ class Collector:
             modules = params["modules"]
             if modules:
                 regexes = {_x: _x.regex() for _x in modules}
-                for _f in glob.glob(params["pattern"], root_dir=build_dir, recursive=True):
+                for _fpath in glob.glob(str(build_dir / params["pattern"]), recursive=True):
+                    _fpath = Path(_fpath)
                     for _mod, _regex in regexes.items():
-                        fpath = build_dir / _f
-                        if _regex.match(fpath.name):
+                        if _regex.match(_fpath.name):
                             mod_dir = outdir.joinpath(_mod.name)
                             mod_dir.mkdir(parents=True, exist_ok=True)
-                            print(f"{_mod.name}: found artifact {fpath}")
-                            shutil.copy2(fpath, mod_dir)
+                            print(f"{_mod.name}: found artifact {_fpath}")
+                            shutil.copy2(_fpath, mod_dir)
                             regexes.pop(_mod)
                             count += 1
                             break
