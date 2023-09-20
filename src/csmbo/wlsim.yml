@@ -8,7 +8,7 @@ refdata:
 
 signal:
   name: csmbo
-  module: nickchenyj-csmbo
+  module: nickchenyj.csmbo
   output:
     module: csv
     config:

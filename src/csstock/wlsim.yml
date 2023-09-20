@@ -8,7 +8,7 @@ refdata:
 
 signal:
   name: csstock
-  module: nickchenyj-csstock
+  module: nickchenyj.csstock
   output:
     module: csv
     config:

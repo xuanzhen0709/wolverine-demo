@@ -1,3 +1,6 @@
+# 20230920
+* MINOR(c++ signal module name): the module name in config files now follows the unified notation ${USER}.${name}. py signals have always been following this notation and only c++ signals are affected (instead of ${USER}-${name}).
+
 # 20230903
 * MAJOR(Functionality): added (limited) support for factors to pysignal
 

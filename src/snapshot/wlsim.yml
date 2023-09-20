@@ -8,7 +8,7 @@ refdata:
 
 signal:
   name: snapshot
-  module: nickchenyj-snapshot
+  module: nickchenyj.snapshot
   output:
     module: csv
     config:

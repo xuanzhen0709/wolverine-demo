@@ -8,7 +8,7 @@ refdata:
 
 signal:
   name: multitickers
-  module: nickchenyj-multitickers
+  module: nickchenyj.multitickers
   output:
     module: csv
     config:

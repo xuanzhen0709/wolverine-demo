@@ -14,7 +14,7 @@ checkpoint:
 
 signal:
   name: checkpoint
-  module: nickchenyj-checkpoint
+  module: nickchenyj.checkpoint
   output:
     module: csv
     config:

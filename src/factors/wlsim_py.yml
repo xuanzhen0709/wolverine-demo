@@ -19,39 +19,39 @@ signal:
       output_dir: output
   factors:
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 1.234
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 2.345
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 3.456
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 4.567
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 5.678
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 6.789
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 7.890
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 8.901
    - name: snapshot
-     module: nickchenyj-factor
+     module: nickchenyj.factor
      config:
        seed: 9.012
 
