@@ -78,14 +78,28 @@ class SingalCfg:
 
 def main():
     parser = argparse.ArgumentParser("ic calculator")
-    parser.add_argument("signal_config", type=Path,
+    parser.add_argument("signal_config",
+                        type=Path,
                         help="configuration file of the signal to be analyzed")
-    parser.add_argument("-o", "--output", type=Path,
-                        required=True, help="output dir")
-    parser.add_argument("--future-bias", type=str, required=True,
-                        help="comma separated future biases, postfixes such as 's' 'm' and 'h' are supported")
-    parser.add_argument("--ffill-interval", type=str, required=False,
-                        help="signal forward fill interval, postfixes such as 's' 'm' and 'h' are supported")
+    parser.add_argument("-o",
+                        "--output",
+                        type=Path,
+                        required=True,
+                        help="output dir")
+    parser.add_argument(
+        "--future-bias",
+        type=str,
+        required=True,
+        help=
+        "comma separated future biases, postfixes such as 's' 'm' and 'h' are supported"
+    )
+    parser.add_argument(
+        "--ffill-interval",
+        type=str,
+        required=False,
+        help=
+        "signal forward fill interval, postfixes such as 's' 'm' and 'h' are supported"
+    )
 
     args = parser.parse_args()
     cfg = SingalCfg(args.signal_config)

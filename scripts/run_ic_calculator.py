@@ -6,6 +6,7 @@ import platform
 import subprocess
 import yaml
 
+
 class SingalCfg:
 
     def __init__(self, infile: Path):
@@ -30,14 +31,16 @@ class SingalCfg:
 
     def run(self, outdir_root: Path, future_biases: List[str], mode: str):
         fut_bias_str: str = "-".join(future_biases)
-        outdir: Path = outdir_root.resolve() / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}"
+        outdir: Path = outdir_root.resolve(
+        ) / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}"
         outdir.mkdir(parents=True, exist_ok=True)
 
-        outcfg_file: Path = outdir_root.resolve() / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}.yml"
+        outcfg_file: Path = outdir_root.resolve(
+        ) / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}.yml"
 
         cfg = copy.deepcopy(self.main_cfg)
         cfg.pop("checkpoint", None)
-        
+
         sigcfg = {
             "targets": copy.deepcopy(self.sigcfg["targets"]),
             "marketdata": copy.deepcopy(self.sigcfg["marketdata"]),
@@ -61,16 +64,33 @@ class SingalCfg:
         with open(outcfg_file, "wt") as fout:
             print(f"dumping cfg file {outcfg_file}")
             yaml.safe_dump(cfg, fout, sort_keys=False)
-        
+
         subprocess.run(["wl-sim", outcfg_file], check=True)
 
 
 def main():
     parser = argparse.ArgumentParser("ic calculator")
-    parser.add_argument("signal_config", type=Path, help="configuration file of the signal to be analyzed")
-    parser.add_argument("-o", "--output", type=Path, required=True, help="output dir")
-    parser.add_argument("--future-bias", type=str, action="append", required=True, help="comma separated future biases, postfixes such as 's' 'm' and 'h' are supported")
-    parser.add_argument("--mode", type=str, choices=["daily", "continuous"], default="continuous", help="calculation mode")
+    parser.add_argument("signal_config",
+                        type=Path,
+                        help="configuration file of the signal to be analyzed")
+    parser.add_argument("-o",
+                        "--output",
+                        type=Path,
+                        required=True,
+                        help="output dir")
+    parser.add_argument(
+        "--future-bias",
+        type=str,
+        action="append",
+        required=True,
+        help=
+        "comma separated future biases, postfixes such as 's' 'm' and 'h' are supported"
+    )
+    parser.add_argument("--mode",
+                        type=str,
+                        choices=["daily", "continuous"],
+                        default="continuous",
+                        help="calculation mode")
     args = parser.parse_args()
 
     cfg = SingalCfg(args.signal_config)
