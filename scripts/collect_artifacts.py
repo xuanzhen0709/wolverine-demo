@@ -14,7 +14,7 @@ class Module:
         if self.is_py:
             cfg = cfg["config"]
         self.name: str = cfg["module"]
-    
+
     def canonical_name(self) -> str:
         if self.is_py:
             return f"wlpysig.{self.name}"
@@ -42,7 +42,10 @@ class Collector:
 
         self.main: Module = Module(signal)
         factors: List[Module] = [Module(_x) for _x in factors_cfg]
-        factors_dict: Dict[str, Module] = {_x.canonical_name(): _x for _x in factors}
+        factors_dict: Dict[str, Module] = {
+            _x.canonical_name(): _x
+            for _x in factors
+        }
         self.factors: List = list(factors_dict.values())
         print(self.main)
         print(self.factors)
@@ -56,44 +59,61 @@ class Collector:
             py_modules.append(self.main)
         else:
             c_modules.append(self.main)
-        
-        search_params = [
-            {
-                "modules": c_modules,
-                "pattern": "**/*.so",
-            },
-            {
-                "modules": py_modules,
-                "pattern": "**/*.whl",
-            }
-        ]
+
+        search_params = [{
+            "modules": c_modules,
+            "pattern": "**/*.so",
+        }, {
+            "modules": py_modules,
+            "pattern": "**/*.whl",
+        }]
 
         count: int = 0
         for params in search_params:
             modules = params["modules"]
             if modules:
                 regexes = {_x: _x.regex() for _x in modules}
-                for _fpath in glob.glob(str(build_dir / params["pattern"]), recursive=True):
+                for _fpath in glob.glob(str(build_dir / params["pattern"]),
+                                        recursive=True):
                     _fpath = Path(_fpath)
                     for _mod, _regex in regexes.items():
                         if _regex.match(_fpath.name):
-                            mod_dir = outdir.joinpath(_mod.name)
-                            mod_dir.mkdir(parents=True, exist_ok=True)
                             print(f"{_mod.name}: found artifact {_fpath}")
-                            shutil.copy2(_fpath, mod_dir)
+                            self.__collect_item(outdir, _mod, _fpath)
                             regexes.pop(_mod)
                             count += 1
                             break
                 if regexes:
-                    raise RuntimeError(f"missing modules {list(regexes.keys())}")
+                    raise RuntimeError(
+                        f"missing modules {list(regexes.keys())}")
         print(f"collected {count} artifacts")
-                    
+
+    def __collect_item(self, outdir: Path, module: Module, modfile: Path):
+        if module == self.main:
+            mod_dir: Path = outdir / "signals" / module.name
+        else:
+            mod_dir: Path = outdir / "factors" / module.name
+        mod_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(modfile, mod_dir)
+
 
 def main():
     parser = argparse.ArgumentParser("collect factors")
-    parser.add_argument("-b", "--build-dir", type=Path, required=True, help="build directories")
-    parser.add_argument("-c", "--config", type=Path, required=True, help="strategy/signal main config file")
-    parser.add_argument("-o", "--outdir", type=Path, required=True, help="output dir")
+    parser.add_argument("-b",
+                        "--build-dir",
+                        type=Path,
+                        required=True,
+                        help="build directories")
+    parser.add_argument("-c",
+                        "--config",
+                        type=Path,
+                        required=True,
+                        help="strategy/signal main config file")
+    parser.add_argument("-o",
+                        "--outdir",
+                        type=Path,
+                        required=True,
+                        help="output dir")
     args = parser.parse_args()
     collector = Collector(args.config)
     collector.collect(args.outdir, args.build_dir)
