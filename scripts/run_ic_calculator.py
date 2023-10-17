@@ -8,6 +8,7 @@ import yaml
 
 
 class SingalCfg:
+    REQUIRED_FIELDS: List[str] = ["ap", "bp"]
 
     def __init__(self, infile: Path):
         print(f"loading {infile}")
@@ -29,7 +30,8 @@ class SingalCfg:
         self.sigout_dir: Path = Path(sigout_cfg["config"]["output_dir"])
         self.file_type: str = str(sigout_cfg["module"])
 
-    def run(self, outdir_root: Path, future_biases: List[str], mode: str):
+    def run(self, outdir_root: Path,
+            future_biases: List[str], mode: str, map_file: Path):
         fut_bias_str: str = "-".join(future_biases)
         outdir: Path = outdir_root.resolve(
         ) / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}"
@@ -41,17 +43,43 @@ class SingalCfg:
         cfg = copy.deepcopy(self.main_cfg)
         cfg.pop("checkpoint", None)
         cfg.pop("worker", None)
+        cfg["refdata"]["config"] = {
+            # "data_dir": "/mnt/nas-3.old/ProcessedData/reference_data"
+        }
+
 
         sigcfg = {
-            "targets": copy.deepcopy(self.sigcfg["targets"]),
-            "marketdata": copy.deepcopy(self.sigcfg["marketdata"]),
             "signame": self.name,
             "sigdir": str(self.sigout_dir),
             "file_type": self.file_type,
             "output_dir": str(outdir),
             "futret_bias": future_biases,
-            "mode": mode,
+            "mode": mode
         }
+
+        if None is map_file:
+            sigcfg["targets"] = copy.deepcopy(self.sigcfg["targets"])
+            sigcfg["marketdata"] = [{
+                "module": "snapshot",
+                "symbols": copy.deepcopy(self.sigcfg["targets"]),
+                "config": {
+                    # "data_dir": "/mnt/nas-3.old/ProcessedData/snapshot_bin",
+                    "fields": list(SingalCfg.REQUIRED_FIELDS),
+                    "levels": 1
+                }
+            }]
+        else:
+            sigcfg["targets"] = ["dynamic:stocks"]
+            sigcfg["marketdata"] = [{
+                "module": "cs-snapshot",
+                "symbols": ["stocks"],
+                "config": {
+                    # "data_dir": "/mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick",
+                    "fields": list(SingalCfg.REQUIRED_FIELDS),
+                    "levels": 1
+                }
+            }]
+            sigcfg["stock_map"] = str(map_file)
 
         cfg["signal"] = {
             "name": "ic",
@@ -84,18 +112,29 @@ def main():
         type=str,
         action="append",
         required=True,
-        help=
-        "comma separated future biases, postfixes such as 's' 'm' and 'h' are supported"
+        help="comma separated future biases, postfixes such as 's' 'm' and 'h' are supported"
     )
     parser.add_argument("--mode",
                         type=str,
                         choices=["daily", "continuous"],
                         default="continuous",
                         help="calculation mode")
+
+    parser.add_argument("--stock-map",
+                        type=Path,
+                        required=False,
+                        help="mapping files for futures signals and tickers")
+
     args = parser.parse_args()
 
+    if args.stock_map:
+        if len(args.future_bias) > 1:
+            raise RuntimeError("fut2stock mode only support one futret_bias")
+        if args.mode != 'daily':
+            raise RuntimeError("fut2stock mode only support daily")
+
     cfg = SingalCfg(args.signal_config)
-    cfg.run(args.output, args.future_bias, args.mode)
+    cfg.run(args.output, args.future_bias, args.mode, args.stock_map)
 
 
 if __name__ == "__main__":
