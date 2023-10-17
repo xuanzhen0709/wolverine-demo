@@ -12,5 +12,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.local)
 
 find_package(wolverine REQUIRED CONFIG)
+message(${Python3_NumPy_INCLUDE_DIRS})
 
 add_subdirectory(src)

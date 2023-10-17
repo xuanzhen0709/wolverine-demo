@@ -40,6 +40,7 @@ class SingalCfg:
 
         cfg = copy.deepcopy(self.main_cfg)
         cfg.pop("checkpoint", None)
+        cfg.pop("worker", None)
 
         sigcfg = {
             "targets": copy.deepcopy(self.sigcfg["targets"]),
