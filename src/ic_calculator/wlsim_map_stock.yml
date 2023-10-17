@@ -4,8 +4,7 @@ end: 20230109
 
 refdata:
   config:
-     # data_dir: /global/wlsim/data/refdata
-
+    # data_dir: /global/wlsim/data/refdata
 signal:
   name: ic
   module: py
@@ -14,42 +13,42 @@ signal:
     pylib: libpython3.8.so
     config:
       # if map with fut
-      targets:
-        - IC.CFFEX
-      marketdata:
-        - module: snapshot
-          symbols:
-            - IC.CFFEX
-          config: 
-            fields:
-            - ap
-            - bp
-            levels: 1  
-
-      # if map with stock
       # targets:
-      #   - dynamic:stocks
+      #   - IC.CFFEX
       # marketdata:
-      #   - module: cs-snapshot
+      #   - module: snapshot
       #     symbols:
-      #       - stocks
+      #       - IC.CFFEX
       #     config: 
       #       fields:
       #       - ap
       #       - bp
-      #       levels: 1          
-      #       data_dir: /mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick
+      #       levels: 1  
+
+      # if map with stock
+      targets:
+        - dynamic:stocks
+      marketdata:
+        - module: cs-snapshot
+          symbols:
+            - stocks
+          config: 
+            fields:
+            - ap
+            - bp
+            levels: 1          
       # user defined params can go below
       # support continuous/daily
-      mode: continuous
-      signame: snapshot-py
+      mode: daily
+      signame: bar-py
       sigdir: output
-      file_type: npy
+      file_type: csv
       output_dir: output/ic/
       # support m/s/h
       # In the current mode, small futret_bias are supported 
       # futret_bias do not exceed the minimum trading period length 
+      # if stock_map exist, Only one futret_bias is supported
       futret_bias: 
         - 5m
       # optional
-      # stock_map: /home/qsun/wolverine-demo/src/ic_calculator/maplist.xlsx
+      stock_map: src/ic_calculator/maplist.xlsx
