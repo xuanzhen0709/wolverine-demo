@@ -7,7 +7,7 @@ import subprocess
 import yaml
 
 
-class SingalCfg:
+class SignalCfg:
     REQUIRED_FIELDS: List[str] = ["ap", "bp"]
 
     def __init__(self, infile: Path):
@@ -67,7 +67,7 @@ class SingalCfg:
         for x in cfg["signal"]["config"]["config"]["marketdata"]:
             if x["module"] != "cs-snapshot":
                 continue
-            x["config"]["fields"] = list(SingalCfg.REQUIRED_FIELDS)
+            x["config"]["fields"] = list(SignalCfg.REQUIRED_FIELDS)
             x["config"]["levels"] = 1
 
         with open(outcfg_file, "wt") as fout:
@@ -103,7 +103,7 @@ def main():
     )
 
     args = parser.parse_args()
-    cfg = SingalCfg(args.signal_config)
+    cfg = SignalCfg(args.signal_config)
     cfg.run(args.output, args.future_bias, args.ffill_interval)
 
 

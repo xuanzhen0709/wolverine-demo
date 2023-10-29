@@ -7,7 +7,7 @@ import subprocess
 import yaml
 
 
-class SingalCfg:
+class SignalCfg:
     REQUIRED_FIELDS: List[str] = ["ap", "bp"]
 
     def __init__(self, infile: Path):
@@ -64,7 +64,7 @@ class SingalCfg:
                 "symbols": copy.deepcopy(self.sigcfg["targets"]),
                 "config": {
                     # "data_dir": "/mnt/nas-3.old/ProcessedData/snapshot_bin",
-                    "fields": list(SingalCfg.REQUIRED_FIELDS),
+                    "fields": list(SignalCfg.REQUIRED_FIELDS),
                     "levels": 1
                 }
             }]
@@ -75,7 +75,7 @@ class SingalCfg:
                 "symbols": ["stocks"],
                 "config": {
                     # "data_dir": "/mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick",
-                    "fields": list(SingalCfg.REQUIRED_FIELDS),
+                    "fields": list(SignalCfg.REQUIRED_FIELDS),
                     "levels": 1
                 }
             }]
@@ -133,7 +133,7 @@ def main():
         if args.mode != 'daily':
             raise RuntimeError("fut2stock mode only support daily")
 
-    cfg = SingalCfg(args.signal_config)
+    cfg = SignalCfg(args.signal_config)
     cfg.run(args.output, args.future_bias, args.mode, args.stock_map)
 
 
