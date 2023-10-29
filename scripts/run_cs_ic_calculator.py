@@ -1,7 +1,7 @@
 import argparse
 import copy
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 import platform
 import subprocess
 import yaml
@@ -10,14 +10,16 @@ import yaml
 class SignalCfg:
     REQUIRED_FIELDS: List[str] = ["ap", "bp"]
 
-    def __init__(self, infile: Path):
+    def __init__(self, infile: Path, out_name: str, start: str, end: str,
+                 use_system_uv: bool):
         print(f"loading {infile}")
         self.infile: Path = infile
         with open(infile) as fin:
             self.main_cfg = yaml.safe_load(fin)
-        self.name: str = self.main_cfg["signal"]["name"]
-        self.start: int = int(self.main_cfg["start"])
-        self.end: int = int(self.main_cfg["end"])
+        self.in_name: str = self.main_cfg["signal"]["name"]
+        self.out_name: str = str(out_name) if out_name else self.in_name
+        self.start: int = int(start) if start else int(self.main_cfg["start"])
+        self.end: int = int(end) if end else int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
         py_version = platform.python_version_tuple()
         self.pylib: str = f"libpython{py_version[0]}.{py_version[1]}.so"
@@ -27,48 +29,72 @@ class SignalCfg:
             self.sigcfg = self.sigcfg["config"]
 
         sigout_cfg = self.main_cfg["signal"]["output"]
-        self.sigout_dir: Path = Path(sigout_cfg["config"]["output_dir"])
+        self.sig_dir: Path = Path(sigout_cfg["config"]["output_dir"])
         self.file_type: str = str(sigout_cfg["module"])
+        self.use_system_uv: bool = use_system_uv
 
     def run(self, outdir_root: Path, future_bias: str, ffill_interval: str):
+
+        def __set_misc(cfg: Dict):
+            cfg.pop("checkpoint", None)
+            cfg.pop("worker", None)
+            cfg["start"] = self.start
+            cfg["end"] = self.start
+
+        def __set_calendar(cfg: Dict):
+            if "calendar" not in cfg:
+                cfg["calendar"] = "/mnt/nas-3/CTA/Data/ChinaTradingDates.txt"
+
+        def __set_refdata(cfg: Dict):
+            if "refdata" not in cfg:
+                cfg["refdata"] = {}
+
+        def __set_signal(cfg: Dict):
+            sig_dir: Path = self.sig_dir if self.sig_dir.is_absolute(
+            ) else self.infile.parent.joinpath(self.sig_dir)
+
+            sigcfg = {
+                "targets": copy.deepcopy(self.sigcfg["targets"]),
+                "marketdata": copy.deepcopy(self.sigcfg["marketdata"]),
+                "sigdir": str(sig_dir),
+                "signame": self.in_name,
+                "file_type": self.file_type,
+                "output_dir": str(outdir),
+                "outname": self.out_name,
+                "futret_bias": future_bias,
+                "use_system_uv": self.use_system_uv,
+            }
+            if ffill_interval:
+                sigcfg["ffill_interval"] = ffill_interval
+            cfg["signal"] = {
+                "name": self.out_name,
+                "module": "py",
+                "config": {
+                    "module": "nickchenyj.cs_ic_calculator",
+                    "pylib": self.pylib,
+                    "config": sigcfg,
+                },
+            }
+            for x in cfg["signal"]["config"]["config"]["marketdata"]:
+                if x["module"] != "cs-snapshot":
+                    continue
+                x["config"]["fields"] = list(SignalCfg.REQUIRED_FIELDS)
+                x["config"]["levels"] = 1
+
         outdir: Path = outdir_root.resolve(
-        ) / f"cs_ic.{self.name}.{self.start}.{self.end}.{future_bias}"
+        ) / f"cs_ic.{self.out_name}.{self.start}.{self.end}.{future_bias}"
         outdir.mkdir(parents=True, exist_ok=True)
 
         outcfg_file: Path = outdir_root.resolve(
-        ) / f"cs_ic.{self.name}.{self.start}.{self.end}.{future_bias}.yml"
+        ) / f"cs_ic.{self.out_name}.{self.start}.{self.end}.{future_bias}.yml"
 
         cfg = copy.deepcopy(self.main_cfg)
-        cfg.pop("checkpoint", None)
-        cfg.pop("worker", None)
 
-        sigcfg = {
-            "targets": copy.deepcopy(self.sigcfg["targets"]),
-            "marketdata": copy.deepcopy(self.sigcfg["marketdata"]),
-            "signame": self.name,
-            "sigdir": str(self.sigout_dir),
-            "file_type": self.file_type,
-            "output_dir": str(outdir),
-            "futret_bias": future_bias,
-        }
-        if ffill_interval:
-            sigcfg["ffill_interval"] = ffill_interval
+        __set_misc(cfg)
+        __set_calendar(cfg)
+        __set_refdata(cfg)
 
-        cfg["signal"] = {
-            "name": "ic",
-            "module": "py",
-            "config": {
-                "module": "nickchenyj.cs_ic_calculator",
-                "pylib": self.pylib,
-                "config": sigcfg,
-            },
-        }
-
-        for x in cfg["signal"]["config"]["config"]["marketdata"]:
-            if x["module"] != "cs-snapshot":
-                continue
-            x["config"]["fields"] = list(SignalCfg.REQUIRED_FIELDS)
-            x["config"]["levels"] = 1
+        __set_signal(cfg)
 
         with open(outcfg_file, "wt") as fout:
             print(f"dumping cfg file {outcfg_file}")
@@ -82,11 +108,17 @@ def main():
     parser.add_argument("signal_config",
                         type=Path,
                         help="configuration file of the signal to be analyzed")
+    parser.add_argument("--name", "-n", type=str, help="name override")
+    parser.add_argument("--use-system-uv",
+                        action="store_true",
+                        help="use system uv instead of input uv")
     parser.add_argument("-o",
                         "--output",
                         type=Path,
                         required=True,
                         help="output dir")
+    parser.add_argument("--start", "-s", type=str, help="start date")
+    parser.add_argument("--end", "-e", type=str, help="end date")
     parser.add_argument(
         "--future-bias",
         type=str,
@@ -103,7 +135,8 @@ def main():
     )
 
     args = parser.parse_args()
-    cfg = SignalCfg(args.signal_config)
+    cfg = SignalCfg(args.signal_config, args.name, args.start, args.end,
+                    args.use_system_uv)
     cfg.run(args.output, args.future_bias, args.ffill_interval)
 
 

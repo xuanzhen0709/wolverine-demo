@@ -36,19 +36,22 @@ def check_data(ic_folder_list: List, date_list: List) -> List[Dict]:
         if 0 == len(ic_file_list):
             raise RuntimeError(f"ic file doesn't exit!")
         for ic_file in ic_file_list:
-            try:
-                ic_type, signal_name, start_date, end_date, future_bias = folder_path.name.split(
-                    '.')
-                if ic_type != "cs_ic":
-                    raise RuntimeError(f"only cs_ic are supported")
-                if not ic_file.is_file():
-                    raise RuntimeError(f"ic file {ic_file} doesn't exit!")
-                if ic_file.stem != signal_name:
-                    raise RuntimeError(
-                        f"ic file {ic_file} & folder {folder_path} don't match!"
-                    )
-            except Exception as e:
-                print(e)
+            tokens = folder_path.name.split('.')
+            if len(tokens) < 5:
+                raise RuntimeError(f"invalid ic result path {folder_path}")
+            ic_type = tokens[0]
+            signal_name = ".".join(tokens[1:-3])
+            start_date = tokens[-3]
+            end_date = tokens[-2]
+            future_bias = tokens[-1]
+
+            if ic_type != "cs_ic":
+                raise RuntimeError(f"only cs_ic are supported")
+            if not ic_file.is_file():
+                raise RuntimeError(f"ic file {ic_file} doesn't exit!")
+            if ic_file.stem != signal_name:
+                raise RuntimeError(
+                    f"ic file {ic_file} & folder {folder_path} don't match!")
 
             ic_df = pd.read_csv(ic_file, low_memory=False)
             df_list = []
@@ -89,9 +92,9 @@ def ic_daily(output: Path,
 
         rolling_ic: Dict = {}
         for i in range(rolling_window - 1, date_num):
-            selected = ic_df[
-                (ic_df['date'] >= date_list[i - rolling_window + 1])
-                & (ic_df['date'] <= date_list[i])]
+            selected = ic_df[(ic_df['date'] >= date_list[i - rolling_window +
+                                                         1])
+                             & (ic_df['date'] <= date_list[i])]
             rolling_ic[date_list[i]] = selected['ic'].mean()
 
         rolling_average_ic[sig_name] = rolling_ic
@@ -109,17 +112,17 @@ def ic_daily(output: Path,
             x,
             date2ic.values,
             linestyle='-',
-            label=f"{sig_name}({ FORMAT_STR.format(continuous_average_ic[sig_name]) })",
-            marker="D" if (date_num <= 1) else None
-        )
+            label=
+            f"{sig_name}({ FORMAT_STR.format(continuous_average_ic[sig_name]) })",
+            marker="D" if (date_num <= 1) else None)
 
     for sig_name, date2ic in rolling_average_ic.items():
         plt.plot(
             rolling_x,
             date2ic.values(),
-            label=f"{sig_name}_rollingmean_{rolling_window}d({ FORMAT_STR.format(continuous_average_ic[sig_name])})",
-            marker="D" if (len(rolling_x) <= 1) else None
-        )
+            label=
+            f"{sig_name}_rollingmean_{rolling_window}d({ FORMAT_STR.format(continuous_average_ic[sig_name])})",
+            marker="D" if (len(rolling_x) <= 1) else None)
 
     interval = math.ceil(date_num / 7)
     plt.xticks(ticks=x, labels=date_list)
@@ -225,9 +228,9 @@ def correlation_daily(output: Path, ic_info_list: List, date_list: List):
             x,
             date2ic.values(),
             linestyle='-',
-            label=f"{factor_pair}({ FORMAT_STR.format(np.mean(list(date2ic.values()))) })",
-            marker="D" if (date_num <= 1) else None
-        )
+            label=
+            f"{factor_pair}({ FORMAT_STR.format(np.mean(list(date2ic.values()))) })",
+            marker="D" if (date_num <= 1) else None)
 
     plt.xticks(ticks=x, labels=date_list)
     interval = math.ceil(date_num / 7)
@@ -275,9 +278,9 @@ def correlation_intraday(output: Path, ic_info_list: List, date_list: List):
             second2ic.keys(),
             second2ic.values(),
             linestyle='-',
-            label=f"{factor_pair}({  FORMAT_STR.format(np.mean(list(second2ic.values()))) })",
-            marker="D" if (len(second2ic) <= 1) else None
-        )
+            label=
+            f"{factor_pair}({  FORMAT_STR.format(np.mean(list(second2ic.values()))) })",
+            marker="D" if (len(second2ic) <= 1) else None)
 
     plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(2000))
     plt.tight_layout()
@@ -317,6 +320,7 @@ def main():
         raise RuntimeError(
             f"There are no trading days between {args.start} and {args.end}")
     ic_info_list = check_data(args.ic_folder, business_days)
+    print(ic_info_list)
     args.output.mkdir(parents=True, exist_ok=True)
 
     ic_daily(args.output, ic_info_list, business_days)

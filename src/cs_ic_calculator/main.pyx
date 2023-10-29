@@ -212,6 +212,7 @@ class CsICCalculator(SignalBase):
     def __init__(self):
         super().__init__()
         self.signame: str = ""
+        self.outname: str = ""
         self.sigdir: Path = Path("")
         self.sig_file_type: SigFileType = SigFileType.csv
 
@@ -222,6 +223,7 @@ class CsICCalculator(SignalBase):
         self.futret_bias: int = -1
         self.cache: DataCache = DataCache()
         self.ffill_interval: int = 0
+        self.use_system_uv: bool = False
 
         self.session: set(tuple) = set()
 
@@ -259,6 +261,7 @@ class CsICCalculator(SignalBase):
         print(f"loading config")
         cfg = yaml.safe_load(cfg_str)
         self.signame = str(cfg["signame"])
+        self.outname = str(cfg.get("outname", self.signame))
         self.sigdir = Path(cfg["sigdir"])
         self.sig_file_type: SigFileType = SigFileType[str(cfg["file_type"])]
         self.futret_bias_str = str(cfg["futret_bias"])
@@ -266,9 +269,11 @@ class CsICCalculator(SignalBase):
         if 'ffill_interval' in cfg:
             self.ffill_interval = str2ns(str(cfg["ffill_interval"]))
         
+        self.use_system_uv = cfg.get("use_system_uv", False)
+        
         odir: Path = Path(cfg["output_dir"])
         odir.mkdir(parents=True, exist_ok=True)
-        ofile: Path = odir / f"{self.signame}.csv"
+        ofile: Path = odir / f"{self.outname}.csv"
         self.fout = open(ofile, "w", buffering=1)
         self.fout.write(f"date,exchtime,localtime,ic\n")
 
@@ -290,9 +295,25 @@ class CsICCalculator(SignalBase):
                 sessions.append(tuple([ms.session[j].begin, ms.session[j].end]))
             self.session.add(tuple(sessions))
 
-        sig_targets: List[str] = [x for x in self.sig_df.columns if x not in ["exchtime", "localtime"]]
+        sig_targets: List[str] = list(self.sig_df.columns)
+
+        for _i, _x in enumerate(sig_targets):
+            if _x in ["exchtime", "localtime"]:
+                continue
+            if _x.startswith("SZ") or _x.startswith("SH"):
+                sig_targets[_i] = f"{_x[2:]}.{_x[:2]}"
+        self.sig_df.columns = sig_targets
+
+        sig_targets = [_x for _x in sig_targets if _x not in ["exchtime", "localtime"]]
         if self.targets != sig_targets:
-            raise RuntimeError(f"sig targets mismatch")
+            if self.use_system_uv:
+                new_sigs = set(self.targets) - set(sig_targets)
+                extra_sigs = set(sig_targets) - set(self.targets)
+                print(f"use_system_uv is on,new:{len(new_sigs)},extra:{len(extra_sigs)}", flush=True)
+                self.sig_df[list(new_sigs)] = np.nan
+                self.sig_df = self.sig_df[["exchtime", "localtime"] + self.targets].copy()
+            else:
+                raise RuntimeError(f"sig targets mismatch")
 
     def on_eod(self, ev: EodEvent):
         date = int(ev.date)
