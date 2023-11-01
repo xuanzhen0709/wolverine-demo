@@ -320,12 +320,10 @@ def main():
         raise RuntimeError(
             f"There are no trading days between {args.start} and {args.end}")
     ic_info_list = check_data(args.ic_folder, business_days)
-    print(ic_info_list)
     args.output.mkdir(parents=True, exist_ok=True)
 
     ic_daily(args.output, ic_info_list, business_days)
-    cycles = ['1d', '5m']
-    for c in cycles:
+    for c in ["1d", "1m", "5m"]:
         ic_in_cycle(args.output, ic_info_list, business_days, c)
 
     if len(ic_info_list) > 1:
