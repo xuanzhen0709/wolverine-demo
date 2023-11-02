@@ -64,35 +64,45 @@
 
 - since wlsim currently requires a very specific setup, which may conflict with system-provided python3, users may wrap the above env-enablement statements in a bash function
 
-  ```
-  # in ~/.bashrc
-  # the following two lines can be enabled unconditionally
-  export PATH=$PATH:~/.local/bin
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/lib
+  -  enable rh-python38 and devtoolset-11 temporarily, run in the console
+      ```
+      source /opt/rh/rh-python38/enable
+      source /opt/rh/devtoolset-11/enable
+      ```
+  -  create virtualenv for wolverine
+      ```
+      python3 -m venv ~/venv/wlsim
+      ```
+  -  Add the following lines to the ~/.bashrc file
+      ```
+      # in ~/.bashrc
+      # the following two lines can be enabled unconditionally
+      export PATH=$PATH:~/.local/bin
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/lib
 
-  # a wrapper that enables wlsim specific python3 and gcc
-  function enable_wlsim_env()
-  {
-      local plat=$(uname -r)
+      # a wrapper that enables wlsim specific python3 and gcc
+      function enable_wlsim_env()
+      {
+          local plat=$(uname -r)
 
-      if [[ $plat =~ el8 ]]; then
-          if shopt -q login_shell; then
-              echo "el8, enabling gcc-toolset-11"
-          fi
-          source /opt/rh/gcc-toolset-11/enable
-      elif [[ $plat =~ el7 ]]; then
-          if shopt -q login_shell; then
-              echo "el7, enabling devtoolset-11"
-          fi
-          source /opt/rh/devtoolset-11/enable
+          if [[ $plat =~ el8 ]]; then
+              if shopt -q login_shell; then
+                  echo "el8, enabling gcc-toolset-11"
+              fi
+              source /opt/rh/gcc-toolset-11/enable
+          elif [[ $plat =~ el7 ]]; then
+              if shopt -q login_shell; then
+                  echo "el7, enabling devtoolset-11"
+              fi
+              source /opt/rh/devtoolset-11/enable
 
-          if shopt -q login_shell; then
-              echo "el7, enabling rh-python38"
+              if shopt -q login_shell; then
+                  echo "el7, enabling python38 venv"
+              fi
+              source ~/venv/wlsim/bin/activate
           fi
-          source /opt/rh/rh-python38/enable
-      fi
-  }
-  ```
+      }           
+      ```
 
   users can run in the console
 
