@@ -13,8 +13,9 @@ import cython
 from libc.stdint cimport *
 
 # speed up numpy arrays
-cimport numpy as np
-np.import_array()
+cimport numpy as cnp
+cnp.import_array()
+np.seterr(all="ignore")
 
 
 class SigFileType(IntEnum):
@@ -89,8 +90,8 @@ def make_localtime_session(date: int,  session: List) -> List[List]:
 
 
 cdef int search_session_end_index(
-        const np.uint64_t[:] sig_localtime,
-        const np.uint64_t target,
+        const cnp.uint64_t[:] sig_localtime,
+        const cnp.uint64_t target,
         int left,
         int right):
 
@@ -128,13 +129,13 @@ def find_all_shift_info(sig_localtime_df: pd.DataFrame, sessions: List) -> List[
 
 cdef void match_sig_with_md(
         const int sig_nr,
-        const np.uint64_t[:] sig_localtime,
-        np.float64_t[:, :] sig_mid_px,
-        const np.uint64_t[:] sig_fut_localtime,
-        np.float64_t[:, :] sig_fut_mid_px,
+        const cnp.uint64_t[:] sig_localtime,
+        cnp.float64_t[:, :] sig_mid_px,
+        const cnp.uint64_t[:] sig_fut_localtime,
+        cnp.float64_t[:, :] sig_fut_mid_px,
         const int md_nr,
-        const np.uint64_t[:] md_localtime,
-        const np.float64_t[:, :] md_mid_px):
+        const cnp.uint64_t[:] md_localtime,
+        const cnp.float64_t[:, :] md_mid_px):
     cdef int sig_idx = 0
     cdef int ret_idx = 0
     cdef int fut_ret_idx = 0
@@ -154,8 +155,8 @@ cdef void match_sig_with_md(
 
 def extend_sig_df(
         const int df_size,
-        const np.uint64_t[:] sig_localtime,
-        const np.int64_t[:] sig_exchtime,
+        const cnp.uint64_t[:] sig_localtime,
+        const cnp.int64_t[:] sig_exchtime,
         local_session:List,
         exch_session:List, 
         ffill_interval:int) -> (List, List):
@@ -351,18 +352,18 @@ class CsICCalculator(SignalBase):
                 sig_array_filled[i] =  sig_array[ic_info_list[i]]
             sig_array = sig_array_filled
 
-        cdef np.uint64_t[:] sig_localtime = localtime_array
-        cdef np.int64_t[:] sig_exchtime = exchtime_array
-        cdef np.ndarray[np.float64_t, ndim=2] sigs = sig_array
-        cdef np.ndarray[np.float64_t, ndim=2] mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
-        cdef np.ndarray[np.float64_t, ndim=2] fut_mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
-        cdef np.ndarray[np.uint64_t, ndim=1] md_localtime = np.array(self.cache.localtime, dtype=np.uint64)
-        cdef np.ndarray[np.float64_t, ndim=2] md_mid_px = (np.array(self.cache.ap, dtype=np.float64) + np.array(self.cache.bp, dtype=np.float64)) / 2
+        cdef cnp.uint64_t[:] sig_localtime = localtime_array
+        cdef cnp.int64_t[:] sig_exchtime = exchtime_array
+        cdef cnp.ndarray[cnp.float64_t, ndim=2] sigs = sig_array
+        cdef cnp.ndarray[cnp.float64_t, ndim=2] mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
+        cdef cnp.ndarray[cnp.float64_t, ndim=2] fut_mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
+        cdef cnp.ndarray[cnp.uint64_t, ndim=1] md_localtime = np.array(self.cache.localtime, dtype=np.uint64)
+        cdef cnp.ndarray[cnp.float64_t, ndim=2] md_mid_px = (np.array(self.cache.ap, dtype=np.float64) + np.array(self.cache.bp, dtype=np.float64)) / 2
 
-        cdef np.uint64_t[:] fut_localtime = localtime_array + self.futret_bias
+        cdef cnp.uint64_t[:] fut_localtime = localtime_array + self.futret_bias
         cdef int start_idx 
-        cdef np.uint64_t session_end
-        cdef np.uint64_t time_shift 
+        cdef cnp.uint64_t session_end
+        cdef cnp.uint64_t time_shift 
         
         for info in shift_info:
             start_idx = info['start_shift_idx']
@@ -381,9 +382,9 @@ class CsICCalculator(SignalBase):
                 md_localtime.shape[0],
                 md_localtime,
                 md_mid_px)
-        cdef np.ndarray[np.float64_t, ndim=2] fut_ret = (fut_mid_px / mid_px) - 1
+        cdef cnp.ndarray[cnp.float64_t, ndim=2] fut_ret = (fut_mid_px / mid_px) - 1
 
-        cdef np.float64_t ic
+        cdef cnp.float64_t ic
         cdef int idx = 0
         a = time.time()
         while idx < len(sigs):
