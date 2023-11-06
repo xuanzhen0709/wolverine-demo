@@ -1,4 +1,4 @@
-calendar: scripts/ChinaTradingDates.txt
+calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
 start: 20230101
 end: 20230104
 
