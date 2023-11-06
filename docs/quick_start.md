@@ -243,7 +243,7 @@ the config file has a hierarchical layout - and a few principles are followed
 
 ```yaml
 # location of the calendar file
-calendar: scripts/ChinaTradingDates.txt
+calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
 # date range
 start: 20230101
 end: 20230103
@@ -271,7 +271,7 @@ signal:
 
 ```yaml
 # location of the calendar file
-calendar: scripts/ChinaTradingDates.txt
+calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
 # date range
 start: 20230101
 end: 20230103
