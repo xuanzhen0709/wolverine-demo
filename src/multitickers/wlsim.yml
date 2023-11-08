@@ -3,8 +3,7 @@ start: 20230505
 end: 20230505
 
 refdata:
-  config:
-    # data_dir: /global/wlsim/data/refdata
+  # data_dir: /global/wlsim/data/refdata
 
 signal:
   name: multitickers

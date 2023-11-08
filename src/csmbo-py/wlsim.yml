@@ -3,8 +3,7 @@ start: 20210513
 end: 20210513
 
 refdata:
-  config:
-    # data_dir: /global/wlsim/data/refdata
+  # data_dir: /global/wlsim/data/refdata
 
 signal:
   name: csmbo-py

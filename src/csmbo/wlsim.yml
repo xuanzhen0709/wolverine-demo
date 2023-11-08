@@ -1,10 +1,9 @@
 calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
-start: 20210513
-end: 20210513
+start: 20230513
+end: 20230613
 
 refdata:
-  config:
-    # data_dir: /global/wlsim/data/refdata
+  # data_dir: /global/wlsim/data/refdata
 
 signal:
   name: csmbo

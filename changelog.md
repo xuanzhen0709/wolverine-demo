@@ -1,3 +1,6 @@
+# 20231109
+* MINOR (Config): the "refdata" section no longer needs a "config" sub-section - all the config items shoul be put directly under "refdata".
+
 # 20230920
 * MINOR(c++ signal module name): the module name in config files now follows the unified notation ${USER}.${name}. py signals have always been following this notation and only c++ signals are affected (instead of ${USER}-${name}).
 

@@ -3,8 +3,7 @@ start: 20230101
 end: 20230104
 
 refdata:
-  config:
-    # data_dir: /global/wlsim/data/refdata
+  # data_dir: /global/wlsim/data/refdata
 
 checkpoint:
   dir: checkpoint

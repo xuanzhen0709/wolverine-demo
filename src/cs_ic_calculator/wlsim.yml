@@ -3,8 +3,7 @@ start: 20230701
 end: 20230709
 
 refdata:
-  config:
-    # data_dir: /global/wlsim/data/refdata
+  # data_dir: /global/wlsim/data/refdata
 
 signal:
   name: ic
