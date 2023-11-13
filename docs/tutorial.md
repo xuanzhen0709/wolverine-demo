@@ -302,6 +302,7 @@ signal:
     Price = 2,
     Qty = 3,
     Side = 4,
+    OrderId = 5,
   };
 
   enum class CancelFldType : uint8_t {
@@ -310,6 +311,7 @@ signal:
     Price = 2,
     Qty = 3,
     Side = 4,
+    OrderId = 5,
   };
 
   enum class TradeFldType : uint8_t {
@@ -318,6 +320,8 @@ signal:
     Price = 2,
     Qty = 3,
     Side = 4,
+    BidId = 5,
+    AskId = 6,
   };
 
   struct Order {
@@ -329,6 +333,7 @@ signal:
                                 // 深交所：原始的委托量；
                                 // 上交所：去掉立即成交部分的剩余委托量，若订单全部立即成交没有order
     const Side *const *side; // 委托订单的买卖方向，0——买，1——卖
+    const uint64_t *const *orderid; // 委托订单的订单号
   };
 
   struct Cancel {
@@ -338,6 +343,7 @@ signal:
     const double *const *price; // 当订单是市价单、最优单时为0，非零值表示限价单的价格
     const uint32_t *const *qty; //对于深交所，是发单的委托量；对于上交所，是扣除立即成交的剩余委托量
     const Side *const *side; //委托订单的买卖方向，0——买，1——卖
+    const uint64_t *const *orderid; // 撤销订单的订单号
   };
 
   struct Trade {
@@ -347,6 +353,8 @@ signal:
     const double *const *price; // 成交价
     const uint32_t *const *qty; // 成交股数
     const Side *const *side; // 触发成交的订单类型，askid > bidid
+    const uint64_t *const *bidid; // 撤销订单的bid订单号
+    const uint64_t *const *askid; // 撤销订单的ask订单号
   };
 
   int64_t exchtime;
