@@ -91,15 +91,20 @@
               fi
               source /opt/rh/gcc-toolset-11/enable
           elif [[ $plat =~ el7 ]]; then
-              if shopt -q login_shell; then
-                  echo "el7, enabling devtoolset-11"
-              fi
-              source /opt/rh/devtoolset-11/enable
+            if shopt -q login_shell; then
+                echo "el7, enabling devtoolset-11"
+            fi
+            source /opt/rh/devtoolset-11/enable
 
-              if shopt -q login_shell; then
-                  echo "el7, enabling python38 venv"
-              fi
-              source ~/venv/wlsim/bin/activate
+            if shopt -q login_shell; then
+                echo "el7, enabling rh-python38"
+            fi
+            source /opt/rh/rh-python38/enable
+
+            if shopt -q login_shell; then
+                echo "el7, enabling wlsim python38 venv
+            fi
+            source ~/venv/wlsim/bin/activate
           fi
       }           
       ```
