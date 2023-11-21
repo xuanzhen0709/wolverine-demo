@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-
 import datetime
 import numpy as np
-from pathlib import Path
+from sqlalchemy import create_engine
+import pandas as pd
 from typing import List, Set, Union
 
 class Calendar:
@@ -15,12 +15,15 @@ class Calendar:
     """
     __INSTANCE = None
 
-    def __init__(self):
-        path: Path = Path("/mnt/nas-3/CTA/Data/ChinaTradingDates.txt")
-        with open(path) as fin:
-            lines = [int(x) for x in fin.read().splitlines()]
-            self.dates: np.ndarray = np.array(lines, dtype=np.uint32)
-            self.date_set: Set[int] = set(lines)
+    def __init__(self, coutry_code="CHN"):
+        self.coutry_code = coutry_code
+        self.engine = create_engine(f"mssql+pymssql://public_data:public_data@dbs.cfi/WDDB")
+        select_sql = f'''
+            SELECT WORKING_DATE FROM GLOBALWORKINGDAY WHERE COUNTRY_CODE = '{self.coutry_code}' ORDER BY WORKING_DATE
+        '''
+        df = pd.read_sql(select_sql, con=self.engine)   
+        self.dates: np.ndarray = np.array(df['WORKING_DATE'], dtype=np.uint32)
+        self.date_set: Set[int] = set(self.dates)
 
     @staticmethod
     def get_instance() -> "Calendar":
@@ -115,3 +118,4 @@ if __name__ == "__main__":
     print(cal.next_business_day(20150105, -1))
     k = cal.get_business_days(20150105, 20150110)
     print(cal.next_business_day(20150106, -1))
+    print(cal.is_business_day(20231121))
