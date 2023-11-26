@@ -15,14 +15,13 @@ class Calendar:
     """
     __INSTANCE = None
 
-    def __init__(self, coutry_code="CHN"):
-        self.coutry_code = coutry_code
+    def __init__(self):
         _engine = create_engine(f"mssql+pymssql://public_data:public_data@dbs.cfi/WDDB")
         _select_sql = f'''
-            SELECT WORKING_DATE FROM GLOBALWORKINGDAY WHERE COUNTRY_CODE = '{self.coutry_code}' ORDER BY WORKING_DATE
+            SELECT DISTINCT(TRADE_DAYS) FROM CFUTURESCALENDAR ORDER BY TRADE_DAYS
         '''
         _df = pd.read_sql(_select_sql, con=_engine)   
-        self.dates: np.ndarray = np.array(_df['WORKING_DATE'], dtype=np.uint32)
+        self.dates: np.ndarray = np.array(_df['TRADE_DAYS'], dtype=np.uint32)
         self.date_set: Set[int] = set(self.dates)
 
     @staticmethod
