@@ -1,5 +1,9 @@
-- [System Environment Setup](#system-environment-setup)
-- [Development Package Setup](#development-package-setup)
+- [Setup](#setup)
+  - [Shell script](#shell-script)
+  - [Manual setup](#manual-setup)
+    - [System Environment Setup](#system-environment-setup)
+    - [Development Package Setup](#development-package-setup)
+- [Build this projects](#build-this-projects)
 - [Quick Note](#quick-note)
 - [Docs and Types](#docs-and-types)
   - [Timestamp](#timestamp)
@@ -7,8 +11,17 @@
   - [Demo](#demo)
 
 -----
+# Setup
+You can set up manually or use shell script to deploy it with one click
+## Shell script
+- git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git
+- cd wolverine-demo/scripts
+- ./install.sh
+- source ~/.profile
+- run `enable_wlsim_env` in the console to activate the environemnt before using wlsim.
 
-# System Environment Setup
+## Manual setup
+### System Environment Setup
 <mark>Do not use conda!</mark>  
 <mark>Do not use conda!!</mark>  
 <mark>Do not use conda!!!</mark>  
@@ -136,7 +149,7 @@
 
 ---
 
-# Development Package Setup
+### Development Package Setup
 
 NOTE: before installing the packages and using the framework, do check that the required python/gcc versions are already enabled.
 It will lead to incompatibility/missing components/various other issues otherwise.
@@ -149,7 +162,8 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
   do make sure to specify "-P" if your default python interpreter is not 'python3' (for example, python3.8 /python3.9 etc).
 
-- build this projects, <mark>if you are an intsern, please use `intern` branch</mark>
+# Build this projects
+<mark>if you are an intsern, please use `intern` branch</mark>
 
   ```
   mkdir -p build/Debug
@@ -164,7 +178,7 @@ It will lead to incompatibility/missing components/various other issues otherwis
   popd
   ```
 
-- at the project root dir, run:
+at the project root dir, run:
 
   ```
   wl-sim src/csstock/wlsim.yml
