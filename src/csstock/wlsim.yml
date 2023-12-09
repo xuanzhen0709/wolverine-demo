@@ -1,4 +1,4 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
 start: 20230103
 end: 20230104
 
@@ -26,5 +26,3 @@ signal:
             - volume
             - ap
           levels: 1
-    # freq can be 60/120/180
-    freq: 120

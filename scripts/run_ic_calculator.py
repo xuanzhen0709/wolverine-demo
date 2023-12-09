@@ -20,10 +20,10 @@ class SignalCfg:
         self.end: int = int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
         py_version = platform.python_version_tuple()
-        self.pylib: str = f"libpython{py_version[0]}.{py_version[1]}.so"
+        self.python_runtime: str = f"libpython{py_version[0]}.{py_version[1]}.so"
         module: str = self.main_cfg["signal"]["module"]
         if module == "py":
-            self.pylib = self.sigcfg["pylib"]
+            self.python_runtime = self.main_cfg["env"]["python_runtime"]
             self.sigcfg = self.sigcfg["config"]
 
         sigout_cfg = self.main_cfg["signal"]["output"]
@@ -81,12 +81,12 @@ class SignalCfg:
             }]
             sigcfg["stock_map"] = str(map_file)
 
+        cfg["env"]["python_runtime"] = self.python_runtime
         cfg["signal"] = {
             "name": "ic",
             "module": "py",
             "config": {
                 "module": "nickchenyj.ic_calculator",
-                "pylib": self.pylib,
                 "config": sigcfg,
             },
         }

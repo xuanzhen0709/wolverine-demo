@@ -1,0 +1,69 @@
+env:
+start: 20230703
+end: 20230710
+
+refdata:
+  # data_dir: /global/wlsim/data/refdata
+
+worker:
+  type: mqpool
+  threads: 5
+
+signal:
+  name: strat
+  module: nickchenyj.cssnapshot_strat
+  output:
+    module: csv
+    config:
+      output_dir: output
+  factors:
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 1.234
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 2.345
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 3.456
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 4.567
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 5.678
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 6.789
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 7.890
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 8.901
+    - name: snapshot
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 9.012
+
+  config:
+    targets:
+      - dynamic:stocks
+    marketdata:
+      - module: cs-snapshot
+        symbols:
+          - stocks
+        config:
+          fields:
+            - last_price
+            - volume
+            - ap
+          levels: 5

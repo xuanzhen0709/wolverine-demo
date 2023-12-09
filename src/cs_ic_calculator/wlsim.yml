@@ -1,4 +1,5 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+  python_runtime: libpython3.8.so
 start: 20230701
 end: 20230709
 
@@ -10,7 +11,6 @@ signal:
   module: py
   config:
     module: nickchenyj.cs_ic_calculator
-    pylib: libpython3.8.so
     config:
       targets:
         - dynamic:stocks

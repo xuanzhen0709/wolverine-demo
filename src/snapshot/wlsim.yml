@@ -1,4 +1,5 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+
 start: 20230701
 end: 20230710
 
@@ -21,6 +22,3 @@ signal:
         symbols:
           - IC.CFFEX
         config: {}
-
-    # freq can be 60/120/180
-    freq: 120

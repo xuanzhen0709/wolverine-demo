@@ -1,4 +1,5 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+  python_runtime: libpython3.8.so
 start: 20230101
 end: 20230109
 
@@ -10,7 +11,6 @@ signal:
   module: py
   config:
     module: nickchenyj.ic_calculator
-    pylib: libpython3.8.so
     config:
       # if map with fut
       targets:
@@ -19,11 +19,11 @@ signal:
         - module: snapshot
           symbols:
             - IC.CFFEX
-          config: 
+          config:
             fields:
-            - ap
-            - bp
-            levels: 1  
+              - ap
+              - bp
+            levels: 1
 
       # if map with stock
       # targets:
@@ -32,11 +32,11 @@ signal:
       #   - module: cs-snapshot
       #     symbols:
       #       - stocks
-      #     config: 
+      #     config:
       #       fields:
       #       - ap
       #       - bp
-      #       levels: 1          
+      #       levels: 1
       #       data_dir: /mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick
       # user defined params can go below
       # support continuous/daily
@@ -46,9 +46,9 @@ signal:
       file_type: npy
       output_dir: output/ic/
       # support m/s/h
-      # In the current mode, small futret_bias are supported 
-      # futret_bias do not exceed the minimum trading period length 
-      futret_bias: 
+      # In the current mode, small futret_bias are supported
+      # futret_bias do not exceed the minimum trading period length
+      futret_bias:
         - 5m
       # optional
       # stock_map: /home/qsun/wolverine-demo/src/ic_calculator/maplist.xlsx
