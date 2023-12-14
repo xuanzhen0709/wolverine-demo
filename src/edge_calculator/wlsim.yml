@@ -1,0 +1,38 @@
+calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+start: 20230101
+end: 20230109
+
+refdata:
+  # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: edge
+  module: py
+  config:
+    module: nickchenyj.edge_calculator
+    pylib: libpython3.8.so
+    config:
+      targets:
+        - IC.CFFEX
+      marketdata:
+        - module: snapshot
+          symbols:
+            - IC.CFFEX
+          config: 
+            fields:
+            - ap
+            - bp
+            levels: 1  
+
+      signame: snapshot-py
+      sigdir: output
+      file_type: npy
+      output_dir: output/edge/
+      # (0,1], default: 0.1
+      quantile: 0.1
+      # support m/s/h. 
+      futret_bias_start: 0s
+      # support m/s/h. 
+      futret_bias_end: 1h
+      # support m/s/h. 
+      futret_bias_step: 1m
