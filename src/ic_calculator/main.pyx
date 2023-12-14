@@ -138,7 +138,7 @@ def shift_fut_localtime(fut_localtime_df: pd.DataFrame, shift_info: List):
         session_end = info['session_end']
         time_shift = info['time_shift']
 
-        while fut_localtime[start_idx] > session_end:
+        while start_idx >= 0 and fut_localtime[start_idx] > session_end:
             fut_localtime[start_idx] += time_shift
             start_idx -= 1
 
@@ -356,7 +356,7 @@ class CsSnapshotCache(SnapshotCache):
         self.session: set(tuple) = set()
         self.futret_bias = futret_bias
         self.fout = open(ofile, "w", buffering=1)
-
+        self.sig_df: pd.DataFrame = None
         self.map_info: pd.DataFrame = pd.read_excel(
             map_file, header=None, sheet_name=None)
         self.fut_target: str = None
