@@ -29,6 +29,7 @@ signal:
       file_type: csv
       output_dir: output/cs_ic/
       # support m/s/h
-      futret_bias: 5m
-      # Optional, support m/s/h
-      ffill_interval: 1s
+      futret_bias: 
+        - 15m
+      # Optional, support m/s/h, the minimum is 3s
+      # ffill_interval: 3s

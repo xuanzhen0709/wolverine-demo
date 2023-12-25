@@ -12,7 +12,7 @@ signal:
   output:
     module: csv
     config:
-      output_dir: output
+      output_dir: /mnt/nas-3/homes/qsun/au.SHFE
   config:
     module: nickchenyj.bar
     config:

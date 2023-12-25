@@ -1,7 +1,7 @@
 import argparse
 import copy
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 import platform
 import subprocess
 import yaml
@@ -10,14 +10,14 @@ import yaml
 class SignalCfg:
     REQUIRED_FIELDS: List[str] = ["ap", "bp"]
 
-    def __init__(self, infile: Path):
+    def __init__(self, infile: Path, start: str, end: str):
         print(f"loading {infile}")
         self.infile: Path = infile
         with open(infile) as fin:
             self.main_cfg = yaml.safe_load(fin)
         self.name: str = self.main_cfg["signal"]["name"]
-        self.start: int = int(self.main_cfg["start"])
-        self.end: int = int(self.main_cfg["end"])
+        self.start: int = int(start) if start else int(self.main_cfg["start"])
+        self.end: int = int(end) if end else int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
         py_version = platform.python_version_tuple()
         self.python_runtime: str = f"libpython{py_version[0]}.{py_version[1]}.so"
@@ -31,65 +31,82 @@ class SignalCfg:
         self.file_type: str = str(sigout_cfg["module"])
 
     def run(self, outdir_root: Path,
-            future_biases: List[str], mode: str, map_file: Path):
-        fut_bias_str: str = "-".join(future_biases)
+            future_biases: List[str], mode: str, map_file: Path, rel_sig_dir:Path):
+        def __set_misc(cfg: Dict):
+            cfg.pop("checkpoint", None)
+            cfg.pop("worker", None)
+            cfg["start"] = self.start
+            cfg["end"] = self.end
+        
+        def __set_calendar(cfg: Dict):
+            if "calendar" not in cfg:
+                cfg["calendar"] = "/mnt/nas-3/CTA/Data/ChinaTradingDates.txt"
+
+        def __set_refdata(cfg: Dict):
+            if "refdata" not in cfg:
+                cfg["refdata"] = {}
+
+        def __set_signal(cfg: Dict):
+            sig_dir: Path = (
+                self.sigout_dir
+                if self.sigout_dir.is_absolute()
+                else rel_sig_dir.joinpath(self.sigout_dir)
+            )
+            sigcfg = {
+                "signame": self.name,
+                "sigdir": str(sig_dir),
+                "file_type": self.file_type,
+                "output_dir": str(outdir),
+                "futret_bias": future_biases,
+                "mode": mode
+            }
+
+            if None is map_file:
+                sigcfg["targets"] = copy.deepcopy(self.sigcfg["targets"])
+                sigcfg["marketdata"] = [{
+                    "module": "snapshot",
+                    "symbols": copy.deepcopy(self.sigcfg["targets"]),
+                    "config": {
+                        # "data_dir": "/mnt/nas-3.old/ProcessedData/snapshot_bin",
+                    }
+                }]
+            else:
+                sigcfg["targets"] = ["dynamic:stocks"]
+                sigcfg["marketdata"] = [{
+                    "module": "cs-snapshot",
+                    "symbols": ["stocks"],
+                    "config": {
+                        # "data_dir": "/mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick",
+                        "fields": list(SignalCfg.REQUIRED_FIELDS),
+                        "levels": 1
+                    }
+                }]
+                sigcfg["stock_map"] = str(map_file)
+
+            cfg["signal"] = {
+                "name": "ic",
+                "module": "py",
+                "config": {
+                    "module": "nickchenyj.ic_calculator",
+                    "pylib": self.pylib,
+                    "config": sigcfg,
+                },
+            }
+                
         outdir: Path = outdir_root.resolve(
-        ) / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}"
+        ) / f"""ic.{self.name}.{self.start}.{self.end}.{"-".join(future_biases)}"""
         outdir.mkdir(parents=True, exist_ok=True)
 
-        outcfg_file: Path = outdir_root.resolve(
-        ) / f"ic.{self.name}.{self.start}.{self.end}.{fut_bias_str}.yml"
+        outcfg_file: Path = outdir.resolve(
+        ) / f"""ic.{self.name}.{self.start}.{self.end}.{"-".join(future_biases)}.yml"""
 
         cfg = copy.deepcopy(self.main_cfg)
-        cfg.pop("checkpoint", None)
-        cfg.pop("worker", None)
-        cfg["refdata"]["config"] = {
-            # "data_dir": "/mnt/nas-3.old/ProcessedData/reference_data"
-        }
+        
+        __set_misc(cfg)
+        __set_calendar(cfg)
+        __set_refdata(cfg)
+        __set_signal(cfg)
 
-
-        sigcfg = {
-            "signame": self.name,
-            "sigdir": str(self.sigout_dir),
-            "file_type": self.file_type,
-            "output_dir": str(outdir),
-            "futret_bias": future_biases,
-            "mode": mode
-        }
-
-        if None is map_file:
-            sigcfg["targets"] = copy.deepcopy(self.sigcfg["targets"])
-            sigcfg["marketdata"] = [{
-                "module": "snapshot",
-                "symbols": copy.deepcopy(self.sigcfg["targets"]),
-                "config": {
-                    # "data_dir": "/mnt/nas-3.old/ProcessedData/snapshot_bin",
-                    "fields": list(SignalCfg.REQUIRED_FIELDS),
-                    "levels": 1
-                }
-            }]
-        else:
-            sigcfg["targets"] = ["dynamic:stocks"]
-            sigcfg["marketdata"] = [{
-                "module": "cs-snapshot",
-                "symbols": ["stocks"],
-                "config": {
-                    # "data_dir": "/mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick",
-                    "fields": list(SignalCfg.REQUIRED_FIELDS),
-                    "levels": 1
-                }
-            }]
-            sigcfg["stock_map"] = str(map_file)
-
-        cfg["env"]["python_runtime"] = self.python_runtime
-        cfg["signal"] = {
-            "name": "ic",
-            "module": "py",
-            "config": {
-                "module": "nickchenyj.ic_calculator",
-                "config": sigcfg,
-            },
-        }
         with open(outcfg_file, "wt") as fout:
             print(f"dumping cfg file {outcfg_file}")
             yaml.safe_dump(cfg, fout, sort_keys=False)
@@ -107,6 +124,8 @@ def main():
                         type=Path,
                         required=True,
                         help="output dir")
+    parser.add_argument("--start", "-s", type=str, help="start date")
+    parser.add_argument("--end", "-e", type=str, help="end date")
     parser.add_argument(
         "--future-bias",
         type=str,
@@ -119,22 +138,26 @@ def main():
                         choices=["daily", "continuous"],
                         default="continuous",
                         help="calculation mode")
-
     parser.add_argument("--stock-map",
                         type=Path,
                         required=False,
                         help="mapping files for futures signals and tickers")
-
+    parser.add_argument(
+        "--rel-sig-dir",
+        type=Path,
+        required=False,
+        help="the directory at which the wl-sim command is executed when the signal is generated, used to extend the output_dir in the form of a relative address",
+    )
     args = parser.parse_args()
 
     if args.stock_map:
         if len(args.future_bias) > 1:
             raise RuntimeError("fut2stock mode only support one futret_bias")
-        if args.mode != 'daily':
+        if args.mode != "daily":
             raise RuntimeError("fut2stock mode only support daily")
 
-    cfg = SignalCfg(args.signal_config)
-    cfg.run(args.output, args.future_bias, args.mode, args.stock_map)
+    cfg = SignalCfg(args.signal_config, args.start, args.end)
+    cfg.run(args.output, args.future_bias, args.mode, args.stock_map, args.rel_sig_dir)
 
 
 if __name__ == "__main__":
