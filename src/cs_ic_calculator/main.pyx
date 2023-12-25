@@ -29,12 +29,14 @@ class DataCache:
         self.localtime = []
         self.ap = []
         self.bp = []
-    
+
     def push(self, ev: CsSnapshotEvent):
         self.exchtime.append(ev.exchtime)
         self.localtime.append(ev.localtime)
-        self.ap.append(np.ndarray.copy(ev.data[CsSnapshotEvent.FldType.AP.value][0]))
-        self.bp.append(np.ndarray.copy(ev.data[CsSnapshotEvent.FldType.BP.value][0]))
+        self.ap.append(np.ndarray.copy(
+            ev.data[CsSnapshotEvent.FldType.AP.value][0]))
+        self.bp.append(np.ndarray.copy(
+            ev.data[CsSnapshotEvent.FldType.BP.value][0]))
 
     def clear(self):
         self.exchtime.clear()
@@ -68,23 +70,24 @@ def hhmmssf_to_exchtime(val: str) -> int:
     return time
 
 
-def make_localtime_session(date: int,  session: List) -> List[List]:
+def make_localtime_session(date: int, session: List) -> List[List]:
     daily_session: List = []
-    str_time: str = str(date) + '00:00:00'
-    time_stamp: float = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
+    str_time: str = str(date) + "00:00:00"
+    time_stamp: float = time.mktime(time.strptime(str_time, "%Y%m%d%H:%M:%S"))
     today_ts: float = time_stamp * int(1e9)
 
     pre_business_day: int = Calendar.get_instance().next_business_day(date, -1)
     pre_day: int = next_day(pre_business_day)
-    pre_str_time: str = str(pre_day) + '00:00:00'
-    pre_time_stamp: float = time.mktime(time.strptime(pre_str_time, '%Y%m%d%H:%M:%S'))
+    pre_str_time: str = str(pre_day) + "00:00:00"
+    pre_time_stamp: float = time.mktime(
+        time.strptime(pre_str_time, "%Y%m%d%H:%M:%S"))
     pre_ts: float = pre_time_stamp * int(1e9)
-    
+
     for s in session:
         if s[0] < 0:
-            daily_session.append([ np.uint64(i + pre_ts) for i in s ])
+            daily_session.append([np.uint64(i + pre_ts) for i in s])
         else:
-            daily_session.append([ np.uint64(i + today_ts) for i in s ])
+            daily_session.append([np.uint64(i + today_ts) for i in s])
 
     return daily_session
 
@@ -108,104 +111,95 @@ cdef int search_session_end_index(
     return right
 
 
-def find_all_shift_info(sig_localtime_df: pd.DataFrame, sessions: List) -> List[ Dict[string, int] ]:
+def find_all_shift_info(
+        sig_localtime: cnp.uint64_t[:], sessions: List) -> List[Dict[string, int]]:
     left: int = 0
-    right: int = len(sig_localtime_df) - 1
+    right: int = len(sig_localtime) - 1
     session_num: int = len(sessions)
-    ans: List[ Dict[string, int] ] = []
+    ans: List[Dict[string, int]] = []
 
     for i in range(session_num - 1):
-        idx = search_session_end_index(sig_localtime_df.values, sessions[i][1], left, right)
+        idx = search_session_end_index(
+            sig_localtime, sessions[i][1], left, right)
         if idx != -1:
             ans.append({
                 "session_end": sessions[i][1],
                 "start_shift_idx": idx,
-                "time_shift": sessions[i+1][0] - sessions[i][1]
+                "time_shift": sessions[i + 1][0] - sessions[i][1]
             })
             left = idx + 1
 
     return ans
 
 
-cdef void match_sig_with_md(
-        const int sig_nr,
-        const cnp.uint64_t[:] sig_localtime,
-        cnp.float64_t[:, :] sig_mid_px,
-        const cnp.uint64_t[:] sig_fut_localtime,
-        cnp.float64_t[:, :] sig_fut_mid_px,
-        const int md_nr,
-        const cnp.uint64_t[:] md_localtime,
-        const cnp.float64_t[:, :] md_mid_px):
-    cdef int sig_idx = 0
-    cdef int ret_idx = 0
-    cdef int fut_ret_idx = 0
-    while sig_idx < sig_nr:
-        while ret_idx < md_nr and md_localtime[ret_idx] <= sig_localtime[sig_idx]:
-            ret_idx += 1
-        if ret_idx:
-            sig_mid_px[sig_idx, :] = md_mid_px[ret_idx - 1, :]
+cdef void match_A_with_B_cs(
+        const int A_nr,
+        const cnp.uint64_t[:] A_localtime,
+        cnp.float64_t[:, :] ans,
+        const int B_nr,
+        const cnp.uint64_t[:] B_localtime,
+        const cnp.float64_t[:, :] matched_data,
+        const bint can_exceed):
+    cdef int A_idx = 0
+    cdef int B_idx = 0
 
-        while fut_ret_idx < md_nr and md_localtime[fut_ret_idx] <= sig_fut_localtime[sig_idx]:
-            fut_ret_idx += 1
-        if fut_ret_idx and fut_ret_idx < md_nr:
-            sig_fut_mid_px[sig_idx, :] = md_mid_px[fut_ret_idx - 1, :]
+    while A_idx < A_nr:
+        while B_idx < B_nr and B_localtime[B_idx] <= A_localtime[A_idx]:
+            B_idx += 1
+        if B_idx and (can_exceed or B_idx < B_nr):
+            ans[A_idx, :] = matched_data[B_idx - 1, :]
 
-        sig_idx += 1
+        A_idx += 1
 
 
-def extend_sig_df(
-        const int df_size,
-        const cnp.uint64_t[:] sig_localtime,
-        const cnp.int64_t[:] sig_exchtime,
-        local_session:List,
-        exch_session:List, 
-        ffill_interval:int) -> (List, List):
-    localtime_list: List = []
-    exchtime_list: List = []
-    ic_info_list: List = []
-    
+def make_filled_times(ffill_interval: int,
+                      local_session: List,
+                      exch_session: List) -> (cnp.uint64_t[:], cnp.int64_t[:], List):
+
+    shift_info: List[Dict[string, int]] = []
+    idx: int = 0
+    ffilled_local_arrays: List = []
+
     session_num = len(local_session)
-    last_idx = df_size - 1 
+    for i, session in enumerate(local_session):
+        tmp = np.arange(
+            session[0],
+            session[1] + 1,
+            ffill_interval,
+            dtype=np.uint64)
+        ffilled_local_arrays.append(tmp)
+        idx += len(tmp)
+        if i < session_num - 1:
+            shift_info.append({
+                "session_end": session[1],
+                "start_shift_idx": idx - 1,
+                "time_shift": local_session[i + 1][0] - session[1]
+            })
 
-    cur_session = 0
-    cur_localtime = local_session[cur_session][0]
-    cur_exchtime = exch_session[cur_session][0]
-    while cur_localtime < sig_localtime[0]:
-        cur_localtime += ffill_interval
-        cur_exchtime += ffill_interval
+    ffilled_local_array = np.hstack(ffilled_local_arrays)
 
-    for i in range(last_idx):
-        next_localtime = sig_localtime[i+1]
-        while cur_localtime < next_localtime:
-            localtime_list.append(cur_localtime)
-            ic_info_list.append(i)
-            exchtime_list.append(cur_exchtime)
-            cur_localtime += ffill_interval
-            cur_exchtime += ffill_interval
-            if cur_localtime > local_session[cur_session][1]:
-                if cur_session + 1 < session_num and  sig_localtime[i] >=  local_session[cur_session+1][0]:
-                    cur_session += 1
-                    if i+1 < df_size:
-                        cur_localtime = local_session[cur_session][0]
-                        cur_exchtime = exch_session[cur_session][0]
-                        while cur_localtime < sig_localtime[i+1]:
-                            localtime_list.append(cur_localtime)
-                            ic_info_list.append(i)
-                            exchtime_list.append(cur_exchtime)
-                            cur_localtime += ffill_interval
-                            cur_exchtime += ffill_interval
-                break
-           
-    localtime = sig_localtime[last_idx]
-    exchtime = sig_exchtime[last_idx]
-    while localtime <= local_session[-1][1]:
-        localtime_list.append(localtime)
-        ic_info_list.append(last_idx)
-        exchtime_list.append(exchtime)
-        localtime += ffill_interval
-        exchtime += ffill_interval
-    
-    return localtime_list, exchtime_list, ic_info_list
+    ffilled_exch_arrays: List = []
+    for session in exch_session:
+        tmp = np.arange(session[0], session[1], ffill_interval, dtype=np.int64)
+        ffilled_exch_arrays.append(tmp)
+    ffilled_exch_array = np.hstack(ffilled_exch_arrays)
+
+    return ffilled_local_array, ffilled_exch_array, shift_info
+
+
+def shift_fut_localtime(fut_localtime: cnp.uint64_t[:], shift_info: List):
+    cdef int start_idx
+    cdef cnp.uint64_t session_end
+    cdef cnp.uint64_t time_shift
+
+    for info in shift_info:
+        start_idx = info["start_shift_idx"]
+        session_end = info["session_end"]
+        time_shift = info["time_shift"]
+
+        while fut_localtime[start_idx] > session_end:
+            fut_localtime[start_idx] += time_shift
+            start_idx -= 1
 
 
 class CsICCalculator(SignalBase):
@@ -220,8 +214,7 @@ class CsICCalculator(SignalBase):
         self.today: int = 0
         self.targets: List[str] = []
         self.sig_df: pd.DataFrame = None
-        self.futret_bias_str: str = ""
-        self.futret_bias: int = -1
+        self.futret_bias: Dict[int, str] = {}
         self.cache: DataCache = DataCache()
         self.ffill_interval: int = 0
         self.use_system_uv: bool = False
@@ -231,22 +224,38 @@ class CsICCalculator(SignalBase):
     def load_signal(self):
 
         def __load_csv(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
-            sig_file: Path = sigdir.joinpath(signame, str(date), f"{signame}-{date}.csv")
+            sig_file: Path = sigdir.joinpath(
+                signame, str(date), f"{signame}-{date}.csv")
             df: pd.DataFrame = pd.read_csv(sig_file, header=0, index_col=None,
-                    dtype={"exchtime": str, "localtime": np.uint64})
+                                           dtype={"exchtime": str, "localtime": np.uint64})
             df["exchtime"] = df["exchtime"].apply(hhmmssf_to_exchtime)
             return df
 
         def __load_npy(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
             date_dir: Path = sigdir.joinpath(signame, str(date))
 
-            uv = np.memmap(date_dir.joinpath(f"{signame}-{date}.uv.npy"), dtype="S16", mode="r")
+            uv = np.memmap(
+                date_dir.joinpath(f"{signame}-{date}.uv.npy"),
+                dtype="S16",
+                mode="r")
             targets: List[str] = [x.decode("utf8") for x in uv]
 
-            exchtime = np.memmap(date_dir.joinpath(f"{signame}-{date}.ts.npy"), dtype=np.int64, mode="r")
-            localtime = np.memmap(date_dir.joinpath(f"{signame}-{date}.localts.npy"), dtype=np.uint64, mode="r")
-            sigs = np.memmap(date_dir.joinpath(f"{signame}-{date}.data.npy"), dtype=np.float64, mode="r", shape=(exchtime.shape[0], len(targets)))
-            
+            exchtime = np.memmap(
+                date_dir.joinpath(f"{signame}-{date}.ts.npy"),
+                dtype=np.int64,
+                mode="r")
+            localtime = np.memmap(
+                date_dir.joinpath(f"{signame}-{date}.localts.npy"),
+                dtype=np.uint64,
+                mode="r")
+            sigs = np.memmap(
+                date_dir.joinpath(f"{signame}-{date}.data.npy"),
+                dtype=np.float64,
+                mode="r",
+                shape=(
+                    exchtime.shape[0],
+                    len(targets)))
+
             df: pd.DataFrame = pd.DataFrame(sigs, columns=targets)
             df["exchtime"] = exchtime
             df["localtime"] = localtime
@@ -265,18 +274,36 @@ class CsICCalculator(SignalBase):
         self.outname = str(cfg.get("outname", self.signame))
         self.sigdir = Path(cfg["sigdir"])
         self.sig_file_type: SigFileType = SigFileType[str(cfg["file_type"])]
-        self.futret_bias_str = str(cfg["futret_bias"])
-        self.futret_bias = str2ns(self.futret_bias_str)
-        if 'ffill_interval' in cfg:
+
+        for futret_bias_str in cfg["futret_bias"]:
+            if futret_bias_str.endswith("ns"):
+                self.futret_bias[int(futret_bias_str[:-2])] = futret_bias_str
+            elif futret_bias_str.endswith("s"):
+                self.futret_bias[int(futret_bias_str[:-1])
+                                 * int(1e9)] = futret_bias_str
+            elif futret_bias_str.endswith("m"):
+                self.futret_bias[int(futret_bias_str[:-1])
+                                 * int(1e9) * 60] = futret_bias_str
+            elif futret_bias_str.endswith("h"):
+                self.futret_bias[int(futret_bias_str[:-1])
+                                 * int(1e9) * 3600] = futret_bias_str
+            else:
+                raise RuntimeError(f"unknown unit {futret_bias_str}")
+
+        if "ffill_interval" in cfg:
             self.ffill_interval = str2ns(str(cfg["ffill_interval"]))
-        
+
         self.use_system_uv = cfg.get("use_system_uv", False)
-        
+
         odir: Path = Path(cfg["output_dir"])
         odir.mkdir(parents=True, exist_ok=True)
         ofile: Path = odir / f"{self.outname}.csv"
         self.fout = open(ofile, "w", buffering=1)
-        self.fout.write(f"date,exchtime,localtime,ic\n")
+        self.fout.write(
+            f"date,exchtime,localtime," +
+            ",".join(
+                self.futret_bias.values()) +
+            "\n")
 
     def on_sod(self, ev: SodEvent):
         date = int(ev.date)
@@ -290,10 +317,14 @@ class CsICCalculator(SignalBase):
         self.targets.clear()
         for i in range(ev.ins_nr):
             ms: MdStatic = ev.ms[i].contents
-            self.targets.append(ms.ticker.decode("utf8") + "." + ms.exchange.decode("utf8"))
+            self.targets.append(
+                ms.ticker.decode("utf8") +
+                "." +
+                ms.exchange.decode("utf8"))
             sessions = []
             for j in range(ms.session_nr):
-                sessions.append(tuple([ms.session[j].begin, ms.session[j].end]))
+                sessions.append(
+                    tuple([ms.session[j].begin, ms.session[j].end]))
             self.session.add(tuple(sessions))
 
         sig_targets: List[str] = list(self.sig_df.columns)
@@ -305,103 +336,117 @@ class CsICCalculator(SignalBase):
                 sig_targets[_i] = f"{_x[2:]}.{_x[:2]}"
         self.sig_df.columns = sig_targets
 
-        sig_targets = [_x for _x in sig_targets if _x not in ["exchtime", "localtime"]]
+        sig_targets = [
+            _x for _x in sig_targets if _x not in [
+                "exchtime", "localtime"]]
         if self.targets != sig_targets:
             if self.use_system_uv:
                 new_sigs = set(self.targets) - set(sig_targets)
                 extra_sigs = set(sig_targets) - set(self.targets)
-                print(f"use_system_uv is on,new:{len(new_sigs)},extra:{len(extra_sigs)}", flush=True)
+                print(
+                    f"use_system_uv is on,new:{len(new_sigs)},extra:{len(extra_sigs)}",
+                    flush=True)
                 self.sig_df[list(new_sigs)] = np.nan
-                self.sig_df = self.sig_df[["exchtime", "localtime"] + self.targets].copy()
+                self.sig_df = self.sig_df[[
+                    "exchtime", "localtime"] + self.targets].copy()
             else:
                 raise RuntimeError(f"sig targets mismatch")
 
     def on_eod(self, ev: EodEvent):
         date = int(ev.date)
         if len(self.session) != 1:
-            raise Exception(f"Inconsistent trading times in cross-section data")
-        exch_session = list( list(i) for i in list(self.session)[0])
-        for s in exch_session:
-            if self.futret_bias > s[1] - s[0]:
-                raise Exception(f"futret_bias {self.futret_bias_str} exceed trading period length")
+            raise Exception(
+                f"Inconsistent trading times in cross-section data")
+        exch_session = list(list(i) for i in list(self.session)[0])
+
+        for futret_bias, str_futret_bias in self.futret_bias.items():
+            for s in exch_session:
+                if futret_bias > s[1] - s[0]:
+                    raise Exception(
+                        f"futret_bias {str_futret_bias} exceed trading period length")
 
         print(f"{date},calculating ic")
         local_session = make_localtime_session(date, exch_session)
-        shift_info = find_all_shift_info(self.sig_df["localtime"], local_session)
-        
-        localtime_array = self.sig_df["localtime"].values
-        exchtime_array = self.sig_df["exchtime"].values
-        sig_array = self.sig_df[self.targets].astype(np.float64).values
-        sig_shape = (len(localtime_array), len(self.targets))
 
+        target_nr = len(self.targets)
         if self.ffill_interval:
-            self.sig_df = self.sig_df[self.sig_df["localtime"]<=local_session[-1][1]]
-            localtime_list, exchtime_list, ic_info_list = extend_sig_df(len(self.sig_df), 
-                                                                        self.sig_df["localtime"].values, 
-                                                                        self.sig_df["exchtime"].values, 
-                                                                        local_session,
-                                                                        exch_session, 
-                                                                        self.ffill_interval)
-            localtime_array = np.array(localtime_list, dtype=np.uint64)
-            exchtime_array = np.array(exchtime_list, dtype=np.int64)
-            filled_size = len(localtime_list)
-            sig_shape = (filled_size, len(self.targets))
-            sig_array_filled = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
+            localtime_array, exchtime_array, shift_info = make_filled_times(
+                self.ffill_interval, local_session, exch_session)
+            localtime_nr = len(localtime_array)
 
-            for i in range(filled_size):
-                sig_array_filled[i] =  sig_array[ic_info_list[i]]
-            sig_array = sig_array_filled
+            sig_array = np.full([localtime_nr, target_nr],
+                                fill_value=np.nan, dtype=np.float64)
+            match_A_with_B_cs(
+                localtime_nr,
+                localtime_array,
+                sig_array,
+                len(self.sig_df),
+                self.sig_df["localtime"].values,
+                self.sig_df[self.targets].astype(np.float64).values,
+                True)
 
-        cdef cnp.uint64_t[:] sig_localtime = localtime_array
-        cdef cnp.int64_t[:] sig_exchtime = exchtime_array
-        cdef cnp.ndarray[cnp.float64_t, ndim=2] sigs = sig_array
-        cdef cnp.ndarray[cnp.float64_t, ndim=2] mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
-        cdef cnp.ndarray[cnp.float64_t, ndim=2] fut_mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
-        cdef cnp.ndarray[cnp.uint64_t, ndim=1] md_localtime = np.array(self.cache.localtime, dtype=np.uint64)
-        cdef cnp.ndarray[cnp.float64_t, ndim=2] md_mid_px = (np.array(self.cache.ap, dtype=np.float64) + np.array(self.cache.bp, dtype=np.float64)) / 2
+        else:
+            localtime_array = self.sig_df["localtime"].values
+            exchtime_array = self.sig_df["exchtime"].values
+            shift_info = find_all_shift_info(localtime_array, local_session)
+            localtime_nr = len(localtime_array)
+            sig_array = self.sig_df[self.targets].astype(np.float64).values
 
-        cdef cnp.uint64_t[:] fut_localtime = localtime_array + self.futret_bias
-        cdef int start_idx 
-        cdef cnp.uint64_t session_end
-        cdef cnp.uint64_t time_shift 
-        
-        for info in shift_info:
-            start_idx = info['start_shift_idx']
-            session_end = info['session_end']
-            time_shift = info['time_shift']
+        md_mid_px = (np.array(self.cache.ap, dtype=np.float64) +
+                     np.array(self.cache.bp, dtype=np.float64)) / 2
+        md_localtime = np.array(self.cache.localtime, dtype=np.uint64)
 
-            while fut_localtime[start_idx] > session_end:
-                fut_localtime[start_idx] += time_shift
-                start_idx -= 1
+        sig_mid_px = np.full([localtime_nr, target_nr],
+                             fill_value=np.nan, dtype=np.float64)
+        match_A_with_B_cs(
+            localtime_nr,
+            localtime_array,
+            sig_mid_px,
+            md_localtime.shape[0],
+            md_localtime,
+            md_mid_px,
+            True)
 
-        match_sig_with_md(len(sig_localtime),
-                sig_localtime,
-                mid_px,
+        all_ic: Dict = {}
+        for fb, str_fb in self.futret_bias.items():
+            print(f"start ic calculating for futret_bias {str_fb}")
+            fut_localtime = localtime_array + fb
+            shift_fut_localtime(fut_localtime, shift_info)
+            # fut_localtime_nr = np.count_nonzero(fut_localtime <= local_session[-1][-1])
+            fut_mid_px = np.full([localtime_nr, target_nr],
+                                 fill_value=np.nan, dtype=np.float64)
+
+            match_A_with_B_cs(
+                localtime_nr, # fut_localtime_nr,
                 fut_localtime,
                 fut_mid_px,
                 md_localtime.shape[0],
                 md_localtime,
-                md_mid_px)
-        cdef cnp.ndarray[cnp.float64_t, ndim=2] fut_ret = (fut_mid_px / mid_px) - 1
+                md_mid_px,
+                False)
+            fut_ret = (fut_mid_px / sig_mid_px) - 1
 
-        cdef cnp.float64_t ic
-        cdef int idx = 0
-        a = time.time()
-        while idx < len(sigs):
-            ic = np.ma.corrcoef(
-                            np.ma.masked_invalid(sigs[idx, :]),
-                            np.ma.masked_invalid(fut_ret[idx, :])
-                        )[0][1]
-            self.fout.write(f"{date},{sig_exchtime[idx]},{sig_localtime[idx]},{ic}\n")
+            ic_list = []
+            idx = 0
+            a = time.time()
+            while idx < localtime_nr:
+                ic = np.ma.corrcoef(
+                    np.ma.masked_invalid(sig_array[idx, :]),
+                    np.ma.masked_invalid(fut_ret[idx, :])
+                )[0][1]
+                ic_list.append(ic)
+                idx += 1
+            b = time.time()
+            print(f"time:{b - a}")
+            all_ic[fb] = ic_list
+
+        idx = 0
+        while idx < localtime_nr:
+            ic_str = ",".join(
+                f"{all_ic[fb][idx]}" if all_ic[fb][idx] else "" for fb in self.futret_bias)
+            self.fout.write(
+                f"{date},{exchtime_array[idx]},{localtime_array[idx]},{ic_str}\n")
             idx += 1
-        b = time.time()
-        print(f"time:{b - a}")
-
-        #sig_1d = np.ma.masked_invalid(np.ravel(sigs))
-        #fut_ret_1d = np.ma.masked_invalid(np.ravel(fut_ret))
-        #corr = np.ma.corrcoef(sig_1d, fut_ret_1d)
-        #fut_ret_all.append(corr[0][1])
-
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cache.push(ev)

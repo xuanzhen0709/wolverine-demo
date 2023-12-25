@@ -14,8 +14,8 @@ import cython
 from libc.stdint cimport *
 
 # speed up numpy arrays
-cimport numpy as np
-np.import_array()
+cimport numpy as cnp
+cnp.import_array()
 np.set_printoptions(suppress=True)
 
 
@@ -37,13 +37,13 @@ def hhmmssf_to_exchtime(val: str) -> int:
 
 cdef void match_sig_with_md_ts(
         const int sig_nr,
-        const np.uint64_t[:] sig_localtime,
-        np.float64_t[:] sig_mid_px,
-        const np.uint64_t[:] sig_fut_localtime,
-        np.float64_t[:] sig_fut_mid_px,
+        const cnp.uint64_t[:] sig_localtime,
+        cnp.float64_t[:] sig_mid_px,
+        const cnp.uint64_t[:] sig_fut_localtime,
+        cnp.float64_t[:] sig_fut_mid_px,
         const int md_nr,
-        const np.uint64_t[:] md_localtime,
-        const np.float64_t[:] md_mid_px):
+        const cnp.uint64_t[:] md_localtime,
+        const cnp.float64_t[:] md_mid_px):
     cdef int sig_idx = 0
     cdef int ret_idx = 0
     cdef int fut_ret_idx = 0
@@ -63,13 +63,13 @@ cdef void match_sig_with_md_ts(
 
 cdef void match_sig_with_md_cs(
         const int sig_nr,
-        const np.uint64_t[:] sig_localtime,
-        np.float64_t[:, :] sig_mid_px,
-        const np.uint64_t[:] sig_fut_localtime,
-        np.float64_t[:, :] sig_fut_mid_px,
+        const cnp.uint64_t[:] sig_localtime,
+        cnp.float64_t[:, :] sig_mid_px,
+        const cnp.uint64_t[:] sig_fut_localtime,
+        cnp.float64_t[:, :] sig_fut_mid_px,
         const int md_nr,
-        const np.uint64_t[:] md_localtime,
-        const np.float64_t[:, :] md_mid_px):
+        const cnp.uint64_t[:] md_localtime,
+        const cnp.float64_t[:, :] md_mid_px):
     cdef int sig_idx = 0
     cdef int ret_idx = 0
     cdef int fut_ret_idx = 0
@@ -88,8 +88,8 @@ cdef void match_sig_with_md_cs(
 
 
 cdef int search_session_end_index(
-        const np.uint64_t[:] sig_localtime,
-        const np.uint64_t target,
+        const cnp.uint64_t[:] sig_localtime,
+        const cnp.uint64_t target,
         int left,
         int right):
 
@@ -128,15 +128,15 @@ def find_all_shift_info(sig_localtime_df: pd.DataFrame,
 
 
 def shift_fut_localtime(fut_localtime_df: pd.DataFrame, shift_info: List):
-    cdef np.uint64_t[:] fut_localtime = fut_localtime_df.values
+    cdef cnp.uint64_t[:] fut_localtime = fut_localtime_df.values
     cdef int start_idx
-    cdef np.uint64_t session_end
-    cdef np.uint64_t time_shift
+    cdef cnp.uint64_t session_end
+    cdef cnp.uint64_t time_shift
 
     for info in shift_info:
-        start_idx = info['start_shift_idx']
-        session_end = info['session_end']
-        time_shift = info['time_shift']
+        start_idx = info["start_shift_idx"]
+        session_end = info["session_end"]
+        time_shift = info["time_shift"]
 
         while start_idx >= 0 and fut_localtime[start_idx] > session_end:
             fut_localtime[start_idx] += time_shift
@@ -145,15 +145,15 @@ def shift_fut_localtime(fut_localtime_df: pd.DataFrame, shift_info: List):
 
 def make_localtime_session(date: int, session_list: List):
     daily_session: List = []
-    str_time: str = str(date) + '00:00:00'
-    time_stamp: float = time.mktime(time.strptime(str_time, '%Y%m%d%H:%M:%S'))
+    str_time: str = str(date) + "00:00:00"
+    time_stamp: float = time.mktime(time.strptime(str_time, "%Y%m%d%H:%M:%S"))
     today_ts: float = time_stamp * int(1e9)
 
     pre_business_day: int = Calendar.get_instance().next_business_day(date, -1)
     pre_day: int = next_day(pre_business_day)
-    pre_str_time: str = str(pre_day) + '00:00:00'
+    pre_str_time: str = str(pre_day) + "00:00:00"
     pre_time_stamp: float = time.mktime(
-        time.strptime(pre_str_time, '%Y%m%d%H:%M:%S'))
+        time.strptime(pre_str_time, "%Y%m%d%H:%M:%S"))
     pre_ts: float = pre_time_stamp * int(1e9)
 
     for s in session_list:
@@ -431,22 +431,22 @@ class CsSnapshotCache(SnapshotCache):
         local_session = make_localtime_session(date, exch_session)
         shift_info = find_all_shift_info(
             self.sig_df["localtime"], local_session)
-        cdef np.uint64_t[:] sig_localtime = self.sig_df["localtime"].values
-        cdef np.float64_t[:] sigs = self.sig_df[self.fut_target].astype(np.float64).values
-        cdef np.uint64_t[:] fut_localtime = self.sig_df["localtime"].values + futret_bias
+        cdef cnp.uint64_t[:] sig_localtime = self.sig_df["localtime"].values
+        cdef cnp.float64_t[:] sigs = self.sig_df[self.fut_target].astype(np.float64).values
+        cdef cnp.uint64_t[:] fut_localtime = self.sig_df["localtime"].values + futret_bias
         sig_shape = (len(sig_localtime), len(self.md_targets))
-        cdef np.ndarray[np.float64_t, ndim = 2] mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
-        cdef np.ndarray[np.float64_t, ndim = 2] fut_mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
-        cdef np.ndarray[np.uint64_t, ndim = 1] md_localtime = np.array(self.localtime, dtype=np.uint64)
-        cdef np.ndarray[np.float64_t, ndim = 2] md_mid_px = (np.array(self.ap, dtype=np.float64) + np.array(self.bp, dtype=np.float64)) / 2
+        cdef cnp.ndarray[cnp.float64_t, ndim = 2] mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
+        cdef cnp.ndarray[cnp.float64_t, ndim = 2] fut_mid_px = np.full(sig_shape, fill_value=np.nan, dtype=np.float64)
+        cdef cnp.ndarray[cnp.uint64_t, ndim = 1] md_localtime = np.array(self.localtime, dtype=np.uint64)
+        cdef cnp.ndarray[cnp.float64_t, ndim = 2] md_mid_px = (np.array(self.ap, dtype=np.float64) + np.array(self.bp, dtype=np.float64)) / 2
 
         cdef int start_idx
-        cdef np.uint64_t session_end
-        cdef np.uint64_t time_shift
+        cdef cnp.uint64_t session_end
+        cdef cnp.uint64_t time_shift
         for info in shift_info:
-            start_idx = info['start_shift_idx']
-            session_end = info['session_end']
-            time_shift = info['time_shift']
+            start_idx = info["start_shift_idx"]
+            session_end = info["session_end"]
+            time_shift = info["time_shift"]
 
             while fut_localtime[start_idx] > session_end:
                 fut_localtime[start_idx] += time_shift
@@ -461,7 +461,7 @@ class CsSnapshotCache(SnapshotCache):
                              md_localtime,
                              md_mid_px)
 
-        cdef np.ndarray[np.float64_t, ndim = 2] fut_ret = (fut_mid_px / mid_px) - 1
+        cdef cnp.ndarray[cnp.float64_t, ndim = 2] fut_ret = (fut_mid_px / mid_px) - 1
 
         target_idx: List = []
         for tgt in self.stock_targets:
@@ -472,7 +472,7 @@ class CsSnapshotCache(SnapshotCache):
                 print(f"Warning: There is no {tgt} data for the day of {date}")
                 target_idx.append(-1)
 
-        cdef np.float64_t ic
+        cdef cnp.float64_t ic
         a = time.time()
         fut_ret_all = []
         for idx in target_idx:
@@ -614,13 +614,13 @@ class ContinuousMDCache(MdCache):
                     f"end match sig & md for {cache.tk_exch}, total cost {T_match_cost}ms.")
 
                 if cache.tk_exch in self.matched_sig_ret[futret_bias]:
-                    self.matched_sig_ret[futret_bias][cache.tk_exch]['sig'].append(
+                    self.matched_sig_ret[futret_bias][cache.tk_exch]["sig"].append(
                         sig_df[cache.tk_exch])
                     self.matched_sig_ret[futret_bias][cache.tk_exch]["fut_ret"].append(
                         sig_df["fut_ret"])
                 else:
                     self.matched_sig_ret[futret_bias][cache.tk_exch] = {}
-                    self.matched_sig_ret[futret_bias][cache.tk_exch]['sig'] = [
+                    self.matched_sig_ret[futret_bias][cache.tk_exch]["sig"] = [
                         sig_df[cache.tk_exch]]
                     self.matched_sig_ret[futret_bias][cache.tk_exch]["fut_ret"] = [
                         sig_df["fut_ret"]]
@@ -636,7 +636,7 @@ class ContinuousMDCache(MdCache):
             for tk_exch in self.matched_sig_ret[futret_bias]:
                 sigs.append(
                     pd.concat(
-                        self.matched_sig_ret[futret_bias][tk_exch]['sig']))
+                        self.matched_sig_ret[futret_bias][tk_exch]["sig"]))
                 fut_ret.append(
                     pd.concat(
                         self.matched_sig_ret[futret_bias][tk_exch]["fut_ret"]))
