@@ -1,0 +1,38 @@
+calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+start: 20230103
+end: 20230104
+
+refdata:
+  # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: cs_edge
+  module: py
+  config:
+    module: nickchenyj.cs_edge_calculator
+    pylib: libpython3.8.so
+    config:
+      targets:
+        - dynamic:stocks
+      marketdata:
+        - module: cs-snapshot
+          symbols:
+            - stocks
+          config:
+            fields:
+              - ap
+              - bp
+            levels: 1
+      signame: csstock-py
+      sigdir: output
+      file_type: npy
+      output_dir: output/cs_edge/
+      # (0,1], default: 0.1
+      quantile: 0.1
+      # support m/s/h. 
+      futret_bias_start: 0s
+      # support m/s/h. 
+      futret_bias_end: 1h
+      # support m/s/h. 
+      futret_bias_step: 1m
+    

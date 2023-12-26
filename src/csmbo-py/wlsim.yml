@@ -1,9 +1,10 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
-start: 20210513
-end: 20210513
+env:
+  python_runtime: libpython3.8.so
+start: 20231110
+end: 20231110
 
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+  # data_dir: /mnt/nas-3/ProcessedData/reference_data/
 
 signal:
   name: csmbo-py
@@ -14,7 +15,6 @@ signal:
       output_dir: output
   config:
     module: nickchenyj.csmbo
-    pylib: libpython3.8.so
     config:
       targets:
         - dynamic:stocks
@@ -23,6 +23,7 @@ signal:
           symbols:
             - stocks
           config:
+            # data_dir: /mnt/nas-3/ProcessedData/stock_snapshot_bin/binary_tick/
             fields:
               - last_price
               - volume
@@ -31,4 +32,5 @@ signal:
         - module: cs-mbo
           symbols:
             - stocks
-          config: {}
+          config:
+            # data_dir: /mnt/nas-3/ProcessedData/tick_slice_3s_bin/

@@ -1,3 +1,9 @@
+# 20231209 - Release 20231209.3fbcc26
+* MAJOR (Config): added section "env"
+* MAJOR (Config): made section "calendar" optional, it's encouraged to not define the calendar for best flexibility.
+* MAJOR (Config): added option env/python_runtime to replace the original "pylib" config items
+* MAJOR (Config): added support for python strat-factor mode
+
 # 20231109
 * MINOR (Config): the "refdata" section no longer needs a "config" sub-section - all the config items shoul be put directly under "refdata".
 

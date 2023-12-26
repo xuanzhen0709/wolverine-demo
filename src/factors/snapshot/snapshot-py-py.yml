@@ -1,0 +1,57 @@
+env:
+  python_runtime: libpython3.8.so
+start: 20230703
+end: 20230710
+
+refdata:
+  # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: strat
+  module: py
+  output:
+    module: csv
+    config:
+      output_dir: output
+  factors:
+    - name: fct1
+      module: py
+      config:
+        module: nickchenyj.snapshot_factor_py
+        config:
+          seed: 1.234
+    - name: fct2
+      module: py
+      config:
+        module: nickchenyj.snapshot_factor_py
+        config:
+          seed: 2.345
+    - name: fct3
+      module: py
+      config:
+        module: nickchenyj.snapshot_factor_py
+        config:
+          seed: 3.456
+    - name: fct4
+      module: py
+      config:
+        module: nickchenyj.snapshot_factor_py
+        config:
+          seed: 4.567
+    - name: fct5
+      module: py
+      config:
+        module: nickchenyj.snapshot_factor_py
+        config:
+          seed: 5.678
+
+  config:
+    module: nickchenyj.snapshot_strat_py
+    config:
+      targets:
+        - a.DCE
+      marketdata:
+        - module: snapshot
+          symbols:
+            - a.DCE
+          config: {}

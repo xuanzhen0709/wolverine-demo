@@ -1,9 +1,12 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
-start: 20230101
-end: 20230109
+env:
+  python_runtime: libpython3.8.so
+start: 20230407
+end: 20230407
 
 refdata:
   # data_dir: /global/wlsim/data/refdata
+  # ticker_mapping: CTA
+  # ticker_mapping: HFT
 
 signal:
   name: snapshot-py
@@ -14,15 +17,14 @@ signal:
       output_dir: output
   config:
     module: nickchenyj.snapshot
-    pylib: libpython3.8.so
     config:
       targets:
-        - IC.CFFEX
+        - a.DCE
 
       marketdata:
         - module: snapshot
           symbols:
-            - IC.CFFEX
+            - a.DCE
           config: {}
 
       # user defined params can go below

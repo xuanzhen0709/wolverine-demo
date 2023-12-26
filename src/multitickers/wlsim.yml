@@ -1,4 +1,4 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
 start: 20230505
 end: 20230505
 

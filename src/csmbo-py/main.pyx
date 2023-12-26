@@ -99,15 +99,11 @@ class MySig(SignalBase):
             turnover = 0
             if ins_cnt == 0:
                 continue
-            price_arr = <double*><intptr_t>(ctypes.addressof(trades.price[ii].contents))
-            price_np = np.asarray(<np.float64_t[:ins_cnt]>price_arr)
-            qty_arr = <uint32_t*><intptr_t>(ctypes.addressof(trades.qty[ii].contents))
-            qty_np = np.asarray(<np.uint32_t[:ins_cnt]>qty_arr)
-            turnover = (price_np * qty_np).sum()
-            # print(f"ins:{ii},cnt:{ins_cnt},turnover:{turnover}")
-            # for ti in range(ins_cnt):
-            #     # print(f"trade,{ti}/{ins_cnt},{qty_arr[ti]}@{price_arr[ti]}")
-            #     pass
+            bidid = <uint64_t*><intptr_t>(ctypes.addressof(trades.bidid[ii].contents))
+            askid = <uint64_t*><intptr_t>(ctypes.addressof(trades.askid[ii].contents))
+            print(f"ins:{ii},cnt:{ins_cnt}")
+            for ti in range(ins_cnt):
+                print(f"trade,{ti}/{ins_cnt},{bidid[ti]},{askid[ti]}")
 
 
 

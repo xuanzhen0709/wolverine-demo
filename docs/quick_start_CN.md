@@ -1,10 +1,25 @@
 # 快速开始
 - [快速开始](#快速开始)
-  - [搭建系统环境](#搭建系统环境)
-  - [搭建wlsim回测系统](#搭建wlsim回测系统)
+  - [搭建wlsim运行环境](#搭建wlsim运行环境)
+    - [shell脚本](#shell脚本)
+    - [手动搭建](#手动搭建)
+      - [配置系统环境](#配置系统环境)
+      - [搭建wlsim回测系统](#搭建wlsim回测系统)
+  - [构建本项目](#构建本项目)
   - [文档和数据说明](#文档和数据说明)
   
-## 搭建系统环境
+## 搭建wlsim运行环境
+可以选择使用shell脚本一键搭建，或者手动搭建。
+
+### shell脚本
+- git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git
+- cd wolverine-demo/scripts
+- ./install.sh
+- source ~/.profile
+- 每次使用wlsim之前，在命令行中执行`enable_wlsim_env`来激活环境
+
+### 手动搭建
+#### 配置系统环境
 <mark>不要使用conda环境！</mark>  
 <mark>不要使用conda环境！！</mark>  
 <mark>不要使用conda环境！！！</mark>  
@@ -87,35 +102,34 @@
 
 - 安装必要的python包：      
         `python3.8 -m pip install --user Cython wheel "numpy>=1.23.4" -i https://pypi.tuna.tsinghua.edu.cn/simple`
-    
 
-## 搭建wlsim回测系统
+#### 搭建wlsim回测系统
 - 安装wlsim回测框架
     - 安装包保存在
       - `/mnt/nas-3/homes/nickchenyj/wlsim/packages`
       - `/mnt/nas-i/homes/nickchenyj/wlsim/packages`
       - 如无访问权限，请联系维护人员
     - 执行 `python3 install_runtime.py`来安装回测系统
-    - 将本项目clone到本地
-        - `git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git`
-        - <mark>**实习生**请使用 `intern` 分支</mark>：`git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git -b intern`
-    - 构建本项目
-        在`wolverine-demo`项目的根路径下执行以下语句：
-        ```
-        # 构建debug版本
-        mkdir -p build/Debug
-        pushd build/Debug
-        cmake -DCMAKE_BUILD_TYPE=Debug ../../
-        # or Release build
-        # mkdir -p build/Release
-        # pushd build/Release
-        # cmake -DCMAKE_BUILD_TYPE=Release ../../
+        
+## 构建本项目
+  - <mark>**实习生**请使用 `intern` 分支</mark>：`git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git -b intern`
+    
+    在`wolverine-demo`项目的根路径下执行以下语句：
+    ```
+    # 构建debug版本
+    mkdir -p build/Debug
+    pushd build/Debug
+    cmake -DCMAKE_BUILD_TYPE=Debug ../../
+    # or Release build
+    # mkdir -p build/Release
+    # pushd build/Release
+    # cmake -DCMAKE_BUILD_TYPE=Release ../../
 
-        make -j8 install
-        popd
-        ```
-    - 测试用例  
-        在`wolverine-demo`项目的根路径下执行：`wl-sim src/csstock/wlsim.yml
+    make -j8 install
+    popd
+    ```
+- 测试用例  
+    在`wolverine-demo`项目的根路径下执行：`wl-sim src/csstock/wlsim.yml
 `
 - **注意**，在wlsim的后续使用过程中：
     - wlsim回测框架更新时(即`/mnt/nas-3/homes/nickchenyj/wlsim/packages`路径下的文件更新时)，需要执行`python3 install_runtime.py`来更新回测系统

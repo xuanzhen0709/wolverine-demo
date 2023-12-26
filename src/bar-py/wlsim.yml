@@ -1,9 +1,10 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+  python_runtime: libpython3.8.so
+
 start: 20230101
 end: 20230109
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+  # data_dir: /mnt/what
 
 signal:
   name: bar-py
@@ -14,7 +15,6 @@ signal:
       output_dir: output
   config:
     module: nickchenyj.bar
-    pylib: libpython3.8.so
     config:
       targets:
         - IC.CFFEX
@@ -23,6 +23,4 @@ signal:
           symbols:
             - IC.CFFEX
           config:
-            # data_dir: /global/wlsim/data/snapshot_bin
             freq: 5
-      signal_param1: 20

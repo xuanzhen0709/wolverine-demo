@@ -15,39 +15,47 @@ EXCH_9_30 = 9.5 * 60 * 60
 EXCH_11_30 = 11.5 * 60 * 60
 EXCH_13_00 = 13 * 60 * 60
 START_SHIFT = EXCH_13_00 - EXCH_9_30
-SHIFT_TIME = EXCH_13_00 - EXCH_11_30 - 1
+SHIFT_TIME = EXCH_13_00 - EXCH_11_30
 
 
 def exchtime2index(exchtime: int) -> int:
     exchtime /= int(1e9)
     exchtime -= EXCH_9_30  # 9:30
     if exchtime >= START_SHIFT:  # 13:00  46800-34200
-        exchtime = exchtime - SHIFT_TIME  # 13:00 - 11:30 + 1
+        exchtime = exchtime - SHIFT_TIME  # 13:00 - 11:30 
     return int(exchtime)
 
 
-def check_data(ic_folder_list: List, date_list: List) -> List[Dict]:
+def check_data(ic_folder_list: List, start: int, end: int) -> (List[Dict], List):
+    print("start check data")
     ic_info_list: List = []
     for folder_path in ic_folder_list:
         if not folder_path.exists():
-            raise RuntimeError(f"folder {folder_path} doesn't exit!")
+            raise RuntimeError(f"folder {folder_path} doesn't exist!")
+        tokens = folder_path.name.split(".")
+        if len(tokens) < 5:
+            raise RuntimeError(f"invalid ic result path {folder_path}")
+        ic_type = tokens[0]
+        signal_name = ".".join(tokens[1:-3])
+        start_date = start if start else int(tokens[-3])
+        end_date = end if end else int(tokens[-2])
+        future_bias = tokens[-1]
+
+        business_days: List = Calendar.get_instance().get_business_days(
+            start_date, end_date
+        )
+        if len(business_days) <= 0:
+            raise RuntimeError(
+                f"There are no trading days between {start_date} and {end_date}"
+            )
         ic_file_list = list(folder_path.rglob("*.csv"))
         if 0 == len(ic_file_list):
-            raise RuntimeError(f"ic file doesn't exit!")
+            raise RuntimeError(f"ic file doesn't exist!")
         for ic_file in ic_file_list:
-            tokens = folder_path.name.split(".")
-            if len(tokens) < 5:
-                raise RuntimeError(f"invalid ic result path {folder_path}")
-            ic_type = tokens[0]
-            signal_name = ".".join(tokens[1:-3])
-            start_date = tokens[-3]
-            end_date = tokens[-2]
-            future_bias = tokens[-1]
-
             if ic_type != "cs_ic":
                 raise RuntimeError(f"only cs_ic are supported")
             if not ic_file.is_file():
-                raise RuntimeError(f"ic file {ic_file} doesn't exit!")
+                raise RuntimeError(f"ic file {ic_file} doesn't exist!")
             if ic_file.stem != signal_name:
                 raise RuntimeError(
                     f"ic file {ic_file} & folder {folder_path} don't match!"
@@ -55,7 +63,7 @@ def check_data(ic_folder_list: List, date_list: List) -> List[Dict]:
 
             ic_df = pd.read_csv(ic_file, low_memory=False)
             df_list = []
-            for date in date_list:
+            for date in business_days:
                 selected = ic_df[ic_df["date"] == date]
                 if 0 == len(selected):
                     raise RuntimeError(
@@ -66,16 +74,29 @@ def check_data(ic_folder_list: List, date_list: List) -> List[Dict]:
             ic_df["date"] = ic_df["date"].astype(int)
             ic_df["exchtime"] = ic_df["exchtime"].astype(np.int64)
             ic_df["exchtime"] = ic_df["exchtime"].apply(exchtime2index)
-            ic_info_list.append(
-                {"sig": signal_name, "data": ic_df, "future_bias": future_bias}
-            )
 
-    return ic_info_list
+            fb_list = [
+                _x
+                for _x in list(ic_df.columns)
+                if _x not in ["date", "exchtime", "localtime"]
+            ]
+
+            for fb in fb_list:
+                ic_info_list.append(
+                    {
+                        "sig": f"{signal_name}_{fb}",
+                        "data": ic_df[["date", "exchtime", fb]],
+                        "key": fb,
+                    }
+                )
+    print("end check data")
+    return ic_info_list, business_days
 
 
 def ic_daily(
     output: Path, ic_info_list: List, date_list: List, rolling_window: int = 5
 ):
+    print("start ic_average_daily")
     daily_average_ic: Dict = {}
     continuous_average_ic: Dict = {}
     rolling_average_ic: Dict = {}
@@ -84,8 +105,9 @@ def ic_daily(
     for ic_info in ic_info_list:
         ic_df = ic_info["data"]
         sig_name = ic_info["sig"]
-        continuous_average_ic[sig_name] = ic_df["ic"].mean()
-        daily_average_ic[sig_name] = ic_df.groupby("date").ic.mean()
+        key = ic_info["key"]
+        continuous_average_ic[sig_name] = ic_df[key].mean()
+        daily_average_ic[sig_name] = ic_df.groupby("date")[key].mean()
 
         rolling_ic: Dict = {}
         for i in range(rolling_window - 1, date_num):
@@ -93,12 +115,12 @@ def ic_daily(
                 (ic_df["date"] >= date_list[i - rolling_window + 1])
                 & (ic_df["date"] <= date_list[i])
             ]
-            rolling_ic[date_list[i]] = selected["ic"].mean()
+            rolling_ic[date_list[i]] = selected[key].mean()
 
         rolling_average_ic[sig_name] = rolling_ic
 
     plt.figure()
-    plt.title(f"{date_list[0]}-{date_list[-1]} daily ic (pearson)")
+    plt.title(f"{date_list[0]}-{date_list[-1]} daily average ic (pearson)")
     plt.xlabel("date")
     plt.ylabel("IC")
 
@@ -135,10 +157,18 @@ def ic_daily(
 
     plt.tight_layout()
     plt.legend()
-    plt.savefig(f"{output}/ic_daily")
+    plt.savefig(f"{output}/ic_avg_daily")
+
+    print("end ic_average_daily")
 
 
 def ic_in_cycle(output: Path, ic_info_list: List, date_list: List, cycle: str = "1d"):
+
+    if cycle.endswith("1d"):
+        print(f"start ic_stack_avg_intraDay")
+    else:
+        print(f"start ic_stack_avg_{cycle}")
+
     cycle_sec = 0
     if cycle.endswith("1d"):
         pass
@@ -158,16 +188,17 @@ def ic_in_cycle(output: Path, ic_info_list: List, date_list: List, cycle: str = 
         if not cycle.endswith("1d"):
             ic_df["exchtime"] = ic_df["exchtime"].apply(lambda x: x % cycle_sec)
         sig_name = ic_info["sig"]
-        average_ic[sig_name] = ic_df["ic"].mean()
-        second_average_ic[sig_name] = ic_df.groupby("exchtime").ic.mean()
+        key = ic_info["key"]
+        average_ic[sig_name] = ic_df[key].mean()
+        second_average_ic[sig_name] = ic_df.groupby("exchtime")[key].mean()
 
     if cycle.endswith("1d"):
         plt.figure(figsize=(15, 10))
-        plt.title(f"{date_list[0]}-{date_list[-1]} intraDay ic (pearson)")
+        plt.title(f"{date_list[0]}-{date_list[-1]} intraDay stack average ic (pearson)")
         plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(2000))
     else:
         plt.figure()
-        plt.title(f"{date_list[0]}-{date_list[-1]} {cycle} ic (pearson)")
+        plt.title(f"{date_list[0]}-{date_list[-1]} {cycle} stack average ic (pearson)")
         plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(50))
 
     plt.xlabel("second")
@@ -185,33 +216,43 @@ def ic_in_cycle(output: Path, ic_info_list: List, date_list: List, cycle: str = 
     plt.tight_layout()
     plt.legend()
     if cycle.endswith("1d"):
-        plt.savefig(f"{output}/ic_intraDay")
+        plt.savefig(f"{output}/ic_stack_avg_intraDay")
     else:
-        plt.savefig(f"{output}/ic_{cycle}")
+        plt.savefig(f"{output}/ic_stack_avg_{cycle}")
+
+    if cycle.endswith("1d"):
+        print(f"end ic_stack_average_intraDay")
+    else:
+        print(f"end ic_stack_average_{cycle}")
 
 
 def correlation_daily(output: Path, ic_info_list: List, date_list: List):
+    print(f"start correlation_average_daily")
     sig_num = len(ic_info_list)
     factor_corr: Dict = {}
     for i in range(sig_num):
         for j in range(i + 1, sig_num):
-            factor_pair = f"{ic_info_list[i]['sig']}--{ic_info_list[j]['sig']}"
+            factor_pair = f"""{ic_info_list[i]["sig"]}--{ic_info_list[j]["sig"]}"""
             cur_factor_corr: Dict = {}
             df1 = ic_info_list[i]["data"]
+            key1 = ic_info_list[i]["key"]
             df2 = ic_info_list[j]["data"]
+            key2 = ic_info_list[j]["key"]
             for date in date_list:
                 selected1 = df1[df1["date"] == date]
                 selected2 = df2[df2["date"] == date]
                 ic = np.ma.corrcoef(
-                    np.ma.masked_invalid(selected1["ic"]),
-                    np.ma.masked_invalid(selected2["ic"]),
+                    np.ma.masked_invalid(selected1[key1]),
+                    np.ma.masked_invalid(selected2[key2]),
                 )[0][1]
                 if ic:
                     cur_factor_corr[date] = ic
             factor_corr[factor_pair] = cur_factor_corr
 
     plt.figure()
-    plt.title(f"{date_list[0]}-{date_list[-1]} daily factor correlation (pearson)")
+    plt.title(
+        f"{date_list[0]}-{date_list[-1]} daily average factor correlation (pearson)"
+    )
     plt.xlabel("date")
     plt.ylabel("IC")
 
@@ -236,15 +277,17 @@ def correlation_daily(output: Path, ic_info_list: List, date_list: List):
     plt.axvline(x=date_num - 1, color="white", linestyle="dotted")
     plt.tight_layout()
     plt.legend()
-    plt.savefig(f"{output}/correlation_daily")
+    plt.savefig(f"{output}/corr_avg_daily")
+    print(f"end correlation_average_daily")
 
 
 def correlation_intraday(output: Path, ic_info_list: List, date_list: List):
+    print(f"start correlation_stack_average_intraDay")
     sig_num = len(ic_info_list)
     factor_corr: Dict = {}
     for i in range(sig_num):
         for j in range(i + 1, sig_num):
-            factor_pair = f"{ic_info_list[i]['sig']}--{ic_info_list[j]['sig']}"
+            factor_pair = f"""{ic_info_list[i]["sig"]}--{ic_info_list[j]["sig"]}"""
             cur_factor_corr: Dict = {}
             exchtime = np.append(
                 ic_info_list[i]["data"]["exchtime"].unique(),
@@ -252,20 +295,24 @@ def correlation_intraday(output: Path, ic_info_list: List, date_list: List):
             )
             exchtime = np.unique(exchtime)
             df1 = ic_info_list[i]["data"]
+            key1 = ic_info_list[i]["key"]
             df2 = ic_info_list[j]["data"]
+            key2 = ic_info_list[j]["key"]
             for et in exchtime:
                 selected1 = df1[df1["exchtime"] == et]
                 selected2 = df2[df2["exchtime"] == et]
                 ic = np.ma.corrcoef(
-                    np.ma.masked_invalid(selected1["ic"]),
-                    np.ma.masked_invalid(selected2["ic"]),
+                    np.ma.masked_invalid(selected1[key1]),
+                    np.ma.masked_invalid(selected2[key2]),
                 )[0][1]
                 if ic:
                     cur_factor_corr[et] = ic
             factor_corr[factor_pair] = cur_factor_corr
 
     plt.figure(figsize=(15, 10))
-    plt.title(f"{date_list[0]}-{date_list[-1]} intraDay factor correlation (pearson)")
+    plt.title(
+        f"{date_list[0]}-{date_list[-1]} intraDay stack average factor correlation (pearson)"
+    )
     plt.xlabel("second")
     plt.ylabel("IC")
 
@@ -281,7 +328,8 @@ def correlation_intraday(output: Path, ic_info_list: List, date_list: List):
     plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(2000))
     plt.tight_layout()
     plt.legend()
-    plt.savefig(f"{output}/correlation_intraDay")
+    plt.savefig(f"{output}/corr_stack_avg_intraDay")
+    print(f"end correlation_stack_average_intraDay")
 
 
 def main():
@@ -294,19 +342,11 @@ def main():
         help="the folder where the ic files to be analyzed is saved",
     )
     parser.add_argument("-o", "--output", type=Path, required=True, help="output dir")
-    parser.add_argument("-s", "--start", type=int, required=True, help="start date")
-    parser.add_argument("-e", "--end", type=int, required=True, help="end date")
+    parser.add_argument("-s", "--start", type=int, required=False, help="start date")
+    parser.add_argument("-e", "--end", type=int, required=False, help="end date")
     args = parser.parse_args()
 
-    business_days: List = Calendar.get_instance().get_business_days(
-        args.start, args.end
-    )
-
-    if len(business_days) <= 0:
-        raise RuntimeError(
-            f"There are no trading days between {args.start} and {args.end}"
-        )
-    ic_info_list = check_data(args.ic_folder, business_days)
+    ic_info_list, business_days = check_data(args.ic_folder, args.start, args.end)
     args.output.mkdir(parents=True, exist_ok=True)
 
     ic_daily(args.output, ic_info_list, business_days)

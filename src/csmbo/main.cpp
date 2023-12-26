@@ -134,18 +134,18 @@ void Signal::on_cs_mbo(const CsMboEvent *ev) {
   //   }
   // }
 
-  // {
-  //   const auto &trades = ev->cancels;
-  //   for (int ins = 0; ins < 5; ++ins) {
-  //     const auto &cnt = trades->cnt[ins];
-  //     const auto &px = trades->price[ins];
-  //     const auto &size = trades->qty[ins];
-  //     wllog_info("TRADES,ins:{},cnt:{}\n", ins, cnt);
-  //     for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
-  //       wllog_info("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
-  //     }
-  //   }
-  // }
+  {
+    const auto &trades = ev->trades;
+    for (int ins = 0; ins < 5; ++ins) {
+      const auto &cnt = trades->cnt[ins];
+      const auto &bidid = trades->bidid[ins];
+      const auto &askid = trades->askid[ins];
+      wllog_info("TRADES,ins:{},cnt:{}\n", ins, cnt);
+      for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
+        wllog_info("\t{},{},{}\n", evidx, bidid[evidx], askid[evidx]);
+      }
+    }
+  }
   {
     // a quick demo to calculate per-stock vwap
     const auto &trades = ev->cancels;

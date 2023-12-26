@@ -1,5 +1,9 @@
-- [System Environment Setup](#system-environment-setup)
-- [Development Package Setup](#development-package-setup)
+- [Setup](#setup)
+  - [Shell script](#shell-script)
+  - [Manual setup](#manual-setup)
+    - [System Environment Setup](#system-environment-setup)
+    - [Development Package Setup](#development-package-setup)
+- [Build this projects](#build-this-projects)
 - [Quick Note](#quick-note)
 - [Docs and Types](#docs-and-types)
   - [Timestamp](#timestamp)
@@ -7,8 +11,17 @@
   - [Demo](#demo)
 
 -----
+# Setup
+You can set up manually or use shell script to deploy it with one click
+## Shell script
+- git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git
+- cd wolverine-demo/scripts
+- ./install.sh
+- source ~/.profile
+- run `enable_wlsim_env` in the console to activate the environemnt before using wlsim.
 
-# System Environment Setup
+## Manual setup
+### System Environment Setup
 <mark>Do not use conda!</mark>  
 <mark>Do not use conda!!</mark>  
 <mark>Do not use conda!!!</mark>  
@@ -136,7 +149,7 @@
 
 ---
 
-# Development Package Setup
+### Development Package Setup
 
 NOTE: before installing the packages and using the framework, do check that the required python/gcc versions are already enabled.
 It will lead to incompatibility/missing components/various other issues otherwise.
@@ -149,7 +162,8 @@ It will lead to incompatibility/missing components/various other issues otherwis
 
   do make sure to specify "-P" if your default python interpreter is not 'python3' (for example, python3.8 /python3.9 etc).
 
-- build this projects, <mark>if you are an intsern, please use `intern` branch</mark>
+# Build this projects
+<mark>if you are an intsern, please use `intern` branch</mark>
 
   ```
   mkdir -p build/Debug
@@ -164,7 +178,7 @@ It will lead to incompatibility/missing components/various other issues otherwis
   popd
   ```
 
-- at the project root dir, run:
+at the project root dir, run:
 
   ```
   wl-sim src/csstock/wlsim.yml
@@ -199,7 +213,7 @@ It will lead to incompatibility/missing components/various other issues otherwis
   - when calling update_signal(), please make sure a contiguous array (signal array) is provided. Sometimes we might not always get a contiguous array as expected, especially when the calculation involves complicated merging/concatenation of dataframes, and the underlying buffer is not contiguous.
   in that case, simply call df.copy().values or alternatively, pre-allocate a buffer and fill in the calculated values.
 
-  - to adpat to various python environments, the correct python runtime library must be specified in the "pylib" section of the config file. change the version according to your python version.
+  - to adpat to various python environments, the correct python runtime library must be specified in the "env/python_runtime" variable of the config file. change the version according to your python version.
 
 ---
 
@@ -247,8 +261,9 @@ the config file has a hierarchical layout - and a few principles are followed
 ## Demo
 
 ```yaml
+env:
+  # python_runtime: libpython3.8.so
 # location of the calendar file
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
 # date range
 start: 20230101
 end: 20230103
@@ -256,9 +271,8 @@ end: 20230103
 # refdata section
 # refdata is the module that provides reference data (aka static data)
 refdata:
-  config:
-    # uncomment to override data_dir
-    # data_dir: /global/wlsim/data/refdata
+  # uncomment to override data_dir
+  # data_dir: /global/wlsim/data/refdata
 
 signal:
   name: csstock-py
@@ -269,14 +283,13 @@ signal:
       output_dir: output
   config:
     module: nickchenyj.csstock
-    pylib: libpython3.8.so
     config:
         # blabla
 ```
 
 ```yaml
-# location of the calendar file
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+  # python_runtime: libpython3.8.so
 # date range
 start: 20230101
 end: 20230103
@@ -284,9 +297,8 @@ end: 20230103
 # refdata section
 # refdata is the module that provides reference data (aka static data)
 refdata:
-  config:
-    # uncomment to override data_dir
-    # data_dir: /global/wlsim/data/refdata
+  # uncomment to override data_dir
+  # data_dir: /global/wlsim/data/refdata
 
 signal:
   name: csstock-py
