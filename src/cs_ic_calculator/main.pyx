@@ -13,8 +13,8 @@ import cython
 from libc.stdint cimport *
 
 # speed up numpy arrays
-cimport numpy as np
-np.import_array()
+cimport numpy as cnp
+cnp.import_array()
 
 
 class SigFileType(IntEnum):
@@ -92,8 +92,8 @@ def make_localtime_session(date: int, session: List) -> List[List]:
 
 
 cdef int search_session_end_index(
-        const np.uint64_t[:] sig_localtime,
-        const np.uint64_t target,
+        const cnp.uint64_t[:] sig_localtime,
+        const cnp.uint64_t target,
         int left,
         int right):
 
