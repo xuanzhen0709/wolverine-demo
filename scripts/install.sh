@@ -58,13 +58,13 @@ EOF
 function install_python_pkg(){
     python_venv=${1}
     ${python_venv}/bin/pip3 install --upgrade pip  -i https://pypi.tuna.tsinghua.edu.cn/simple 
-    ${python_venv}/bin/pip3 install  Cython wheel "numpy>=1.23.4" -i https://pypi.tuna.tsinghua.edu.cn/simple
+    ${python_venv}/bin/pip3 install  Cython wheel "numpy>=1.23.4" pymssql sqlalchemy pandas matplotlib -i https://pypi.tuna.tsinghua.edu.cn/simple
 }
 
 
 function setup_wlsim(){
-    if [ -d "/mnt/nas-3/homes/nickchenyj/wlsim/packages" ]; then
-        pkg_folder="/mnt/nas-3/homes/nickchenyj/wlsim/packages"
+    if [ -d "/mnt/nas-3/homes/nickchenyj/packages/wlsim" ]; then
+        pkg_folder="/mnt/nas-3/homes/nickchenyj/packages/wlsim"
     elif [ -d "/mnt/nas-i/homes/nickchenyj/wlsim/packages" ]; then
         pkg_folder="/mnt/nas-i/homes/nickchenyj/wlsim/packages"
     else
@@ -72,7 +72,8 @@ function setup_wlsim(){
         exit 1
     fi
     python_venv=${1}
-    ${python_venv}/bin/python3 ${pkg_folder}/install_runtime.py
+    wlsim_version=${2}
+    ${python_venv}/bin/python3 ${pkg_folder}/${wlsim_version}/el7.py38/install_runtime.py
 }
 
 function edit_profile(){
@@ -91,7 +92,17 @@ fi
 EOF
 }
 
-venv_path=${1:-"${HOME}/venv/wlsim"}
+if [ $# -ne 1 ]; then
+    echo "Please enter the wlsim version:"
+    echo "- If you are a regular employee, you can view it in the following path:"
+    echo "      /mnt/nas-3/homes/nickchenyj/packages/wlsim/"
+    echo "- If you are an intern, you can view it in the following path:"
+    echo "      /mnt/nas-i/homes/nickchenyj/wlsim/packages/"
+    exit 1
+fi
+wlsim_version=$1
+
+venv_path="${HOME}/venv/wlsim"
 echo python venv: ${venv_path}
 if [ -f "/opt/rh/gcc-toolset-11/enable" ]; then
     gcc_11="/opt/rh/gcc-toolset-11/enable"
@@ -105,5 +116,5 @@ disable_conda
 create_python_venv ${python_38} ${venv_path}
 edit_bashrc  ${gcc_11} ${python_38} ${venv_path}
 edit_profile
-setup_wlsim ${venv_path}
+setup_wlsim ${venv_path} ${wlsim_version}
 install_python_pkg ${venv_path}
