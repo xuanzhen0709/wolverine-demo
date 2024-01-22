@@ -88,14 +88,35 @@ void Signal::on_sod(const SodEvent *ev) {
                            rapidcsv::SeparatorParams(),
                            rapidcsv::ConverterParams(true)};
 
-    // if we want to read a column,  we first find the column idx in order to
-    // speed up lookups
+    // GetCell supports lookup by either index or name
+    // eg: GetCell<double>("FstIndustryCSI", "000001.SZ")
+    // eg: GetCell<double>(0, "000001.SZ")
+    // eg: GetCell<double>("FstIndustryCSI", 2)
+    // eg: GetCell<double>(0, 2)
+
+    // if we want to use lookup by names multiple times, we can speed up by
+    // caching the col_idx first
     const int col_idx = doc.GetColumnIdx("FstIndustryCSI");
+
+    // or even better, we can also cache the mappings from ins to row idx
+    std::map<std::string, int> ins2rowidx;
+    {
+      const auto rows = doc.GetRowNames();
+      // iterate all the rows, and populate the mappings
+      for (size_t i = 0; i < rows.size(); ++i) {
+        ins2rowidx[rows[i]] = i;
+      }
+    }
     for (const auto &ins : universe) {
-      // GetCell supports lookup by combinations of (string ,int(index)), here
-      // we use col_idx to speed up lookups
-      const int double_val = doc.GetCell<double>(col_idx, ins);
-      const int int_val = doc.GetCell<int>(col_idx, ins);
+      const auto it = ins2rowidx.find(ins);
+      if (it == ins2rowidx.end()) {
+        // not found in csv
+        // blabla
+        continue;
+      }
+      const int row_idx = it->second;
+      const int double_val = doc.GetCell<double>(col_idx, row_idx);
+      const int int_val = doc.GetCell<int>(col_idx, row_idx);
       // blabla
     }
   }
