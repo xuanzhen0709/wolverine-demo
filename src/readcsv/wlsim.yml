@@ -1,0 +1,24 @@
+env:
+start: 20240122
+end: 20240122
+
+refdata:
+  # data_dir: /global/wlsim/data/refdata
+
+signal:
+  name: readcsv
+  module: nickchenyj.readcsv
+  config:
+    targets:
+      - dynamic:stocks
+    marketdata:
+      - module: cs-snapshot
+        symbols:
+          - stocks
+        config:
+          fields:
+            - last_price
+            - volume
+          levels: 1
+    
+    daily_data_dir: /mnt/nas-3/homes/nickchenyj/test/sdsun
