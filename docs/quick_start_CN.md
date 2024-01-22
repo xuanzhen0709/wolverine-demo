@@ -9,12 +9,21 @@
   - [文档和数据说明](#文档和数据说明)
   
 ## 搭建wlsim运行环境
-可以选择使用shell脚本一键搭建，或者手动搭建。
+可以选择使用shell脚本一键搭建，或者手动搭建。  
+<mark>wlsim框架版本要和wolverine-demo版本适配</mark>   
+<mark>如果当前wolverine-demo版本使用满足需求，建议非必要不使用git pull更新</mark>  
+<mark>如果使用git pull更新，可能需要重新执行install_runtime.py来更新wlsim框架</mark>  
 
 ### shell脚本
 - git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git
+- 在以下路径中查找wlsim框架安装版本：
+  - /mnt/nas-3/homes/nickchenyj/packages/wlsim (正式员工)  
+  - /mnt/nas-i/homes/nickchenyj/wlsim/packages (实习生)  
+    wlsim框架版本命名规则为：框架更新日期+框架commitID  
+    <mark>wlsim框架版本要和wolverine-demo版本适配，一般使用最新日期的即可<mark>  
+
 - cd wolverine-demo/scripts
-- ./install.sh
+- ./install.sh {wlsim框架版本}
 - source ~/.profile
 - 每次使用wlsim之前，在命令行中执行`enable_wlsim_env`来激活环境
 
@@ -101,14 +110,16 @@
     - 执行 `source ~/.bashrc` 使其生效, 每次使用 wlsim 之前执行 `enable_wlsim_env` 来激活编译环境
 
 - 安装必要的python包：      
-        `python3.8 -m pip install --user Cython wheel "numpy>=1.23.4" -i https://pypi.tuna.tsinghua.edu.cn/simple`
+        `python3.8 -m pip install --user Cython wheel "numpy>=1.23.4" pymssql sqlalchemy pandas matplotlib -i https://pypi.tuna.tsinghua.edu.cn/simple`
 
 #### 搭建wlsim回测系统
 - 安装wlsim回测框架
     - 安装包保存在
-      - `/mnt/nas-3/homes/nickchenyj/wlsim/packages`
-      - `/mnt/nas-i/homes/nickchenyj/wlsim/packages`
+        - /mnt/nas-3/homes/nickchenyj/packages/wlsim (正式员工)  
+        - /mnt/nas-i/homes/nickchenyj/wlsim/packages (实习生)  
       - 如无访问权限，请联系维护人员
+    - 选择合适版本（一般默认最新）
+    - `cd el7.py38`
     - 执行 `python3 install_runtime.py`来安装回测系统
         
 ## 构建本项目
@@ -132,7 +143,7 @@
     在`wolverine-demo`项目的根路径下执行：`wl-sim src/csstock/wlsim.yml
 `
 - **注意**，在wlsim的后续使用过程中：
-    - wlsim回测框架更新时(即`/mnt/nas-3/homes/nickchenyj/wlsim/packages`路径下的文件更新时)，需要执行`python3 install_runtime.py`来更新回测系统
+    - wlsim回测框架更新时，需要重新执行`python3 install_runtime.py`来更新回测系统
     - 使新的因子实现生效，比如`wolverine-demo/src/xxxxxx/`中的`CMakeLists.txt`，`*.cpp`，`*.py`，`*.pyx`有改动，或者`git pull`之后，需要执行
         ```
         # 构建debug版本

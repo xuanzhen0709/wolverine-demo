@@ -13,10 +13,19 @@
 -----
 # Setup
 You can set up manually or use shell script to deploy it with one click
+<mark>The wlsim framework version must be adapted to the wolverine-demo version</mark>   
+<mark>If the current wolverine-demo version meets your requirements, we recommend that you do not use git pull to update the data unless necessary</mark>  
+<mark>If you use git pull to update, you may need to re-execute the install_runtime.py to update the wlsim framework</mark> 
+
 ## Shell script
 - git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git
+- look for the wlsim framework version in the following path:
+  - /mnt/nas-3/homes/nickchenyj/packages/wlsim (regular employee)  
+  - /mnt/nas-i/homes/nickchenyj/wlsim/packages (intern)  
+    The naming convention of the wlsim framework version is as follows: framework update date + framework commitID  
+    <mark>The wlsim framework version should be adapted to the wolverine-demo version. In general, and the latest date should be used<mark>  
 - cd wolverine-demo/scripts
-- ./install.sh
+- ./install.sh {wlsim framework version}
 - source ~/.profile
 - run `enable_wlsim_env` in the console to activate the environemnt before using wlsim.
 
@@ -155,9 +164,10 @@ NOTE: before installing the packages and using the framework, do check that the 
 It will lead to incompatibility/missing components/various other issues otherwise.
 
 - ask the maintainer for a copy of the runtime and development packages, the packages are usually placed under
-  - /mnt/nas-3/homes/nickchenyj/wlsim/packages
-  - /mnt/nas-i/homes/nickchenyj/wlsim/packages
-
+  - /mnt/nas-3/homes/nickchenyj/packages/wlsim (regular employee)  
+  - /mnt/nas-i/homes/nickchenyj/wlsim/packages (intern)
+- choose the right version. In general, and the latest date should be used.
+- `cd el7.py38`
 - run install_runtime.py to install the package. please view the commandline help message "-h" before running it.
 
   do make sure to specify "-P" if your default python interpreter is not 'python3' (for example, python3.8 /python3.9 etc).
