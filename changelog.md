@@ -1,3 +1,7 @@
+# 20240117 - Release 8b85b874
+* (MAJOR): added support for new MBO fields
+* (MAJOR): improved detection of nas locations
+
 # 20231209 - Release 20231209.3fbcc26
 * MAJOR (Config): added section "env"
 * MAJOR (Config): made section "calendar" optional, it's encouraged to not define the calendar for best flexibility.

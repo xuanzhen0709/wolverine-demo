@@ -116,5 +116,5 @@ disable_conda
 create_python_venv ${python_38} ${venv_path}
 edit_bashrc  ${gcc_11} ${python_38} ${venv_path}
 edit_profile
-setup_wlsim ${venv_path} ${wlsim_version}
+# setup_wlsim ${venv_path} ${wlsim_version}
 install_python_pkg ${venv_path}

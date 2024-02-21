@@ -9,9 +9,7 @@ wlsim是面向中高频股票和期货的回测系统，目前可以实现因子的计算和评价因子质量。
 - 支持使用ic值来评价因子质量
 
 ## 介绍
-- Quick Start
-  - [English version](docs/quick_start.md)
-  - [中文版](docs/quick_start_CN.md)  
+- [Quick Start](docs/quick_start.md)  
 - [wlsim tutorial](docs/tutorial.md)
 
 ## 常见QA
