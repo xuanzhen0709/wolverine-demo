@@ -9,7 +9,7 @@ class MySig(SignalBase):
     def __init__(self):
         super().__init__()
         self.cnt: int = 0
-        self.sigval: np.ndarray = np.full((1, ), np.nan, dtype=np.float64)
+        self.sigval: np.ndarray = np.full((1,), np.nan, dtype=np.float64)
 
     def initialize(self, cfg_str: str):
         print(f"loading config")
@@ -30,20 +30,16 @@ class MySig(SignalBase):
         self.cnt += 1
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
-        level1: MdLevel = ss.levels[0]
         print(
-            f"on_snapshot:{ss.type},{ms.instrument},{ss.exchtime},{ss.last_price},{level1.bv}@{level1.bp},{level1.av}@{level1.ap}"
+            f"on_snapshot:{ss.type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.bv[0]}@{ss.bp[0]},{ss.av[0]}@{ss.ap[0]}"
         )
-        self.sigval[0] = self.cnt
+        ap = np.ctypeslib.as_array(ss.ap)
+        bp = np.ctypeslib.as_array(ss.bp)
+        av = np.ctypeslib.as_array(ss.av)
+        bv = np.ctypeslib.as_array(ss.bv)
+        print(f"on_snapshot:{type(ap)},{ap.dtype}")
+        self.sigval[0] = np.sum(ap * av + bp * bv)
         self.update_signal(ss.exchtime, ss.localtime, self.sigval)
-
-    def on_bar(self, ev: BarEvent):
-        # print("on_bar")
-        raise NotImplementedError
-
-    def on_cs_snapshot(self, ev: CsSnapshotEvent):
-        # print("on_cs_snapshot")
-        raise NotImplementedError
 
 
 def pysig_create():
