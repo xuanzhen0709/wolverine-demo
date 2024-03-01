@@ -4,9 +4,6 @@
 # 20240301 - Release v1.2.0
 * (MAJOR): re-orged marketData structure
 
-# 20240301 - Release v1.2.0
-* (MAJOR): re-orged marketData structure
-
 # 20240226 - Release v1.1.0
 * (MAJOR): improved support for checkpoint
 * added wlsim.example.yml (installed to ~/.local/bin along with wlsim) to show all usable config items
