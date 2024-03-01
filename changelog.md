@@ -1,3 +1,9 @@
+# 20240301 - Release crypto-v1.0.0
+* (MAJOR): added support for crypto data, use the release for wlsim and wlmd from the crypto branches
+
+# 20240301 - Release v1.2.0
+* (MAJOR): re-orged marketData structure
+
 # 20240301 - Release v1.2.0
 * (MAJOR): re-orged marketData structure
 

@@ -1,0 +1,23 @@
+start: 20240206
+end: 20240208
+
+calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
+refdata:
+  ticker_mapping: CRYPTO
+
+signal:
+  name: snapshot
+  module: nickchenyj.snapshot
+  output:
+    module: csv
+    config:
+      output_dir: output
+  config:
+    targets:
+      - ETHUSDT.BINANCE
+
+    marketdata:
+      - module: snapshot
+        symbols:
+          - ETHUSDT.BINANCE
+        config: {}
