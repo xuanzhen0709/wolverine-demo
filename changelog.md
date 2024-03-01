@@ -2,7 +2,8 @@
 * (MAJOR): added support for crypto data, use the release for wlsim and wlmd from the crypto branches
 
 # 20240301 - Release v1.2.0
-* (MAJOR): re-orged marketData structure
+* (MAJOR): re-orged MarketData structure, both the Python and C++ APIs are impacted.
+  * MdSnapshot level[10] was replaced by 4 separate arrays: bp[10] bv[10] ap[10] av[10].
 
 # 20240226 - Release v1.1.0
 * (MAJOR): improved support for checkpoint
