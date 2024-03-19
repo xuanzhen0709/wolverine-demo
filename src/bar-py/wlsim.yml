@@ -6,21 +6,23 @@ end: 20230109
 refdata:
   # data_dir: /mnt/what
 
+marketdata:
+  - module: bar
+    symbols:
+      - IC.CFFEX
+    config:
+      freq: 5
+    client:
+      - bar-py
+
 signal:
   name: bar-py
-  module: py
+  module: nickchenyj.bar
+  is_python: true
   output:
     module: csv
     config:
       output_dir: output
   config:
-    module: nickchenyj.bar
-    config:
-      targets:
-        - IC.CFFEX
-      marketdata:
-        - module: bar
-          symbols:
-            - IC.CFFEX
-          config:
-            freq: 5
+    targets:
+      - IC.CFFEX

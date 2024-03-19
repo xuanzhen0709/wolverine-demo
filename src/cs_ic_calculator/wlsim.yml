@@ -2,34 +2,34 @@ env:
   python_runtime: libpython3.8.so
 start: 20230701
 end: 20230709
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - ap
+        - bp
+      levels: 1
+    client:
+      - ic
 
 signal:
   name: ic
-  module: py
+  module: nickchenyj.cs_ic_calculator
+  is_python: true
   config:
-    module: nickchenyj.cs_ic_calculator
-    config:
-      targets:
-        - dynamic:stocks
+    targets:
+      - dynamic:stocks
 
-      marketdata:
-        - module: cs-snapshot
-          symbols:
-            - stocks
-          config:
-            fields:
-              - ap
-              - bp
-            levels: 1
-      signame: csstock-py
-      sigdir: output
-      file_type: csv
-      output_dir: output/cs_ic/
-      # support m/s/h
-      futret_bias: 
-        - 15m
-      # Optional, support m/s/h, the minimum is 3s
-      # ffill_interval: 3s
+    signame: csstock-py
+    sigdir: output
+    file_type: csv
+    output_dir: output/cs_ic/
+    # support m/s/h
+    futret_bias:
+      - 15m
+    # Optional, support m/s/h, the minimum is 3s
+    # ffill_interval: 3s

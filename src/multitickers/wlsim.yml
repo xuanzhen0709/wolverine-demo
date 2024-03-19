@@ -3,7 +3,16 @@ start: 20230505
 end: 20230505
 
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  - module: snapshot
+    symbols:
+      - IC.CFFEX
+      - IF1.CFFEX
+      - IF2.CFFEX
+    config: {}
+    client:
+      - multitickers
 
 signal:
   name: multitickers
@@ -16,12 +25,4 @@ signal:
     targets:
       - IC.CFFEX
       - IF1.CFFEX
-
-    marketdata:
-      - module: snapshot
-        symbols:
-          - IC.CFFEX
-          - IF1.CFFEX
-          - IF2.CFFEX
-        config: {}
     # user defined params can go below

@@ -40,17 +40,29 @@ add_wolverine_library函数包含四个字段：
 使用[YAML](https://yaml.org/)格式的配置文件订阅行情数据、指定交易目标和信号信息等。
 以 src/csstock/wlsim.yml 为例：
 ```
-calendar: scripts/ChinaTradingDates.txt
+env:
+  python_runtime: libpython3.8.so
 start: 20230103
 end: 20230104
-
 refdata:
-  config:
-    # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 1
+    client:
+      - csstock
 
 signal:
   name: csstock
   module: nickchenyj.csstock
+  # is_python: true
   output:
     module: csv
     config:
@@ -58,35 +70,29 @@ signal:
   config:
     targets:
       - dynamic:stocks
-    marketdata:
-      - module: cs-snapshot
-        symbols:
-          - stocks
-        config:
-          # data_dir: /global/wlsim/data/cs_snapshot
-          fields:
-            - last_price
-            - volume
-            - ap
-          levels: 1
     # freq can be 60/120/180
     freq: 120
+
 ```
-- calendar：定义交易日历(使用默认值即可)
+- env: 定义系统使用到的环境变量，其中python_runtime为使用python因子必须
 - start/end：回测日期段
 - refdata：合约、股票的基本信息(使用默认值即可)
+- marketdata：行情配置，包含一个或多个行情模块。
+    - module：模块名称/行情类型
+    - symbols：列表格式的订阅品种，即接收哪些品种的行情数据
+    - config：行情数据配置，可配置字段见 [marketdata 详细说明](#marketdata-详细说明)
+    - client: 因子订阅列表
+      - 因子A
+      - 因子B
 - signal：因子模块，包括
-    - name：因子名称（保存因子值时的文件名称）
+    - name：本配置中全局唯一的因子名称，保存因子值时的文件名称
     - module：模块名称，需要设置为CMakeLists.txt中的`USER.NAME`
+    - is_python: boolean, 当使用python因子时，需要指定为true
     - output：用于保存因子值
         - module：因子文件格式，可以选择npy或者csv
         - output_dir： 因子保存路径，最终因子值会保存为`{output_dir}/{name}.{module}`
     - config：因子相关的配置
         - targets：列表格式的交易品种，支持合约名称(格式为`期货品种.交易所名称`)以及`dynamic:stocks`(对应内置的每日4000+票的股票池) 
-        - marketdata：行情配置，包含一个或多个行情模块。
-            -  module：模块名称/行情类型
-            -  symbols：列表格式的订阅品种，即接收哪些品种的行情数据
-            -  config：行情数据配置，可配置字段见 [marketdata 详细说明](#marketdata-详细说明)
         - 再往下为因子自定义部分，因子可以将自定义参数写在下方，并在因子初始化接口中读取参数配置。 
 ---
 #### marketdata 详细说明
@@ -225,29 +231,20 @@ signal:
       _MAX = 18,
     };
 
-    // FldDataPtr以统一的形式定义了所有字段数据的存储结构
-    // 比如 last_price、turnover 会保存为一个double型的数组，即const double *double_ptr;
-    // bv、av会保存为一个二维的uint32_t型数组，即const uint32_t *const *uint32_ptrs;
-    union FldDataPtr {
-      const int32_t *int32_ptr;
-      const int32_t *const *int32_ptrs;
-      const uint32_t *uint32_ptr;
-      const uint32_t *const *uint32_ptrs;
-      const int64_t *int64_ptr;
-      const int64_t *const *int64_ptrs;
-      const uint64_t *uint64_ptr;
-      const uint64_t *const *uint64_ptrs;
-      const double *double_ptr;
-      const double *const *double_ptrs;
-      const void *void_ptr;
-      const void *const *void_ptrs;
-    };
+    // flds以数组形式保存了所有字段的数据，每个字段的数据以void*指针表示，为了方便使用，可以通过utility function转换成相应的数据类型。
+    // #include "event_traits.hpp"
+    // ...
+    // using FldType = CsSnapshotEvent::FldType;
+    // //此处lastpx自动推导为double *
+    // const auto *lastpx = CsSnapshotUtils::get_fld<FldType::last_price>(ev);
+    // //此处bp自动推导为double **, 通过bp[0][i] 访问第1层第i支股票的数据
+    // const auto *bp = CsSnapshotUtils::get_fld<FldType::bp>(ev);
 
     int64_t exchtime;
     uint64_t localtime;
     uint16_t ins_nr;   // 合约数量
     uint8_t level_nr;  // 行情档数
-    FldDataPtr flds[static_cast<int>(FldType::_MAX)]; //具体的行情数据
+    const void* flds[static_cast<int>(FldType::_MAX)]; //具体的行情数据
   };
   ```
 - 使用说明：

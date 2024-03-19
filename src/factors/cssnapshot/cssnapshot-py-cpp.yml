@@ -2,71 +2,80 @@ env:
   python_runtime: libpython3.8.so
 start: 20230703
 end: 20230710
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
 
 worker:
   type: pool
   threads: 5
 
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 5
+    client:
+      - strat
+      - fct1
+      - fct2
+      - fct3
+      - fct4
+      - fct5
+      - fct6
+      - fct7
+      - fct8
+      - fct9
+
 signal:
   name: strat
-  module: py
+  module: nickchenyj.cssnapshot_strat_py
+  is_python: true
   output:
     module: csv
     config:
       output_dir: output
   factors:
-    - name: snapshot
+    - name: fct1
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 1.234
-    - name: snapshot
+    - name: fct2
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 2.345
-    - name: snapshot
+    - name: fct3
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 3.456
-    - name: snapshot
+    - name: fct4
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 4.567
-    - name: snapshot
+    - name: fct5
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 5.678
-    - name: snapshot
+    - name: fct6
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 6.789
-    - name: snapshot
+    - name: fct7
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 7.890
-    - name: snapshot
+    - name: fct8
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 8.901
-    - name: snapshot
+    - name: fct9
       module: nickchenyj.cssnapshot_factor
       config:
         seed: 9.012
 
   config:
-    module: nickchenyj.cssnapshot_strat_py
-    config:
-      targets:
-        - dynamic:stocks
-      marketdata:
-        - module: cs-snapshot
-          symbols:
-            - stocks
-          config:
-            fields:
-              - last_price
-              - volume
-              - ap
-            levels: 5
+    targets:
+      - dynamic:stocks

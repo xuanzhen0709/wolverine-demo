@@ -1,46 +1,44 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+  python_runtime: libpython3.8.so
 start: 20220118
 end: 20220223
-
 refdata:
-  config:
-    # data_dir: /mnt/nas-3.old/ProcessedData/reference_data
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - last_price
+        # midpx
+        - ap
+        - bp
+        # vwap
+        - turnover
+        - volume
+      levels: 1
+    client:
+      - cs_pnl
 
 signal:
   name: cs_pnl
-  module: py
+  module: nickchenyj.cs_pnl_calculator
+  is_python: true
   config:
-    module: nickchenyj.cs_pnl_calculator
-    pylib: libpython3.8.so
-    config:
-      targets:
-        - dynamic:stocks
-      marketdata:
-        - module: cs-snapshot
-          symbols:
-            - stocks
-          config: 
-            # data_dir: /mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick
-            fields:
-            - last_price
-            # midpx
-            - ap
-            - bp
-            # vwap
-            - turnover
-            - volume
-            levels: 1          
-      # user defined params can go below
-      # support continuous/daily
-      mode: daily
-      signame: csstock-py
-      sigdir:  output/csstock-py
-      file_type: csv
-      output_dir: output/cs_pnl/
-      # support mid(mid=(ap+bp)/2),vwap, close
-      exec_price:
-        - mid
-        - vwap_5m
-        - vwap_10m
-        - close
-        - close_3s
+    targets:
+      - dynamic:stocks
+    # user defined params can go below
+    # support continuous/daily
+    mode: daily
+    signame: csstock-py
+    sigdir: output/csstock-py
+    file_type: csv
+    output_dir: output/cs_pnl/
+    # support mid(mid=(ap+bp)/2),vwap, close
+    exec_price:
+      - mid
+      - vwap_5m
+      - vwap_10m
+      - close
+      - close_3s

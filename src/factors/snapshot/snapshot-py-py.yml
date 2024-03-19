@@ -2,56 +2,56 @@ env:
   python_runtime: libpython3.8.so
 start: 20230703
 end: 20230710
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  - module: snapshot
+    symbols:
+      - a.DCE
+    config: {}
+    client:
+      - strat
+      - fct1
+      - fct2
+      - fct3
+      - fct4
+      - fct5
 
 signal:
   name: strat
-  module: py
+  module: nickchenyj.snapshot_strat_py
+  is_python: true
   output:
     module: csv
     config:
       output_dir: output
   factors:
     - name: fct1
-      module: py
+      module: nickchenyj.snapshot_factor_py
+      is_python: true
       config:
-        module: nickchenyj.snapshot_factor_py
-        config:
-          seed: 1.234
+        seed: 1.234
     - name: fct2
-      module: py
+      module: nickchenyj.snapshot_factor_py
+      is_python: true
       config:
-        module: nickchenyj.snapshot_factor_py
-        config:
-          seed: 2.345
+        seed: 2.345
     - name: fct3
-      module: py
+      module: nickchenyj.snapshot_factor_py
+      is_python: true
       config:
-        module: nickchenyj.snapshot_factor_py
-        config:
-          seed: 3.456
+        seed: 3.456
     - name: fct4
-      module: py
+      module: nickchenyj.snapshot_factor_py
+      is_python: true
       config:
-        module: nickchenyj.snapshot_factor_py
-        config:
-          seed: 4.567
+        seed: 4.567
     - name: fct5
-      module: py
+      module: nickchenyj.snapshot_factor_py
+      is_python: true
       config:
-        module: nickchenyj.snapshot_factor_py
-        config:
-          seed: 5.678
+        seed: 5.678
 
   config:
-    module: nickchenyj.snapshot_strat_py
-    config:
-      targets:
-        - a.DCE
-      marketdata:
-        - module: snapshot
-          symbols:
-            - a.DCE
-          config: {}
+    targets:
+      - a.DCE

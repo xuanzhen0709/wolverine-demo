@@ -3,7 +3,6 @@ start: 20230103
 end: 20230104
 
 refdata:
-  # data_dir: /global/wlsim/data/refdata
 
 checkpoint:
   dir: checkpoint
@@ -11,25 +10,27 @@ checkpoint:
   save_dates:
     - 20230104
 
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - ap
+        - last_price
+        - volume
+      levels: 1
+      client:
+        - checkpoint
+
 signal:
   name: checkpoint
   module: nickchenyj.checkpoint
-  output:
-    module: csv
-    config:
-      output_dir: output
+  # output:
+  #   module: csv
+  #   config:
+  #     output_dir: output
   config:
     targets:
       - dynamic:stocks
-    marketdata:
-      - module: cs-snapshot
-        symbols:
-          - stocks
-        config:
-          # data_dir: /global/wlsim/data/cs_snapshot
-          fields:
-            - ap
-            - last_price
-            - volume
-          levels: 1
     freq: 120

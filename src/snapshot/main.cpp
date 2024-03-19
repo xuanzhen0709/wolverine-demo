@@ -55,11 +55,11 @@ void Signal::on_eod(const EodEvent *ev) {
 void Signal::on_snapshot(const SnapshotEvent *ev) {
   ++m_cnt;
   const auto ss = ev->snapshot;
-  wllog_info("{},{}/{},{}/{}, {},{},{},{}@{},{}@{}\n", m_cnt, ss->localtime,
+  wllog_info("{},{}/{},{}/{}, {},{},{},{}@{},{}@{},{},{}\n", m_cnt, ss->localtime,
              cfi::wolverine::time::epoch_to_str(ss->localtime), ss->exchtime,
              cfi::wolverine::time::exchtime_to_str(ss->exchtime),
              ss->last_price, ss->total_volume, ss->total_turnover, ss->bv[0],
-             ss->bp[0], ss->av[0], ss->ap[0]);
+             ss->bp[0], ss->av[0], ss->ap[0], ss->total_bid_vol, ss->total_ask_vol);
 }
 
 } // namespace multitickers

@@ -2,31 +2,31 @@ env:
   python_runtime: libpython3.8.so
 start: 20230101
 end: 20230104
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      # data_dir: /global/wlsim/data/cs_snapshot
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 1
+    client:
+      - csstock-py
 
 signal:
   name: csstock-py
-  module: py
+  module: nickchenyj.csstock
+  is_python: true
   output:
     module: csv
     config:
       output_dir: output
   config:
-    module: nickchenyj.csstock
-    config:
-      targets:
-        - dynamic:stocks
-      marketdata:
-        - module: cs-snapshot
-          symbols:
-            - stocks
-          config:
-            # data_dir: /global/wlsim/data/cs_snapshot
-            fields:
-              - last_price
-              - volume
-              - ap
-            levels: 1
-      # user defined params can go below
+    targets:
+      - dynamic:stocks
+    # user defined params can go below

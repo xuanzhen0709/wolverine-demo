@@ -1,47 +1,47 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+  python_runtime: libpython3.8.so
+
 start: 20220118
 end: 20220223
 
 refdata:
-  config:
-    # data_dir: /mnt/nas-3.old/ProcessedData/reference_data
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - last_price
+        # midpx
+        - ap
+        - bp
+        # vwap
+        - turnover
+        - volume
+      levels: 1
+    client:
+      - pnl
 
 signal:
   name: pnl
-  module: py
+  module: nickchenyj.pnl_calculator
+  is_python: true
   config:
-    module: nickchenyj.pnl_calculator
-    pylib: libpython3.8.so
-    config:
-      targets:
-        - dynamic:stocks
-      marketdata:
-        - module: cs-snapshot
-          symbols:
-            - stocks
-          config: 
-            # data_dir: /mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick
-            fields:
-            - last_price
-            # midpx
-            - ap
-            - bp
-            # vwap
-            - turnover
-            - volume
-            levels: 1          
+    targets:
+      - dynamic:stocks
       # user defined params can go below
       # support continuous/daily
-      mode: daily
-      signame: bar-py
-      sigdir:  output/bar-py/au.SHFE
-      file_type: csv
-      output_dir: output/pnl/
-      stock_map: src/pnl_calculator/maplist.xlsx
-      # support mid(mid=(ap+bp)/2),vwap, close
-      exec_price:
-        - mid
-        - vwap_5m
-        - vwap_10m
-        - close
-        - close_3s
+    mode: daily
+    signame: bar-py
+    sigdir: output/bar-py/au.SHFE
+    file_type: csv
+    output_dir: output/pnl/
+    stock_map: src/pnl_calculator/maplist.xlsx
+    # support mid(mid=(ap+bp)/2),vwap, close
+    exec_price:
+      - mid
+      - vwap_5m
+      - vwap_10m
+      - close
+      - close_3s

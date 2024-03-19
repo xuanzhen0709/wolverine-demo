@@ -1,36 +1,35 @@
-calendar: /mnt/nas-3/CTA/Data/ChinaTradingDates.txt
+env:
+  python_runtime: libpython3.8.so
+
 start: 20220118
 end: 20220223
-
 refdata:
-  config:
-    # data_dir: /mnt/nas-3/ProcessedData/reference_data
 
+marketdata:
+  - module: snapshot
+    symbols:
+      - au.SHFE
+    config: {}        
+    client:
+      - pnl
 signal:
   name: pnl
-  module: py
+  module: nickchenyj.pnl_calculator
+  is_python: true
   config:
-    module: nickchenyj.pnl_calculator
-    pylib: libpython3.8.so
-    config:
-      targets:
-        - au.SHFE
-      marketdata:
-        - module: snapshot
-          symbols:
-            - au.SHFE
-          config: {}        
-        # user defined params can go below
-        # support continuous/daily
-      mode: daily
-      signame: bar-py
-      sigdir:  output/bar-py/au.SHFE
-      file_type: csv
-      output_dir: output/pnl/
-      # support mid(mid=(ap+bp)/2),vwap, close
-      exec_price:
-        - mid
-        - vwap_5m
-        - vwap_10m
-        - close
-        - close_3s
+    targets:
+      - au.SHFE
+    mode: daily
+    signame: bar-py
+    sigdir:  output/bar-py/au.SHFE
+    file_type: csv
+    output_dir: output/pnl/
+    # support mid(mid=(ap+bp)/2),vwap, close
+    exec_price:
+      - mid
+      - vwap_5m
+      - vwap_10m
+      - close
+      - close_3s
+    # user defined params can go below
+    # support continuous/daily

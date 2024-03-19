@@ -1,3 +1,6 @@
+env:
+  python_runtime: libpython3.8.so
+
 start: 20231207
 end: 20231207
 
@@ -5,9 +8,18 @@ calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
 refdata:
   ticker_mapping: CRYPTO
 
+marketdata:
+  - module: snapshot
+    symbols:
+      - ETHUSDT.BINANCE
+    config: {}
+    client:
+      - snapshot
+
 signal:
   name: snapshot
   module: nickchenyj.snapshot
+  is_python: true
   output:
     module: csv
     config:
@@ -15,9 +27,3 @@ signal:
   config:
     targets:
       - ETHUSDT.BINANCE
-
-    marketdata:
-      - module: snapshot
-        symbols:
-          - ETHUSDT.BINANCE
-        config: {}

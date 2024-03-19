@@ -1,35 +1,35 @@
 env:
   python_runtime: libpython3.8.so
+
 start: 20230101
 end: 20230109
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  - module: snapshot
+    symbols:
+      - IC.CFFEX
+      - IF.CFFEX
+      - IH.CFFEX
+      - a.DCE
+      - b.DCE
+      - c.DCE
+      - cs.DCE
+      - eb.DCE
+      - eg.DCE
+    config: {}
+    client:
+      - multiticker-py
 
 signal:
   name: multiticker-py
-  module: py
+  module: nickchenyj.multitickers
+  is_python: true
   output:
     module: csv
     config:
       output_dir: output
   config:
-    module: nickchenyj.multitickers
-    config:
-      targets:
-        - IC.CFFEX
-
-      marketdata:
-        - module: snapshot
-          symbols:
-            - IC.CFFEX
-            - IF.CFFEX
-            - IH.CFFEX
-            - a.DCE
-            - b.DCE
-            - c.DCE
-            - cs.DCE
-            - eb.DCE
-            - eg.DCE
-          config: {}
-      # user defined params can go below
+    targets:
+      - IC.CFFEX
+    # user defined params can go below

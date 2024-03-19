@@ -31,7 +31,7 @@ class MySig(SignalBase):
         ms: MdStatic = ev.ms.contents
         ss: MdSnapshot = ev.snapshot.contents
         print(
-            f"on_snapshot:{ss.type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.bv[0]}@{ss.bp[0]},{ss.av[0]}@{ss.ap[0]}"
+            f"on_snapshot:{ss.type},{ms.instrument},{ss.exchtime},{ss.last_price},{ss.bv[0]}@{ss.bp[0]},{ss.av[0]}@{ss.ap[0]},{ss.total_bid_vol},{ss.total_ask_vol}"
         )
         ap = np.ctypeslib.as_array(ss.ap)
         bp = np.ctypeslib.as_array(ss.bp)

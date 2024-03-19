@@ -1,9 +1,26 @@
 env: {}
 start: 20230513
 end: 20230613
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 5
+    client:
+      - csmbo
+  - module: cs-mbo
+    symbols:
+      - stocks
+    config:
+    client:
+      - csmbo
 
 signal:
   name: csmbo
@@ -15,20 +32,4 @@ signal:
   config:
     targets:
       - dynamic:stocks
-    marketdata:
-      - module: cs-snapshot
-        symbols:
-          - stocks
-        config:
-          data_dir: /mnt/nas-3/ProcessedData/tick_sliced_3s_bin/
-          fields:
-            - last_price
-            - volume
-            - ap
-          levels: 5
-      - module: cs-mbo
-        symbols:
-          - stocks
-        config:
-          data_dir: /mnt/nas-3/ProcessedData/tick_sliced_3s_bin/
     freq: 120

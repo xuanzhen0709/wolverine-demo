@@ -2,53 +2,54 @@ env:
   python_runtime: libpython3.8.so
 start: 20230101
 end: 20230109
-
 refdata:
-  # data_dir: /global/wlsim/data/refdata
+
+marketdata:
+  # if map with fut
+  - module: snapshot
+    symbols:
+      - IC.CFFEX
+    config:
+      fields:
+        - ap
+        - bp
+      levels: 1
+    client:
+      - ic
+  #   # if map with stock
+  # - module: cs-snapshot
+  #   symbols:
+  #     - stocks
+  #   config:
+  #     fields:
+  #     - ap
+  #     - bp
+  #     levels: 1
+  #   client:
+  #     - ic
 
 signal:
   name: ic
-  module: py
+  module: nickchenyj.ic_calculator
+  is_python: true
   config:
-    module: nickchenyj.ic_calculator
-    config:
-      # if map with fut
-      targets:
-        - IC.CFFEX
-      marketdata:
-        - module: snapshot
-          symbols:
-            - IC.CFFEX
-          config:
-            fields:
-              - ap
-              - bp
-            levels: 1
-
-      # if map with stock
-      # targets:
-      #   - dynamic:stocks
-      # marketdata:
-      #   - module: cs-snapshot
-      #     symbols:
-      #       - stocks
-      #     config:
-      #       fields:
-      #       - ap
-      #       - bp
-      #       levels: 1
-      #       data_dir: /mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick
-      # user defined params can go below
-      # support continuous/daily
-      mode: continuous
-      signame: snapshot-py
-      sigdir: output
-      file_type: npy
-      output_dir: output/ic/
-      # support m/s/h
-      # In the current mode, small futret_bias are supported
-      # futret_bias do not exceed the minimum trading period length
-      futret_bias:
-        - 5m
-      # optional
-      # stock_map: /home/qsun/wolverine-demo/src/ic_calculator/maplist.xlsx
+    # if map with fut
+    targets:
+      - IC.CFFEX
+    # if map with stock
+    # targets:
+    #   - dynamic:stocks
+    # user defined params can go below
+    # support continuous/daily
+    mode: continuous
+    signame: snapshot-py
+    sigdir: output
+    file_type: npy
+    output_dir: output/ic/
+    # support m/s/h
+    # In the current mode, small futret_bias are supported
+    # futret_bias do not exceed the minimum trading period length
+    futret_bias:
+      - 5m
+    # optional
+    # stock_map: /home/qsun/wolverine-demo/src/ic_calculator/maplist.xlsx

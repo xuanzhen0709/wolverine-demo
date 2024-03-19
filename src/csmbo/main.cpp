@@ -2,6 +2,7 @@
 #include <wolverine/common.hpp>
 #include <wolverine/config.hpp>
 #include <wolverine/event.hpp>
+#include <wolverine/event_traits.hpp>
 #include <wolverine/fmt/core.h>
 #include <wolverine/logging.hpp>
 #include <wolverine/marketdata.hpp>
@@ -79,18 +80,19 @@ void Signal::on_eod(const EodEvent *ev) {
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
   // wllog_info("exchtime:{},ins_nr:{},level_nr:{}\n", ev->exchtime, ev->ins_nr,
   //          ev->level_nr);
-  // to access level-based fields
-  // const TYPE* arr = ev->flds[fld].xxx_ptrs[lvl];
-  // where arr is a pointer to an array of length ins_nr
-
-  // to access non-level-based fields
-  // const TYPE* arr = ev->flds[fld].xxx_ptr;
-  // where arr is a pointer to an array of length ins_nr
+  using FldType = CsSnapshotEvent::FldType;
+  // to access any field, use
+  // CsSnapshotUtils::get_fld<FldType::field_name>(ev);
+  //
+  // for level-based fields, it will return a two dimension array
+  // bp[level][insidx]
+  const auto *bp = CsSnapshotUtils::get_fld<FldType::bp>(ev);
+  // for non-level-based fields
+  // volume[insidx]
+  const auto *volume = CsSnapshotUtils::get_fld<FldType::volume>(ev);
 
   // for (int lvl = 0; lvl < ev->level_nr; ++lvl) {
-  //   const auto &ap_ptrs =
-  //       ev->flds[static_cast<int>(CsSnapshotEvent::FldType::ap)].double_ptrs;
-  //   const auto *data = ap_ptrs[lvl];
+  //   const auto *data = bp[lvl];
   //   wllog_info("lvl {}", lvl);
   //   for (int idx = 0; idx < 5; ++idx) {
   //     wllog_info_cont(",{}", data[idx]);

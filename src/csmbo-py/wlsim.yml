@@ -2,35 +2,35 @@ env:
   python_runtime: libpython3.8.so
 start: 20231110
 end: 20231110
-
 refdata:
-  # data_dir: /mnt/nas-3/ProcessedData/reference_data/
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 1
+    client:
+      - csmbo-py
+  - module: cs-mbo
+    symbols:
+      - stocks
+    config:
+    client:
+      - csmbo-py
 
 signal:
   name: csmbo-py
-  module: py
+  module: nickchenyj.csmbo
+  is_python: true
   output:
     module: csv
     config:
       output_dir: output
   config:
-    module: nickchenyj.csmbo
-    config:
-      targets:
-        - dynamic:stocks
-      marketdata:
-        - module: cs-snapshot
-          symbols:
-            - stocks
-          config:
-            # data_dir: /mnt/nas-3/ProcessedData/stock_snapshot_bin/binary_tick/
-            fields:
-              - last_price
-              - volume
-              - ap
-            levels: 1
-        - module: cs-mbo
-          symbols:
-            - stocks
-          config:
-            # data_dir: /mnt/nas-3/ProcessedData/tick_slice_3s_bin/
+    targets:
+      - dynamic:stocks

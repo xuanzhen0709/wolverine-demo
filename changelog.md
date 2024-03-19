@@ -1,3 +1,8 @@
+# 20240319 - Release v1.3.0 (Stock and Crypto)
+* (MAJOR): reworked marketdata subscription mechanism, please refer to the changed demo config files and use the new config structure
+* (MAJOR): for cs_snapshot data, a new utility function is provided to access the data fields safely. please refer to the related demo for updated usage.
+* (MINOR): added a demo using signal reader to read signal values generated offline
+
 # 20240301 - Release crypto-v1.0.0
 * (MAJOR): added support for crypto data, use the release for wlsim and wlmd from the crypto branches
 
