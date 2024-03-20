@@ -40,11 +40,13 @@ signal:
       output_dir: output
   factors:
     - name: fct1
-      module: system.sigreader
+      module: nickchenyj.cssnapshot_factor
       config:
-        name: fct1 # name of the signal that was saved
-        format: csv # csv/npy
-        dir: output
+        seed: 1.234
+      output:
+        module: csv
+        config:
+          output_dir: output
     - name: fct2
       module: nickchenyj.cssnapshot_factor
       config:
