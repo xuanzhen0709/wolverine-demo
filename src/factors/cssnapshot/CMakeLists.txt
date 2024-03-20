@@ -1,1 +1,2 @@
-add_all_subdirectories()
+add_subdirectory(factor_cpp)
+add_subdirectory(strat_py)

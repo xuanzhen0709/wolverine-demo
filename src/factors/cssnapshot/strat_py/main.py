@@ -35,8 +35,8 @@ class MySig(SignalBase):
             self.mss.append(ms)
 
             targets.append(
-                ms.instrument.decode("utf8") + "." +
-                ms.exchange.decode("utf8"))
+                ms.instrument.decode("utf8") + "." + ms.exchange.decode("utf8")
+            )
             # print(f"\t{i+1},{ms.instrument}")
         self.ins_nr = ev.ins_nr
         self.last_price.clear()
@@ -47,14 +47,15 @@ class MySig(SignalBase):
         date: int = int(ev.date)
         now: float = time.time()
         sod_eod_ts: float = now - self.start_ts
-        print(
-            f"on_eod:{date},total time:{sod_eod_ts:.2f}s,total tick cnt:{self.cnt}"
-        )
+        print(f"on_eod:{date},total time:{sod_eod_ts:.2f}s,total tick cnt:{self.cnt}")
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1
         factors: np.ndarray = self.get_factors()
-        print(f"on_cs_snapshot,{ev.exchtime},{ev.localtime},shape:{factors.shape}\n{factors}")
+        print(
+            f"on_cs_snapshot,{ev.exchtime},{ev.localtime},shape:{factors.shape}\n{factors}"
+        )
+        self.update_signal(ev.exchtime, ev.localtime, factors.sum(axis=0))
 
 
 def pysig_create():
