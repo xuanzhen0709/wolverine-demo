@@ -1,3 +1,6 @@
+# 20240401 - Release v1.3.3 (Stock and Crypto)
+* (MAJOR): split BINANCE into three exchanges: BIANCM(Binance Coin-Margined), BIANUM(Binance USD-Margined), BIANSP(Binance Spot). Please use the new exchange codes.
+
 # 20240319 - Release v1.3.0 (Stock and Crypto)
 * (MAJOR): reworked marketdata subscription mechanism, please refer to the changed demo config files and use the new config structure
 * (MAJOR): for cs_snapshot data, a new utility function is provided to access the data fields safely. please refer to the related demo for updated usage.

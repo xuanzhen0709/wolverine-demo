@@ -11,7 +11,7 @@ refdata:
 marketdata:
   - module: snapshot
     symbols:
-      - ETHUSDT.BINANCE
+      - ETHUSDT.BIANUM
     config: {}
     client:
       - snapshot
@@ -26,4 +26,4 @@ signal:
       output_dir: output
   config:
     targets:
-      - ETHUSDT.BINANCE
+      - ETHUSDT.BIANUM

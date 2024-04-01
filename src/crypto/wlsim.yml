@@ -5,6 +5,14 @@ calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
 refdata:
   ticker_mapping: CRYPTO
 
+marketdata:
+  - module: snapshot
+    symbols:
+      - ETHUSDT.BIANUM
+    config: {}
+    client:
+      - snapshot
+
 signal:
   name: snapshot
   module: nickchenyj.snapshot
@@ -14,10 +22,5 @@ signal:
       output_dir: output
   config:
     targets:
-      - ETHUSDT.BINANCE
+      - ETHUSDT.BIANUM
 
-    marketdata:
-      - module: snapshot
-        symbols:
-          - ETHUSDT.BINANCE
-        config: {}
