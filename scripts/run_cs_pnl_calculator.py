@@ -28,18 +28,12 @@ class SingalCfg:
         self.infile: Path = infile
         with open(infile) as fin:
             self.main_cfg = yaml.safe_load(fin)
+
         self.in_name: str = self.main_cfg["signal"]["name"]
         self.out_name: str = str(out_name) if out_name else self.in_name
         self.start: int = int(start) if start else int(self.main_cfg["start"])
         self.end: int = int(end) if end else int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
-        py_version = platform.python_version_tuple()
-        self.pylib: str = f"libpython{py_version[0]}.{py_version[1]}.so"
-        module: str = self.main_cfg["signal"]["module"]
-        if module == "py":
-            self.pylib = self.sigcfg["pylib"]
-            self.sigcfg = self.sigcfg["config"]
-
         sigout_cfg = self.main_cfg["signal"]["output"]
         self.sig_dir: Path = Path(sigout_cfg["config"]["output_dir"])
         self.file_type: str = str(sigout_cfg["module"])
@@ -57,6 +51,10 @@ class SingalCfg:
             cfg.pop("worker", None)
             cfg["start"] = self.start
             cfg["end"] = self.end
+            py_version = platform.python_version_tuple()
+            cfg["env"][
+                "python_runtime"
+            ] = f"libpython{py_version[0]}.{py_version[1]}.so"
 
         def __set_calendar(cfg: Dict):
             if "calendar" not in cfg:
@@ -73,6 +71,24 @@ class SingalCfg:
                 else rel_sig_dir.joinpath(self.sig_dir)
             )
 
+            sigcfg = {
+                "targets": copy.deepcopy(self.sigcfg["targets"]),
+                "mode": mode,
+                "signame": self.out_name,
+                "sigdir": str(sig_dir),
+                "file_type": self.file_type,
+                "output_dir": str(self.outdir),
+                "exec_price": exec_price,
+            }
+
+            cfg["signal"] = {
+                "name": self.out_name,
+                "module": "nickchenyj.cs_pnl_calculator",
+                "is_python": True,
+                "config": sigcfg,
+            }
+
+        def __set_marketdata(cfg: Dict):
             price_type = set()
             for price_str in exec_price:
                 type_str = price_str.split("_")[0]
@@ -88,36 +104,13 @@ class SingalCfg:
                 fields.extend(SingalCfg.MID_REQUIRED_FIELDS)
             if ExecPriceType.vwap in price_type:
                 fields.extend(SingalCfg.VWAP_REQUIRED_FIELDS)
-            sigcfg = {
-                "mode": mode,
-                "signame": self.out_name,
-                "sigdir": str(sig_dir),
-                "file_type": self.file_type,
-                "output_dir": str(self.outdir),
-                "exec_price": exec_price,
-            }
-            sigcfg["targets"] = ["dynamic:stocks"]
-            sigcfg["marketdata"] = [
-                {
-                    "module": "cs-snapshot",
-                    "symbols": ["stocks"],
-                    "config": {
-                        "data_dir": "/mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick",
-                        "fields": fields,
-                        "levels": 1,
-                    },
-                }
-            ]
 
-            cfg["signal"] = {
-                "name": "pnl",
-                "module": "py",
-                "config": {
-                    "module": "nickchenyj.cs_pnl_calculator",
-                    "pylib": self.pylib,
-                    "config": sigcfg,
-                },
-            }
+            mktdata = [x for x in cfg["marketdata"] if x["module"] == "cs-snapshot"]
+            cfg["marketdata"] = mktdata
+            for x in cfg["marketdata"]:
+                x["config"]["fields"] = fields
+                x["config"]["levels"] = 1
+                x["client"] = [self.out_name]
 
         self.outdir = (
             outdir_root.resolve()
@@ -135,6 +128,7 @@ class SingalCfg:
         __set_calendar(cfg)
         __set_refdata(cfg)
         __set_signal(cfg)
+        __set_marketdata(cfg)
 
         with open(outcfg_file, "wt") as fout:
             print(f"dumping cfg file {outcfg_file}")

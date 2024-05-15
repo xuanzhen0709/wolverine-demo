@@ -22,13 +22,6 @@ class SignalCfg:
         self.start: int = int(start) if start else int(self.main_cfg["start"])
         self.end: int = int(end) if end else int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
-        py_version = platform.python_version_tuple()
-        self.python_runtime: str = f"libpython{py_version[0]}.{py_version[1]}.so"
-        module: str = self.main_cfg["signal"]["module"]
-        if module == "py":
-            self.python_runtime = self.main_cfg["env"]["python_runtime"]
-            self.sigcfg = self.sigcfg["config"]
-
         sigout_cfg = self.main_cfg["signal"]["output"]
         self.sig_dir: Path = Path(sigout_cfg["config"]["output_dir"])
         self.file_type: str = str(sigout_cfg["module"])
@@ -46,6 +39,10 @@ class SignalCfg:
             cfg.pop("worker", None)
             cfg["start"] = self.start
             cfg["end"] = self.end
+            py_version = platform.python_version_tuple()
+            cfg["env"][
+                "python_runtime"
+            ] = f"libpython{py_version[0]}.{py_version[1]}.so"
 
         def __set_calendar(cfg: Dict):
             if "calendar" not in cfg:
@@ -64,9 +61,8 @@ class SignalCfg:
 
             sigcfg = {
                 "targets": copy.deepcopy(self.sigcfg["targets"]),
-                "marketdata": copy.deepcopy(self.sigcfg["marketdata"]),
-                "sigdir": str(sig_dir),
                 "signame": self.in_name,
+                "sigdir": str(sig_dir),
                 "file_type": self.file_type,
                 "output_dir": str(outdir),
                 "outname": self.out_name,
@@ -75,20 +71,20 @@ class SignalCfg:
             }
             if ffill_interval:
                 sigcfg["ffill_interval"] = ffill_interval
-            cfg["env"]["python_runtime"] = self.python_runtime
             cfg["signal"] = {
                 "name": self.out_name,
-                "module": "py",
-                "config": {
-                    "module": "nickchenyj.cs_ic_calculator",
-                    "config": sigcfg,
-                },
+                "module": "nickchenyj.cs_ic_calculator",
+                "is_python": True,
+                "config": sigcfg,
             }
-            for x in cfg["signal"]["config"]["config"]["marketdata"]:
-                if x["module"] != "cs-snapshot":
-                    continue
+
+        def __set_marketdata(cfg: Dict):
+            mktdata = [x for x in cfg["marketdata"] if x["module"] == "cs-snapshot"]
+            cfg["marketdata"] = mktdata
+            for x in cfg["marketdata"]:
                 x["config"]["fields"] = list(SignalCfg.REQUIRED_FIELDS)
                 x["config"]["levels"] = 1
+                x["client"] = [self.out_name]
 
         outdir: Path = (
             outdir_root.resolve()
@@ -107,6 +103,7 @@ class SignalCfg:
         __set_calendar(cfg)
         __set_refdata(cfg)
         __set_signal(cfg)
+        __set_marketdata(cfg)
 
         with open(outcfg_file, "wt") as fout:
             print(f"dumping cfg file {outcfg_file}")

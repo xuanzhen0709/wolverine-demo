@@ -30,12 +30,6 @@ class SingalCfg:
         self.start: int = int(start) if start else int(self.main_cfg["start"])
         self.end: int = int(end) if end else int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
-        py_version = platform.python_version_tuple()
-        self.pylib: str = f"libpython{py_version[0]}.{py_version[1]}.so"
-        module: str = self.main_cfg["signal"]["module"]
-        if module == "py":
-            self.pylib = self.sigcfg["pylib"]
-            self.sigcfg = self.sigcfg["config"]
 
         sigout_cfg = self.main_cfg["signal"]["output"]
         self.sigout_dir: Path = Path(sigout_cfg["config"]["output_dir"])
@@ -55,6 +49,10 @@ class SingalCfg:
             cfg.pop("worker", None)
             cfg["start"] = self.start
             cfg["end"] = self.end
+            py_version = platform.python_version_tuple()
+            cfg["env"][
+                "python_runtime"
+            ] = f"libpython{py_version[0]}.{py_version[1]}.so"
 
         def __set_calendar(cfg: Dict):
             if "calendar" not in cfg:
@@ -96,7 +94,7 @@ class SingalCfg:
             }
             if map_file:
                 sigcfg["targets"] = ["dynamic:stocks"]
-                sigcfg["marketdata"] = [
+                cfg["marketdata"] = [
                     {
                         "module": "cs-snapshot",
                         "symbols": ["stocks"],
@@ -105,28 +103,27 @@ class SingalCfg:
                             "fields": fields,
                             "levels": 1,
                         },
+                        "client": [self.name],
                     }
                 ]
                 sigcfg["stock_map"] = str(map_file)
             else:
                 sigcfg["targets"] = copy.deepcopy(self.sigcfg["targets"])
-                sigcfg["marketdata"] = [
+                cfg["marketdata"] = [
                     {
                         "module": "snapshot",
                         "symbols": copy.deepcopy(self.sigcfg["targets"]),
                         "config": {
                             # "data_dir": "/mnt/nas-3.old/ProcessedData/snapshot_bin",
                         },
+                        "client": [self.name],
                     }
                 ]
             cfg["signal"] = {
-                "name": "pnl",
-                "module": "py",
-                "config": {
-                    "module": "nickchenyj.pnl_calculator",
-                    "pylib": self.pylib,
-                    "config": sigcfg,
-                },
+                "name": self.name,
+                "module": "nickchenyj.pnl_calculator",
+                "is_python": True,
+                "config": sigcfg,
             }
 
         self.outdir = (

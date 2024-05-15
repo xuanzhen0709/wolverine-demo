@@ -26,13 +26,6 @@ class SingalCfg:
         self.start: int = int(self.main_cfg["start"])
         self.end: int = int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
-        py_version = platform.python_version_tuple()
-        self.python_runtime: str = f"libpython{py_version[0]}.{py_version[1]}.so"
-        module: str = self.main_cfg["signal"]["module"]
-        if module == "py":
-            self.python_runtime = self.main_cfg["env"]["python_runtime"]
-            self.sigcfg = self.sigcfg["config"]
-
         sigout_cfg = self.main_cfg["signal"]["output"]
         self.sigout_dir: Path = Path(sigout_cfg["config"]["output_dir"])
         self.file_type: SigFileType = SigFileType[str(sigout_cfg["module"])]

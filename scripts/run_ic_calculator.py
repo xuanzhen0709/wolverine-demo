@@ -19,25 +19,28 @@ class SignalCfg:
         self.start: int = int(start) if start else int(self.main_cfg["start"])
         self.end: int = int(end) if end else int(self.main_cfg["end"])
         self.sigcfg = self.main_cfg["signal"]["config"]
-        py_version = platform.python_version_tuple()
-        self.python_runtime: str = f"libpython{py_version[0]}.{py_version[1]}.so"
-        module: str = self.main_cfg["signal"]["module"]
-        if module == "py":
-            self.python_runtime = self.main_cfg["env"]["python_runtime"]
-            self.sigcfg = self.sigcfg["config"]
-
         sigout_cfg = self.main_cfg["signal"]["output"]
         self.sigout_dir: Path = Path(sigout_cfg["config"]["output_dir"])
         self.file_type: str = str(sigout_cfg["module"])
 
-    def run(self, outdir_root: Path,
-            future_biases: List[str], mode: str, map_file: Path, rel_sig_dir:Path):
+    def run(
+        self,
+        outdir_root: Path,
+        future_biases: List[str],
+        mode: str,
+        map_file: Path,
+        rel_sig_dir: Path,
+    ):
         def __set_misc(cfg: Dict):
             cfg.pop("checkpoint", None)
             cfg.pop("worker", None)
             cfg["start"] = self.start
             cfg["end"] = self.end
-        
+            py_version = platform.python_version_tuple()
+            cfg["env"][
+                "python_runtime"
+            ] = f"libpython{py_version[0]}.{py_version[1]}.so"
+
         def __set_calendar(cfg: Dict):
             if "calendar" not in cfg:
                 cfg["calendar"] = "/mnt/nas-3/CTA/Data/ChinaTradingDates.txt"
@@ -58,50 +61,55 @@ class SignalCfg:
                 "file_type": self.file_type,
                 "output_dir": str(outdir),
                 "futret_bias": future_biases,
-                "mode": mode
+                "mode": mode,
             }
 
             if None is map_file:
                 sigcfg["targets"] = copy.deepcopy(self.sigcfg["targets"])
-                sigcfg["marketdata"] = [{
-                    "module": "snapshot",
-                    "symbols": copy.deepcopy(self.sigcfg["targets"]),
-                    "config": {
-                        # "data_dir": "/mnt/nas-3.old/ProcessedData/snapshot_bin",
+                cfg["marketdata"] = [
+                    {
+                        "module": "snapshot",
+                        "symbols": copy.deepcopy(self.sigcfg["targets"]),
+                        "config": {},
+                        "client": [self.name],
                     }
-                }]
+                ]
             else:
                 sigcfg["targets"] = ["dynamic:stocks"]
-                sigcfg["marketdata"] = [{
-                    "module": "cs-snapshot",
-                    "symbols": ["stocks"],
-                    "config": {
-                        # "data_dir": "/mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick",
-                        "fields": list(SignalCfg.REQUIRED_FIELDS),
-                        "levels": 1
+                sigcfg["marketdata"] = [
+                    {
+                        "module": "cs-snapshot",
+                        "symbols": ["stocks"],
+                        "config": {
+                            # "data_dir": "/mnt/nas-3.old/ProcessedData/stock_snapshot_bin/binary_tick",
+                            "fields": list(SignalCfg.REQUIRED_FIELDS),
+                            "levels": 1,
+                        },
+                        "client": [self.name],
                     }
-                }]
+                ]
                 sigcfg["stock_map"] = str(map_file)
 
             cfg["signal"] = {
                 "name": "ic",
-                "module": "py",
-                "config": {
-                    "module": "nickchenyj.ic_calculator",
-                    "pylib": self.pylib,
-                    "config": sigcfg,
-                },
+                "module": "nickchenyj.ic_calculator",
+                "is_python": True,
+                "config": sigcfg,
             }
-                
-        outdir: Path = outdir_root.resolve(
-        ) / f"""ic.{self.name}.{self.start}.{self.end}.{"-".join(future_biases)}"""
+
+        outdir: Path = (
+            outdir_root.resolve()
+            / f"""ic.{self.name}.{self.start}.{self.end}.{"-".join(future_biases)}"""
+        )
         outdir.mkdir(parents=True, exist_ok=True)
 
-        outcfg_file: Path = outdir.resolve(
-        ) / f"""ic.{self.name}.{self.start}.{self.end}.{"-".join(future_biases)}.yml"""
+        outcfg_file: Path = (
+            outdir.resolve()
+            / f"""ic.{self.name}.{self.start}.{self.end}.{"-".join(future_biases)}.yml"""
+        )
 
         cfg = copy.deepcopy(self.main_cfg)
-        
+
         __set_misc(cfg)
         __set_calendar(cfg)
         __set_refdata(cfg)
@@ -116,14 +124,12 @@ class SignalCfg:
 
 def main():
     parser = argparse.ArgumentParser("ic calculator")
-    parser.add_argument("signal_config",
-                        type=Path,
-                        help="configuration file of the signal to be analyzed")
-    parser.add_argument("-o",
-                        "--output",
-                        type=Path,
-                        required=True,
-                        help="output dir")
+    parser.add_argument(
+        "signal_config",
+        type=Path,
+        help="configuration file of the signal to be analyzed",
+    )
+    parser.add_argument("-o", "--output", type=Path, required=True, help="output dir")
     parser.add_argument("--start", "-s", type=str, help="start date")
     parser.add_argument("--end", "-e", type=str, help="end date")
     parser.add_argument(
@@ -131,17 +137,21 @@ def main():
         type=str,
         action="append",
         required=True,
-        help="comma separated future biases, postfixes such as 's' 'm' and 'h' are supported"
+        help="comma separated future biases, postfixes such as 's' 'm' and 'h' are supported",
     )
-    parser.add_argument("--mode",
-                        type=str,
-                        choices=["daily", "continuous"],
-                        default="continuous",
-                        help="calculation mode")
-    parser.add_argument("--stock-map",
-                        type=Path,
-                        required=False,
-                        help="mapping files for futures signals and tickers")
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["daily", "continuous"],
+        default="continuous",
+        help="calculation mode",
+    )
+    parser.add_argument(
+        "--stock-map",
+        type=Path,
+        required=False,
+        help="mapping files for futures signals and tickers",
+    )
     parser.add_argument(
         "--rel-sig-dir",
         type=Path,
