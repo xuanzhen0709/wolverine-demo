@@ -2,7 +2,6 @@ import argparse
 import copy
 from pathlib import Path
 from typing import Dict, List
-import platform
 import subprocess
 import yaml
 
@@ -36,10 +35,6 @@ class SignalCfg:
             cfg.pop("worker", None)
             cfg["start"] = self.start
             cfg["end"] = self.end
-            py_version = platform.python_version_tuple()
-            cfg["env"][
-                "python_runtime"
-            ] = f"libpython{py_version[0]}.{py_version[1]}.so"
 
         def __set_calendar(cfg: Dict):
             if "calendar" not in cfg:

@@ -1,3 +1,9 @@
+# 20240522 - wlsim Release v1.3.5
+* python_runtime is auto detected and should not be manually specified.
+
+# 20240520 - wlmd Release v1.3.4
+* fixed timestamp display issue for crypto exchanges
+
 # 20240401 - Release v1.3.3 (Stock and Crypto)
 * (MAJOR): split BINANCE into three exchanges: BIANCM(Binance Coin-Margined), BIANUM(Binance USD-Margined), BIANSP(Binance Spot). Please use the new exchange codes.
 

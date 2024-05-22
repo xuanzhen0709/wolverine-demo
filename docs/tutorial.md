@@ -41,7 +41,7 @@ add_wolverine_library函数包含四个字段：
 以 src/csstock/wlsim.yml 为例：
 ```
 env:
-  python_runtime: libpython3.8.so
+
 start: 20230103
 end: 20230104
 refdata:
@@ -74,7 +74,7 @@ signal:
     freq: 120
 
 ```
-- env: 定义系统使用到的环境变量，其中python_runtime为使用python因子必须
+- env: 定义系统使用到的环境变量
 - start/end：回测日期段
 - refdata：合约、股票的基本信息(使用默认值即可)
 - marketdata：行情配置，包含一个或多个行情模块。

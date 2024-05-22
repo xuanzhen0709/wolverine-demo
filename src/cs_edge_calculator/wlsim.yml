@@ -1,5 +1,4 @@
 env:
-  python_runtime: libpython3.8.so
 start: 20230103
 end: 20230104
 refdata:
