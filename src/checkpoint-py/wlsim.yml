@@ -7,8 +7,8 @@ refdata:
 
 checkpoint:
   dir: checkpoint
-  load_date: 20230103
-  save_dates:
+  load: 20230103
+  save:
     - 20230104
 
 marketdata:
