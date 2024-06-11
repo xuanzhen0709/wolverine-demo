@@ -1,3 +1,8 @@
+# 20240611 - wlsim Release v1.4.0
+* added sample configs which contains specs of all the usable config items. the examples will be installed to ~/.local/wlsim.examples
+* added support for re-usable python and cpp util libraries. sample cmakefiles will also be installed to ~/.local/wlsim.examples
+* new config items required for crypto reader - please see the corresponding example config file.
+
 # 20240522 - wlsim Release v1.3.5
 * python_runtime is auto detected and should not be manually specified.
 
