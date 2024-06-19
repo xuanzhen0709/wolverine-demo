@@ -39,6 +39,17 @@ class DataCache:
         self.bp.append(np.ndarray.copy(
             ev.data[CsSnapshotEvent.FldType.BP.value][0]))
 
+    def to_numpy(self):
+        def __fill_df(df, data):
+            df.loc[:, "exchtime"] = self.exchtime
+            df.loc[:, "localtime"] = self.localtime
+            df.iloc[:, 2:] = data
+
+        return np.array(self.exchtime, dtype=np.int64), \
+                np.array(self.localtime, dtype=np.uint64), \
+                np.array(self.ap, dtype=np.float64), \
+                np.array(self.bp, dtype=np.float64)
+
     def clear(self):
         self.exchtime.clear()
         self.localtime.clear()
@@ -241,14 +252,14 @@ class CsEdgeCalculator(SignalBase):
         self.sig_file_type: SigFileType = SigFileType[str(cfg["file_type"])]
         self.use_system_uv = cfg.get("use_system_uv", False)
 
-        odir: Path = Path(cfg["output_dir"])
-        odir.mkdir(parents=True, exist_ok=True)
-        ofile: Path = odir / f"{self.outname}.csv"
+        outdir: Path = Path(cfg["output_dir"])
+        outdir.mkdir(parents=True, exist_ok=True)
         fb_start = str2ns(cfg["futret_bias_start"])
         fb_end = str2ns(cfg["futret_bias_end"])
         fb_step = str2ns(cfg["futret_bias_step"])
         self.futret_bias_list = np.arange(fb_start, fb_end + 1, fb_step)
         self.quantile = float(cfg["quantile"])
+        ofile: Path = outdir / f"{self.outname}.csv"
         self.fout = open(ofile, "w", buffering=1)
         self.fout.write(f"futret_bias(ns),min_edge,max_edge,all_avg\n")
 
@@ -311,12 +322,20 @@ class CsEdgeCalculator(SignalBase):
                 raise Exception(
                     f"futret_bias {self.futret_bias_list[-1]} exceed trading period length")
 
-        self.history[date] = {
+        md_exchtime, md_localtime, md_ap, md_bp = self.cache.to_numpy()
+        today_data = {
             "sig_df": deepcopy(self.sig_df),
             "exch_session": deepcopy(exch_session),
-            "cache": deepcopy(self.cache),
-            "target": deepcopy(self.targets)
+            "target": deepcopy(self.targets),
+            "marketdata": {
+                "exchtime": md_exchtime,
+                "localtime": md_localtime,
+                "ap": md_ap,
+                "bp": md_bp,
+            }
         }
+
+        self.history[date] = today_data
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cache.push(ev)
@@ -347,9 +366,10 @@ class CsEdgeCalculator(SignalBase):
 
             target_nr = len(info["target"])
             localtime_nr = len(localtime_array)
-            md_mid_px[date] = (np.array(info["cache"].ap, dtype=np.float64) +
-                               np.array(info["cache"].bp, dtype=np.float64)) / 2
-            md_localtime = np.array(info["cache"].localtime, dtype=np.uint64)
+
+            mdinfo = info["marketdata"]
+            md_mid_px[date] = (mdinfo["ap"] + mdinfo["bp"]) / 2
+            md_localtime = mdinfo["localtime"]
 
             sig_mid_px = np.full([localtime_nr, target_nr],
                                  fill_value=np.nan, dtype=np.float64)
@@ -382,8 +402,7 @@ class CsEdgeCalculator(SignalBase):
                 localtime_nr = len(localtime_array)
                 fut_mid_px = np.full([localtime_nr, target_nr],
                                      fill_value=np.nan, dtype=np.float64)
-                md_localtime = np.array(
-                    info["cache"].localtime, dtype=np.uint64)
+                md_localtime = info["marketdata"]["localtime"]
                 match_A_with_B_cs(
                     localtime_nr,  # fut_localtime_nr,
                     fut_localtime,
