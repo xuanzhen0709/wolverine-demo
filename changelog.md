@@ -1,3 +1,14 @@
+# 20240620 - wlsim Release v1.4.2
+* fixed (cs_)edge_calculator __del__ not called
+* improved cmake helpers to skip non-updated python wheels
+* demo: reorged repo
+* demo: simplified run_(cs_)edge_calculator cmdline arguments
+
+# 20240618 - wlsim Release v1.4.1
+* improved cmake helpers to automatically set all the compiler flags
+* fixed a segfault issue
+* wlsim: fixed (cs_)edge_calculator __del__ not called
+
 # 20240611 - wlsim Release v1.4.0
 * added sample configs which contains specs of all the usable config items. the examples will be installed to ~/.local/wlsim.examples
 * added support for re-usable python and cpp util libraries. sample cmakefiles will also be installed to ~/.local/wlsim.examples
