@@ -32,9 +32,7 @@ class SignalCfg:
         self,
         outdir_root: Path,
         quantile: float,
-        future_bias_start: str,
-        future_bias_end: str,
-        future_bias_step: str,
+        future_bias: str,
         rel_sig_dir: Path,
     ) -> subprocess.CompletedProcess:
         def __set_misc(cfg: Dict):
@@ -58,6 +56,7 @@ class SignalCfg:
                 else rel_sig_dir.joinpath(self.sig_dir)
             )
 
+            fb_start, fb_end, fb_step = future_bias.split(":")
             sigcfg = {
                 "targets": copy.deepcopy(self.sigcfg["targets"]),
                 "sigdir": str(sig_dir),
@@ -67,9 +66,9 @@ class SignalCfg:
                 "outname": self.out_name,
                 "use_system_uv": self.use_system_uv,
                 "quantile": quantile,
-                "futret_bias_start": future_bias_start,
-                "futret_bias_end": future_bias_end,
-                "futret_bias_step": future_bias_step,
+                "futret_bias_start": fb_start,
+                "futret_bias_end": fb_end,
+                "futret_bias_step": fb_step,
             }
 
             cfg["signal"] = {
@@ -145,22 +144,10 @@ def main():
         help="proportion of extreme values, the range is: (0,1], default: 0.1",
     )
     parser.add_argument(
-        "--future-bias-start",
+        "--future-bias",
         type=str,
         required=True,
-        help="future bias start, postfixes such as 's' 'm' and 'h' are supported",
-    )
-    parser.add_argument(
-        "--future-bias-end",
-        type=str,
-        required=True,
-        help="future bias end, postfixes such as 's' 'm' and 'h' are supported",
-    )
-    parser.add_argument(
-        "--future-bias-step",
-        type=str,
-        required=True,
-        help="future bias step, postfixes such as 's' 'm' and 'h' are supported",
+        help="future bias in the form of start:end:step, each of the segment may have postfixes such as 's' 'm' and 'h' are supported",
     )
     parser.add_argument(
         "--draw-figure", action="store_true", help="whether or not draw figure"
@@ -173,9 +160,7 @@ def main():
     wlsim_ret = cfg.run(
         args.output,
         args.quantile,
-        args.future_bias_start,
-        args.future_bias_end,
-        args.future_bias_step,
+        args.future_bias,
         args.rel_sig_dir,
     )
     if 0 == wlsim_ret.returncode and args.draw_figure:

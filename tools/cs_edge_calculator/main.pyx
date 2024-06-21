@@ -361,7 +361,8 @@ class CsEdgeCalculator(SignalBase):
         shift_info: Dict = {}
         md_mid_px: Dict = {}
         sig_mid_px_list: List = []
-        for date, info in self.history.items():
+        for _idx, (date, info) in enumerate(self.history.items()):
+            print(f"pre-processing {_idx+1}/{len(self.history)} {date}")
             localtime_array = info["sig_df"]["localtime"].values
             local_session = make_localtime_session(date, info['exch_session'])
             shift_info[date] = find_all_shift_info(
@@ -396,6 +397,7 @@ class CsEdgeCalculator(SignalBase):
 
         len_fb = len(self.futret_bias_list)
         for _i, fb in enumerate(self.futret_bias_list):
+            print(f"calculating futret bias {_i+1}/{len(self.futret_bias_list)}")
             sig_fut_mid_px_list: List = []
             for date, info in self.history.items():
                 localtime_array = info["sig_df"]["localtime"].values
