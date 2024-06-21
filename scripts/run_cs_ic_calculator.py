@@ -68,7 +68,7 @@ class SignalCfg:
                 sigcfg["ffill_interval"] = ffill_interval
             cfg["signal"] = {
                 "name": self.out_name,
-                "module": "nickchenyj.cs_ic_calculator",
+                "module": "tools.cs_ic_calculator",
                 "is_python": True,
                 "config": sigcfg,
             }

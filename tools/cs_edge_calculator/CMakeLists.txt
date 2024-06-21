@@ -1,6 +1,6 @@
 add_wolverine_library(
     NAME cs_edge_calculator
-    USER nickchenyj
+    USER tools
     TYPE pysig
-    SRCS main.pyx business_calendar.py
+    SRCS main.pyx
 )

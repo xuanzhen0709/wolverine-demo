@@ -74,7 +74,7 @@ class SignalCfg:
 
             cfg["signal"] = {
                 "name": self.out_name,
-                "module": "nickchenyj.cs_edge_calculator",
+                "module": "tools.cs_edge_calculator",
                 "is_python": True,
                 "config": sigcfg,
             }

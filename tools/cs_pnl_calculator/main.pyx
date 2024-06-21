@@ -7,7 +7,10 @@ import pandas as pd
 from typing import Dict, Set, List
 from abc import ABC, abstractmethod
 from cfi.wolverine.signal import *
-from .business_calendar import *
+try:
+    from ..utils.business_calendar import *
+except:
+    from cfi.wlpysig.tools.business_calendar import *
 
 import cython
 # libc.stdint provide c-native types c_uint32 etc

@@ -87,7 +87,7 @@ class SignalCfg:
 
             cfg["signal"] = {
                 "name": "ic",
-                "module": "nickchenyj.ic_calculator",
+                "module": "tools.ic_calculator",
                 "is_python": True,
                 "config": sigcfg,
             }

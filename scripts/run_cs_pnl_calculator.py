@@ -78,7 +78,7 @@ class SingalCfg:
 
             cfg["signal"] = {
                 "name": self.out_name,
-                "module": "nickchenyj.cs_pnl_calculator",
+                "module": "tools.cs_pnl_calculator",
                 "is_python": True,
                 "config": sigcfg,
             }

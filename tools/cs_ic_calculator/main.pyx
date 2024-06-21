@@ -6,7 +6,10 @@ import pandas as pd
 import time
 from typing import List, Dict
 from cfi.wolverine.signal import *
-from .business_calendar import *
+try:
+    from ..utils.business_calendar import *
+except:
+    from cfi.wlpysig.tools.business_calendar import *
 
 import cython
 # libc.stdint provide c-native types c_uint32 etc
