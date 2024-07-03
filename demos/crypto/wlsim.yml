@@ -1,5 +1,5 @@
-start: 20231207
-end: 20231207
+start: 20231208
+end: 20231208
 
 calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
 refdata:
@@ -9,7 +9,8 @@ marketdata:
   - module: snapshot
     symbols:
       - ETHUSDT.BIANUM
-    config: {}
+    config:
+      dataset: binance
     client:
       - snapshot
 
