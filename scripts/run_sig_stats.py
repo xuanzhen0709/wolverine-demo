@@ -5,11 +5,13 @@ import yaml
 import pandas as pd
 import numpy as np
 from enum import IntEnum
-from business_calendar import Calendar
 import bottleneck as bn
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import math
+
+from cfi.wolverine.misc.calendar_utils import CalendarMgr
+from cfi.wolverine.misc.sigreader import SignalReader
 
 plt.style.use("seaborn-v0_8-darkgrid")
 
@@ -54,54 +56,15 @@ class SingalCfg:
             sigout_dir if sigout_dir.is_absolute() else rel_sig_dir.joinpath(sigout_dir)
         )
         self.file_type: SigFileType = SigFileType[str(sigout_cfg["module"])]
-        self.cal = Calendar.get_instance()
+        self.cal = CalendarMgr.get()
 
     def load_signal(self, date) -> pd.DataFrame:
-        def __load_csv(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
-            sig_file: Path = sigdir.joinpath(
-                signame, str(date), f"{signame}-{date}.csv"
-            )
-            df: pd.DataFrame = pd.read_csv(
-                sig_file,
-                header=0,
-                index_col=None,
-                dtype={"exchtime": str, "localtime": np.uint64},
-            )
-            return df
-
-        def __load_npy(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
-            date_dir: Path = sigdir.joinpath(signame, str(date))
-
-            uv = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.uv.npy"), dtype="S16", mode="r"
-            )
-            targets: List[str] = [x.decode("utf8") for x in uv]
-
-            exchtime = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.ts.npy"), dtype=np.int64, mode="r"
-            )
-            localtime = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.localts.npy"),
-                dtype=np.uint64,
-                mode="r",
-            )
-            sigs = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.data.npy"),
-                dtype=np.float64,
-                mode="r",
-                shape=(exchtime.shape[0], len(targets)),
-            )
-
-            df: pd.DataFrame = pd.DataFrame(sigs, columns=targets)
-            df["exchtime"] = exchtime
-            df["localtime"] = localtime
-            df = df[["exchtime", "localtime"] + targets]
-            return df
-
-        if self.file_type == SigFileType.csv:
-            sig_df = __load_csv(self.sig_dir, self.name, date)
-        else:
-            sig_df = __load_npy(self.sig_dir, self.name, date)
+        print(f"loading signal {date}")
+        data_path: Path = (
+            self.sig_dir / self.name / str(date) / f"{self.name}-{date}.data.npy"
+        )
+        reader = SignalReader(data_path, instrument="stocks.CHN")
+        sig_df = reader.read()
 
         return sig_df
 
@@ -110,7 +73,7 @@ class SingalCfg:
     ):
         print("start run signal stats")
         output_root = output_root.resolve()
-        all_date_list: List[int] = self.cal.get_business_days(self.start, self.end)
+        all_date_list: List[int] = self.cal.get_days(self.start, self.end)
         daily_turnover: List = []
         daily_exposure: List = []
         date_list: List = []

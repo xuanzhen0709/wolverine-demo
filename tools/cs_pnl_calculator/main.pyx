@@ -7,10 +7,13 @@ import pandas as pd
 from typing import Dict, Set, List
 from abc import ABC, abstractmethod
 from cfi.wolverine.signal import *
+
+from cfi.wolverine.misc.calendar_utils import CalendarMgr
+from cfi.wolverine.misc.sigreader import SignalReader
 try:
-    from ..utils.business_calendar import *
+    from ..utils.calendar_utils import *
 except:
-    from cfi.wlpysig.tools.business_calendar import *
+    from cfi.wlpysig.tools.calendar_utils import *
 
 import cython
 # libc.stdint provide c-native types c_uint32 etc
@@ -161,7 +164,7 @@ def make_localtime_session(date: int, session_list: List):
     time_stamp: float = time.mktime(time.strptime(str_time, "%Y%m%d%H:%M:%S"))
     today_ts: float = time_stamp * int(1e9)
 
-    pre_business_day: int = Calendar.get_instance().next_business_day(date, -1)
+    pre_business_day: int = CalendarMgr.get().shift(date, -1)
     pre_day: int = next_day(pre_business_day)
     pre_str_time: str = str(pre_day) + "00:00:00"
     pre_time_stamp: float = time.mktime(
@@ -491,50 +494,14 @@ class PnLCalculator(SignalBase):
 
     def load_signal(self):
 
-        def __load_csv(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
-            sig_file: Path = sigdir.joinpath(
-                signame, str(date), f"{signame}-{date}.csv")
-            df: pd.DataFrame = pd.read_csv(sig_file, header=0, index_col=None,
-                                           dtype={"exchtime": str, "localtime": np.uint64})
-            df["exchtime"] = df["exchtime"].apply(hhmmssf_to_exchtime)
-            return df
-
-        def __load_npy(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
-            date_dir: Path = sigdir.joinpath(signame, str(date))
-
-            uv = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.uv.npy"),
-                dtype="S16",
-                mode="r")
-            targets: List[str] = [x.decode("utf8") for x in uv]
-
-            exchtime = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.ts.npy"),
-                dtype=np.int64,
-                mode="r")
-            localtime = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.localts.npy"),
-                dtype=np.uint64,
-                mode="r")
-            sigs = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.data.npy"),
-                dtype=np.float64,
-                mode="r",
-                shape=(
-                    exchtime.shape[0],
-                    len(targets)))
-
-            df: pd.DataFrame = pd.DataFrame(sigs, columns=targets)
-            df["exchtime"] = exchtime
-            df["localtime"] = localtime
-            df = df[["exchtime", "localtime"] + targets]
-            return df
-
-        print(f"loading signal {self.today}")
-        if self.sig_file_type == SigFileType.csv:
-            self.sig_df = __load_csv(self.sigdir, self.signame, self.today)
-        else:
-            self.sig_df = __load_npy(self.sigdir, self.signame, self.today)
+        data_path: Path = (
+            self.sigdir / self.signame / str(self.today) / f"{self.signame}-{self.today}.data.npy"
+        )
+        reader = SignalReader(data_path, instrument="stocks.CHN")
+        df = reader.read()
+        df["localtime"] = df["localtime"].astype(np.int64).astype(np.uint64)
+        df["exchtime"] = df["exchtime"].astype(np.int64)
+        self.sig_df = df
 
     def initialize(self, cfg_str: str):
         print(f"loading config")

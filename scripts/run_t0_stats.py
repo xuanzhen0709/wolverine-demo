@@ -2,11 +2,12 @@ import argparse
 from pathlib import Path
 from typing import List, Dict
 import pandas as pd
-from business_calendar import Calendar
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import math
+
+from cfi.wolverine.misc.calendar_utils import CalendarMgr
 
 plt.style.use("seaborn-v0_8-darkgrid")
 
@@ -22,7 +23,7 @@ def exchtime2index(exchtime: int) -> int:
     exchtime /= int(1e9)
     exchtime -= EXCH_9_30  # 9:30
     if exchtime >= START_SHIFT:  # 13:00  46800-34200
-        exchtime = exchtime - SHIFT_TIME  # 13:00 - 11:30 
+        exchtime = exchtime - SHIFT_TIME  # 13:00 - 11:30
     return int(exchtime)
 
 
@@ -41,9 +42,7 @@ def check_data(ic_folder_list: List, start: int, end: int) -> (List[Dict], List)
         end_date = end if end else int(tokens[-2])
         future_bias = tokens[-1]
 
-        business_days: List = Calendar.get_instance().get_business_days(
-            start_date, end_date
-        )
+        business_days: List = CalendarMgr.get().get_days(start_date, end_date)
         if len(business_days) <= 0:
             raise RuntimeError(
                 f"There are no trading days between {start_date} and {end_date}"

@@ -2,12 +2,13 @@ import argparse
 from pathlib import Path
 from typing import List, Dict, Tuple
 import pandas as pd
-from business_calendar import Calendar
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import math
 import bottleneck as bn
+
+from cfi.wolverine.misc.calendar_utils import CalendarMgr
 
 plt.style.use("seaborn-v0_8-darkgrid")
 
@@ -38,9 +39,7 @@ def check_data(pnl_folder: Path, start: int, end: int) -> (Dict, str, List, List
     end_date = end if end else int(tokens[-2])
     exec_price = tokens[-1]
     exec_price_list = exec_price.split("-")
-    business_days: List = Calendar.get_instance().get_business_days(
-        start_date, end_date
-    )
+    business_days: List = CalendarMgr.get().get_days(start_date, end_date)
     if len(business_days) <= 0:
         raise RuntimeError(
             f"There are no trading days between {start_date} and {end_date}"

@@ -1,23 +1,15 @@
 import argparse
-import copy
 from pathlib import Path
 from typing import List
-import platform
-import subprocess
 import yaml
 import pandas as pd
-import numpy as np
-from enum import IntEnum
-from business_calendar import Calendar
 
-
-class SigFileType(IntEnum):
-    csv = 0
-    npy = 1
+from cfi.wolverine.misc.sigreader import SignalReader
+from cfi.wolverine.misc.calendar_utils import CalendarMgr
 
 
 class SingalCfg:
-    def __init__(self, infile: Path):
+    def __init__(self, infile: Path, instrument: str):
         print(f"loading {infile}")
         self.infile: Path = infile
         with open(infile) as fin:
@@ -28,56 +20,17 @@ class SingalCfg:
         self.sigcfg = self.main_cfg["signal"]["config"]
         sigout_cfg = self.main_cfg["signal"]["output"]
         self.sigout_dir: Path = Path(sigout_cfg["config"]["output_dir"])
-        self.file_type: SigFileType = SigFileType[str(sigout_cfg["module"])]
-        self.cal = Calendar.get_instance()
+        self.instrument: str = instrument
+        self.cal = CalendarMgr.get(instrument.partition(".")[2])
 
     def load_signal(self, date) -> pd.DataFrame:
-        def __load_csv(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
-            sig_file: Path = sigdir.joinpath(
-                signame, str(date), f"{signame}-{date}.csv"
-            )
-            df: pd.DataFrame = pd.read_csv(
-                sig_file,
-                header=0,
-                index_col=None,
-                dtype={"exchtime": str, "localtime": np.uint64},
-            )
-            return df
-
-        def __load_npy(sigdir: Path, signame: str, date: int) -> pd.DataFrame:
-            date_dir: Path = sigdir.joinpath(signame, str(date))
-
-            uv = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.uv.npy"), dtype="S16", mode="r"
-            )
-            targets: List[str] = [x.decode("utf8") for x in uv]
-
-            exchtime = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.ts.npy"), dtype=np.int64, mode="r"
-            )
-            localtime = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.localts.npy"),
-                dtype=np.uint64,
-                mode="r",
-            )
-            sigs = np.memmap(
-                date_dir.joinpath(f"{signame}-{date}.data.npy"),
-                dtype=np.float64,
-                mode="r",
-                shape=(exchtime.shape[0], len(targets)),
-            )
-
-            df: pd.DataFrame = pd.DataFrame(sigs, columns=targets)
-            df["exchtime"] = exchtime
-            df["localtime"] = localtime
-            df = df[["exchtime", "localtime"] + targets]
-            return df
 
         print(f"loading signal {date}")
-        if self.file_type == SigFileType.csv:
-            sig_df = __load_csv(self.sigout_dir, self.name, date)
-        else:
-            sig_df = __load_npy(self.sigout_dir, self.name, date)
+        data_path: Path = (
+            self.sigout_dir / self.name / str(date) / f"{self.name}-{date}.data.npy"
+        )
+        reader = SignalReader(data_path, instrument=self.instrument)
+        sig_df = reader.read()
 
         return sig_df
 
@@ -86,7 +39,7 @@ class SingalCfg:
             raise RuntimeError("multi target!")
         target = self.sigcfg["targets"][0]
         map_info: pd.DataFrame = pd.read_excel(map_file, header=None, sheet_name=target)
-        date_list: List[int] = self.cal.get_business_days(self.start, self.end)
+        date_list: List[int] = self.cal.get_days(self.start, self.end)
         for date in date_list:
             print(f"start gen date {date}")
             try:
@@ -126,6 +79,13 @@ def main():
     )
     parser.add_argument("-o", "--output", type=Path, required=True, help="output dir")
     parser.add_argument("-m", "--map-file", type=Path, required=True, help="output dir")
+    parser.add_argument(
+        "-i",
+        "--instrument",
+        type=str,
+        default="stocks.CHN",
+        help="instrument, such as stocks.CHN/cbonds.CHN/xxx.BIANUM/xxx.BIANCM/etc, used to determine trading calendar",
+    )
 
     parser.add_argument(
         "--ignore-missing",
@@ -134,7 +94,7 @@ def main():
     )
 
     args = parser.parse_args()
-    cfg = SingalCfg(args.signal_config)
+    cfg = SingalCfg(args.signal_config, args.instrument)
     output_root = args.output.resolve()
     cfg.make_cs_sigs(args.map_file, output_root, args.ignore_missing)
 
