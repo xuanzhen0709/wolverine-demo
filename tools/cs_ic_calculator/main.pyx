@@ -63,18 +63,6 @@ def str2ns(val: str) -> int:
         raise RuntimeError(f"unknown unit {val}")
     return val_ns
 
-
-def hhmmssf_to_exchtime(val: str) -> int:
-    hh: int = int(val[:2])
-    mm: int = int(val[3:5])
-    ss: int = int(val[6:8])
-    ff: int = int(val[9:])
-    time: int = hh * 3600 * int(1e9) + mm * 60 * int(1e9) + ss * int(1e9) + ff
-    if hh >= 18:
-        time -= 24 * 3600 * int(1e9)
-    return time
-
-
 def make_localtime_session(date: int, session: List) -> List[List]:
     daily_session: List = []
     str_time: str = str(date) + "00:00:00"
@@ -156,7 +144,6 @@ cdef void match_A_with_B_cs(
 
         A_idx += 1
 
-
 def make_filled_times(ffill_interval: int,
                       local_session: List,
                       exch_session: List) -> (cnp.uint64_t[:], cnp.int64_t[:], List):
@@ -230,7 +217,7 @@ class CsICCalculator(SignalBase):
             self.sigdir / self.signame / str(self.today) / f"{self.signame}-{self.today}.data.npy"
         )
         reader = SignalReader(data_path, instrument="stocks.CHN")
-        df = reader.read()
+        df = reader.read(convert_localtime=False)
         df["localtime"] = df["localtime"].astype(np.int64).astype(np.uint64)
         df["exchtime"] = df["exchtime"].astype(np.int64)
         self.sig_df = df
@@ -294,7 +281,6 @@ class CsICCalculator(SignalBase):
                 sessions.append(
                     tuple([ms.session[j].begin, ms.session[j].end]))
             self.session.add(tuple(sessions))
-
         sig_targets: List[str] = list(self.sig_df.columns)
 
         for _i, _x in enumerate(sig_targets):
@@ -335,7 +321,6 @@ class CsICCalculator(SignalBase):
 
         print(f"{date},calculating ic")
         local_session = make_localtime_session(date, exch_session)
-
         target_nr = len(self.targets)
         if self.ffill_interval:
             localtime_array, exchtime_array, shift_info = make_filled_times(
@@ -383,7 +368,6 @@ class CsICCalculator(SignalBase):
             # fut_localtime_nr = np.count_nonzero(fut_localtime <= local_session[-1][-1])
             fut_mid_px = np.full([localtime_nr, target_nr],
                                  fill_value=np.nan, dtype=np.float64)
-
             match_A_with_B_cs(
                 localtime_nr, # fut_localtime_nr,
                 fut_localtime,
@@ -409,6 +393,12 @@ class CsICCalculator(SignalBase):
             all_ic[fb] = ic_list
 
         idx = 0
+        # convert localtime to Local TimeZone
+        localtime_array = pd.to_datetime(localtime_array, utc=True) \
+            .tz_convert("Asia/Shanghai") \
+            .tz_localize(None) \
+            .astype(np.int64)
+
         while idx < localtime_nr:
             ic_str = ",".join(
                 f"{all_ic[fb][idx]}" if all_ic[fb][idx] else "" for fb in self.futret_bias)

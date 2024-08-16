@@ -77,17 +77,6 @@ def str2ns(val: str) -> int:
     return int(val_ns)
 
 
-def hhmmssf_to_exchtime(val: str) -> int:
-    hh: int = int(val[:2])
-    mm: int = int(val[3:5])
-    ss: int = int(val[6:8])
-    ff: int = int(val[9:])
-    time: int = hh * 3600 * int(1e9) + mm * 60 * int(1e9) + ss * int(1e9) + ff
-    if hh >= 18:
-        time -= 24 * 3600 * int(1e9)
-    return time
-
-
 def make_localtime_session(date: int, session: List) -> List[List]:
     daily_session: List = []
     str_time: str = str(date) + "00:00:00"
@@ -209,7 +198,7 @@ class CsEdgeCalculator(SignalBase):
             self.sigdir / self.signame / str(self.today) / f"{self.signame}-{self.today}.data.npy"
         )
         reader = SignalReader(data_path, instrument="stocks.CHN")
-        df = reader.read()
+        df = reader.read(convert_localtime=False)
         df["localtime"] = df["localtime"].astype(np.int64).astype(np.uint64)
         df["exchtime"] = df["exchtime"].astype(np.int64)
         self.sig_df = df
