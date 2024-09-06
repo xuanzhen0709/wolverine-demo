@@ -1,0 +1,27 @@
+start: 20231208
+end: 20231208
+
+calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
+refdata:
+  ticker_mapping: CRYPTO
+
+marketdata:
+  - module: full-snapshot
+    symbols:
+      - ETHUSDT.BIANUM
+    config:
+      dataset: binance
+    client:
+      - fullsnap
+
+signal:
+  name: fullsnap
+  module: nickchenyj.fullsnap
+  output:
+    module: csv
+    config:
+      output_dir: output
+  config:
+    targets:
+      - ETHUSDT.BIANUM
+      # user defined params can go below

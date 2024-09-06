@@ -1,7 +1,9 @@
+import ctypes
 import numpy as np
 import yaml
 
 from cfi.wolverine.signal import *
+from cfi.wolverine.marketdata import *
 
 
 class MySig(SignalBase):
@@ -19,26 +21,27 @@ class MySig(SignalBase):
         self.cnt = 0
         print(f"on_sod:{ev.date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
-            ms: MdStatic = ev.ms[i].contents
+            ms: MdStatic = ev.get_ms(i)
             print(f"\t{i+1},{ms.instrument}")
 
     def on_eod(self, ev: EodEvent):
         print(f"total tick cnt:{self.cnt}")
         pass
 
-    def on_snapshot(self, ev: SnapshotEvent):
+    def on_full_snapshot(self, ev: SnapshotEvent):
         self.cnt += 1
         ms: MdStatic = ev.ms.contents
-        ss: MdSnapshot = ev.snapshot.contents
+        ss: MdFullSnapshot = ev.snapshot.contents
         print(
-            f"on_snapshot:{ss.type},{ms.instrument},{ss.exchtime},{ss.localtime},{ss.last_price},{ss.bv[0]}@{ss.bp[0]},{ss.av[0]}@{ss.ap[0]},{ss.total_bid_vol},{ss.total_ask_vol}"
+            f"on_full_snapshot:{ms.instrument},{ss.exchtime},{ss.localtime},{ss.last_price},{ss.level_nr}"
         )
-        ap = ss.get_arr("ap")
-        bp = ss.get_arr("bp")
-        av = ss.get_arr("av")
-        bv = ss.get_arr("bv")
-        self.sigval[0] = np.sum(ap * av + bp * bv)
-        self.update_signal(ss.exchtime, ss.localtime, self.sigval)
+        # def get_levels(self) -> MdLevel:
+        levels = ss.get_levels()
+        for i in range(ss.level_nr):
+            lvl = levels[i]
+            print(f"\t{i},{lvl.bv}@{lvl.bp},{lvl.av}@{lvl.ap}")
+        # self.sigval[0] = np.sum(ap * av + bp * bv)
+        # self.update_signal(ss.exchtime, ss.localtime, self.sigval)
 
 
 def pysig_create():

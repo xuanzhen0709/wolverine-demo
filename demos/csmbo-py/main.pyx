@@ -1,4 +1,5 @@
 import numpy as np
+import datetime
 import time
 import yaml
 
@@ -37,7 +38,7 @@ class MySig(SignalBase):
         targets = []
         print(f"on_sod:{ev.date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
-            ms: MdStatic = ev.ms[i].contents
+            ms: MdStatic = ev.get_ms(i)
             self.mss.append(ms)
 
             targets.append(
@@ -76,7 +77,7 @@ class MySig(SignalBase):
         self.localtime.append(ev.localtime)
 
         # ev.data is a dictionary mapping from int -> np.ndarray
-        last_price_data = ev.data[CsSnapshotEvent.FldType.LAST_PRICE.value]
+        last_price_data = ev.get_arr(CsSnapshotEvent.FldType.LAST_PRICE)
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
         self.last_price.append(np.ndarray.copy(last_price_data))
 
@@ -85,8 +86,9 @@ class MySig(SignalBase):
         localtime: int = ev.localtime
 
         cdef int ins_nr = ev.ins_nr
-        # print(f"on_cs_mbo:{exchtime},{localtime},{ins_nr}")
-        trades: CsMboEvent.Trade = ev.trades.contents
+        dt = datetime.datetime.fromtimestamp(localtime / 1e9)
+        print(f"on_cs_mbo:{exchtime},{localtime}/{dt},{ins_nr}")
+        trades: CsMboEvent.Trade = ev.get_trades()
         cdef uint32_t* cnts = <uint32_t*><intptr_t>(ctypes.addressof(trades.cnt.contents))
         cdef int ii = 0
         cdef int ti = 0
@@ -103,7 +105,8 @@ class MySig(SignalBase):
             askid = <uint64_t*><intptr_t>(ctypes.addressof(trades.askid[ii].contents))
             print(f"ins:{ii},cnt:{ins_cnt}")
             for ti in range(ins_cnt):
-                print(f"trade,{ti}/{ins_cnt},{bidid[ti]},{askid[ti]}")
+                #print(f"trade,{ti}/{ins_cnt},{bidid[ti]},{askid[ti]}")
+                pass
 
 
 

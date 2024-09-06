@@ -36,7 +36,7 @@ class MySig(SignalBase):
         targets = []
         print(f"on_sod:{ev.date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
-            ms: MdStatic = ev.ms[i].contents
+            ms: MdStatic = ev.get_ms(i)
             self.mss.append(ms)
 
             targets.append(
@@ -78,7 +78,7 @@ class MySig(SignalBase):
         # print(f"{type(k)},{len(k)},{k[0]}")
 
         # ev.data is a dictionary mapping from int -> np.ndarray
-        last_price_data = ev.data[CsSnapshotEvent.FldType.LAST_PRICE.value]
+        last_price_data = ev.get_arr(CsSnapshotEvent.FldType.LAST_PRICE)
         # print(f"{type(last_price_data)},{last_price_data}")
         # NOTE: we must explicitly create a copy of the data if we cache it in any way
         data = np.ndarray.copy(last_price_data)
