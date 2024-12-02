@@ -5,7 +5,7 @@ end: 20231208
 
 calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
 refdata:
-  ticker_mapping: CRYPTO
+  ticker_mapping: HFT
 
 marketdata:
   - module: snapshot

@@ -136,15 +136,18 @@ void Signal::on_cs_mbo(const CsMboEvent *ev) {
   //   }
   // }
 
+  const auto ins_nr = std::min<int>(5, ev->ins_nr);
   {
     const auto &trades = ev->trades;
-    for (int ins = 0; ins < 5; ++ins) {
+    for (int ins = 0; ins < ins_nr; ++ins) {
       const auto &cnt = trades->cnt[ins];
-      const auto &bidid = trades->bidid[ins];
+      const auto &price = trades->price[ins];
+      const auto &qty = trades->qty[ins];
+      const auto &bidid = trades->price[ins];
       const auto &askid = trades->askid[ins];
       wllog_info("TRADES,ins:{},cnt:{}\n", ins, cnt);
-      for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
-        wllog_info("\t{},{},{}\n", evidx, bidid[evidx], askid[evidx]);
+      for (int evidx = 0; evidx < std::min<int>(cnt, 5); ++evidx) {
+        wllog_info("\t{},{}@{},bid:{},aid:{}\n", evidx, qty[evidx], price[evidx], bidid[evidx], askid[evidx]);
       }
     }
   }

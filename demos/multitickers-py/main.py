@@ -2,6 +2,8 @@ import numpy as np
 import yaml
 
 from cfi.wolverine.signal import *
+from cfi.wolverine.event import *
+from cfi.wolverine.marketdata import *
 
 
 class MySig(SignalBase):

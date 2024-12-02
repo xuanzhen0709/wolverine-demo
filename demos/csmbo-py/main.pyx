@@ -4,6 +4,8 @@ import time
 import yaml
 
 from cfi.wolverine.signal import *
+from cfi.wolverine.event import *
+from cfi.wolverine.marketdata import *
 
 # use cython to speed up c-native types
 import cython

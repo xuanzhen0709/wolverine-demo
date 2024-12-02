@@ -8,7 +8,7 @@ import yaml
 
 from cfi.wolverine.signal import *
 from cfi.wolverine.event import *
-
+from cfi.wolverine.marketdata import *
 
 
 class MySig(SignalBase):
@@ -40,8 +40,8 @@ class MySig(SignalBase):
             self.mss.append(ms)
 
             targets.append(
-                ms.instrument.decode("utf8") + "." +
-                ms.exchange.decode("utf8"))
+                ms.instrument.decode("utf8") + "." + ms.exchange.decode("utf8")
+            )
             # print(f"\t{i+1},{ms.instrument}")
         self.ins_nr = ev.ins_nr
         self.last_price.clear()
@@ -52,9 +52,7 @@ class MySig(SignalBase):
         date: int = int(ev.date)
         now: float = time.time()
         sod_eod_ts: float = now - self.start_ts
-        print(
-            f"on_eod:{date},total time:{sod_eod_ts:.2f}s,total tick cnt:{self.cnt}"
-        )
+        print(f"on_eod:{date},total time:{sod_eod_ts:.2f}s,total tick cnt:{self.cnt}")
         # concat cached data
         exchtime: np.ndarray = np.array(self.exchtime, dtype=np.int64)
         localtime: np.ndarray = np.array(self.localtime, dtype=np.uint64)

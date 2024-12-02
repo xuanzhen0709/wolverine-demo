@@ -8,6 +8,7 @@ from typing import Dict, Set, List
 from abc import ABC, abstractmethod
 from cfi.wolverine.signal import *
 from cfi.wolverine.event import *
+from cfi.wolverine.marketdata import *
 
 from cfi.wolverine.misc.calendar_utils import CalendarMgr
 from cfi.wolverine.misc.sigreader import SignalReader

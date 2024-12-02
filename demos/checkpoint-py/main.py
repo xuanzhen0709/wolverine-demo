@@ -5,6 +5,8 @@ import time
 import yaml
 
 from cfi.wolverine.signal import *
+from cfi.wolverine.event import *
+from cfi.wolverine.marketdata import *
 
 
 class MySig(SignalBase):
@@ -50,8 +52,8 @@ class MySig(SignalBase):
             self.mss.append(ms)
 
             targets.append(
-                ms.instrument.decode("utf8") + "." +
-                ms.exchange.decode("utf8"))
+                ms.instrument.decode("utf8") + "." + ms.exchange.decode("utf8")
+            )
             # print(f"\t{i+1},{ms.instrument}")
         self.last_price.clear()
         self.exchtime.clear()
@@ -74,8 +76,11 @@ class MySig(SignalBase):
         # just for demonstration purposes, we try to update signals using dummy values
         ins_nr: int = len(self.mss)
         for idx in range(len(exchtime)):
-            self.update_signal(int(exchtime[idx]), int(localtime[idx]),
-                               np.full((ins_nr, ), idx, dtype=np.float64))
+            self.update_signal(
+                int(exchtime[idx]),
+                int(localtime[idx]),
+                np.full((ins_nr,), idx, dtype=np.float64),
+            )
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cnt += 1

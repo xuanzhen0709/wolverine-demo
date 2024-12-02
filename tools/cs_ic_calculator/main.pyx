@@ -6,6 +6,7 @@ import pandas as pd
 import time
 from typing import List, Dict
 from cfi.wolverine.signal import *
+from cfi.wolverine.marketdata import *
 from cfi.wolverine.event import *
 
 from cfi.wolverine.misc.calendar_utils import CalendarMgr
