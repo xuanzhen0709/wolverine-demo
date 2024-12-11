@@ -92,15 +92,15 @@ fi
 EOF
 }
 
-if [ $# -ne 1 ]; then
-    echo "Please enter the wlsim version:"
-    echo "- If you are a regular employee, you can view it in the following path:"
-    echo "      /mnt/nas-3/homes/nickchenyj/packages/wlsim/"
-    echo "- If you are an intern, you can view it in the following path:"
-    echo "      /mnt/nas-i/homes/nickchenyj/wlsim/packages/"
-    exit 1
-fi
-wlsim_version=$1
+# if [ $# -ne 1 ]; then
+#     echo "Please enter the wlsim version:"
+#     echo "- If you are a regular employee, you can view it in the following path:"
+#     echo "      /mnt/nas-3/homes/nickchenyj/packages/wlsim/"
+#     echo "- If you are an intern, you can view it in the following path:"
+#     echo "      /mnt/nas-i/homes/nickchenyj/wlsim/packages/"
+#     exit 1
+# fi
+# wlsim_version=$1
 
 venv_path="${HOME}/venv/wlsim"
 echo python venv: ${venv_path}
