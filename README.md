@@ -18,12 +18,11 @@ wlsim是面向中高频股票和期货的回测系统。
 
 ## 使用文档
 
-- [Quick Start](docs/quick_start.md)  
+- [Quick Start](docs/quick_start.md)
+
+- [FAQ](docs/faq.md)
 
 - [ProdCache数据使用规范](docs/prodcache_guidelines.md)
 
 - [因子库生产提交手册](docs/production.md)
 
-- [Q&A](docs/QA.md)
-
-## 常见QA

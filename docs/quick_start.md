@@ -1,183 +1,112 @@
-- [QuickStart](#quickstart)
-  - [搭建wlsim运行环境](#搭建wlsim运行环境)
-    - [基础环境](#基础环境)
-      - [自动安装](#自动安装)
-      - [手动安装](#手动安装)
-    - [运行时程序](#运行时程序)
-  - [构建本项目](#构建本项目)
-  - [运行demo](#运行demo)
-  
+<!-- TOC -->
+* [QuickStart](#quickstart)
+  * [初始化python和c++环境](#初始化python和c环境)
+    * [从v1.6.x及以前版本升级而来](#从v16x及以前版本升级而来)
+    * [全新安装](#全新安装)
+  * [安装wlsim和wlmd](#安装wlsim和wlmd)
+  * [构建本项目](#构建本项目)
+  * [运行demo](#运行demo)
+<!-- TOC -->
 # QuickStart
 
-## 搭建wlsim运行环境
+金刚狼包含两个组件，两个组件独立更新。
 
-wlsim环境目前包括基础环境（python/c++）以及运行时程序两部分，需要按顺序分别安装。
+* wlsim: 主框架
+* wlmd：行情模块
 
-### 基础环境
+安装包位于
+`/mnt/nas-3/homes/nickchenyj/packages/{wlsim|wlmd}`
 
-可以选择使用shell脚本一键搭建，或者手动搭建。  
+该目录下会以多级目录的形式区分包的版本、依赖关系、以及支持的系统环境,金刚狼目前适配了公司三种常见的操作系统环境，安装时需要选择相应的版本。
 
-#### 自动安装
+注意conda可能对兼容性造成影响，因此建议完全清除conda后再安装金刚狼。
+
+## 初始化python和c++环境
+
+初始化脚本位于系统环境目录(el7.py38、deb11.py39、etc)下的install_wlsim_env目录。此目录脚本在支持的环境中通用，所以可以任选一个系统环境目录进入。
+
+### 从v1.6.x及以前版本升级而来
+
+此时需要清理历史遗留的配置和文件，再重新安装环境。
+
+请从`~/.bashrc`中删除以下两行：
 
 ``` bash
-git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git
-cd wolverine-demo/scripts
-./install.sh
-source ~/.profile
+source /opt/rh/devtoolset-11/enable
+source /opt/rh/rh-python38/enable
 ```
 
-#### 手动安装
+然后运行清理脚本。
 
-<mark>不要使用conda环境！</mark>  
+```bash
+./cleanup_legacy.sh
+# 或者
+# bash ./cleanup_legacy.sh
+```
 
-- 添加环境变量  
-  - 向 `~/.bashrc`文件中插入以下两行：
+如果想复用以前的金刚狼环境，请先启用之前的金刚狼环境再执行全新安装。启用之前金刚狼环境的命令通常是
 
-      ``` bash
-      export PATH=$PATH:~/.local/bin
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/lib
-      ``` 
-
-      ![add path](assets/add_path.png)
-
-  - 执行 `source ~/.bashrc` 使其生效
-
-  - 验证是否添加成功
-
-      ``` bash
-      echo $PATH
-      echo $LD_LIBRARY_PATH
-      ```
-
-      ![echo path](assets/echo_path.png)
-
-- 设置编译环境
-  - 查看Python和gcc版本
-
-      ``` bash
-      gcc -v
-      python3 -V # 或者执行 python3.8 -v
-      ```
-
-      gcc的版本需要是11，Python的版本需要为3.8，如果系统中gcc和Python版本不满足要求，需要升级版本
-
-  - 设置系统python和gcc版本
-      向 `~/.bashrc`文件中插入以下两行：
-
-      ``` bash
-      source /opt/rh/devtoolset-11/enable
-      source /opt/rh/rh-python38/enable
-      ```
-
-      ![enable python gcc](assets/enable_python_gcc.png)
-
-  - 执行 `source ~/.bashrc` 使其生效
-
-  - 验证是否设置成功  
-
-      ![gcc python version](assets/gcc_python_version.png)
-
-- 如果wlsim的编译环境和系统中已有框架冲突，可以使用以下方法避免冲突：
-
-  - 临时性地激活devtoolset-11和rh-python38  
-
-      ``` bash
-      source /opt/rh/devtoolset-11/enable
-      source /opt/rh/rh-python38/enable
-      ```
-
-  - 为项目创建python虚拟环境
-
-      ``` bash
-      python3 -m venv ~/venv/wlsim
-      ```
-
-  - 在 ~/.bashrc 中插入;
-
-      ``` bash
-      export PATH=$PATH:~/.local/bin
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/.local/lib
-      function enable_wlsim_env()
-      {
-      local plat=$(uname -r)
-
-      if [[ $plat =~ el8 ]]; then
-          if shopt -q login_shell; then
-              echo "el8, enabling gcc-toolset-11"
-          fi
-          source /opt/rh/gcc-toolset-11/enable
-      elif [[ $plat =~ el7 ]]; then
-          if shopt -q login_shell; then
-              echo "el7, enabling devtoolset-11"
-          fi
-          source /opt/rh/devtoolset-11/enable
-
-          if shopt -q login_shell; then
-              echo "el7, enabling rh-python38"
-          fi
-          source /opt/rh/rh-python38/enable
-
-          if shopt -q login_shell; then
-              echo "el7, enabling wlsim python38 venv
-          fi
-          source ~/venv/wlsim/bin/activate
-      fi
-      }
-      ```
-
-      ![wrap](assets/wrap.png)
-
-  - 执行 `source ~/.bashrc` 使其生效, 每次使用 wlsim 之前执行 `enable_wlsim_env` 来激活编译环境
-
-- 安装必要的python包:
-
-    ``` bash
-    python3.8 -m pip install --user Cython wheel "numpy>=1.23.4" pymssql sqlalchemy pandas matplotlib -i https://pypi.tuna.tsinghua.edu.cn/simple
-    ```
-
-### 运行时程序
-
-安装运行时程序之前，请先确保基础环境已经安装并且启用
-
-``` bash
+```bash
 enable_wlsim_env
 ```
 
-运行时程序包括wlsim（主框架）和wlmd（行情模块）两部分，两部分独立更新但wlmd又对wlsim存在版本依赖。安装过程中需要分别安装wlsim和wlmd两个包（对应install_runtime.py文件）。
+### 全新安装
 
-安装包位于：
+使用一键初始化脚本完成安装，并按提示操作。
 
-- 正式员工： /mnt/nas-3/homes/nickchenyj/packages/
-- 实习生： /mnt/nas-i/homes/nickchenyj/packages/
-
-wlsim目录下会以多级目录的形式通过软件版本和系统版本区分安装包，这里可根据需求安装相应的版本（集群环境系统版本为el7.py38）。
-
-可以在安装包目录下运行
-
-``` bash
-  ls -lrt
+```bash
+./install.sh
+# 或者
+# bash ./install.sh
 ```
 
-查看不同版本的更新日期，进而安装最新版。
+如果想登陆自动启动venv，请在`~/.bashrc`末尾加入
+
+```bash
+enable_wlsim_env
+```
+
+或者可以在任何时候输入`enable_wlsim_env`来启用对应python和c++环境。
+
+## 安装wlsim和wlmd
+
+确保金刚狼环境已启用，当前环境的名称可以通过以下命令获取。
+
+```bash
+echo $WLSIM_ENV_KEY
+````
+
+进入对应的安装目录，运行
+
+```bash
+python3 install_runtime.py
+```
 
 ## 构建本项目
 
-  在`wolverine-demo`项目的根路径下执行以下语句：
+clone当前项目
 
-  ``` shell
-  # 构建debug版本
-  mkdir -p build/Debug
-  pushd build/Debug
-  cmake -DCMAKE_BUILD_TYPE=Debug ../../
-  # or Release build
-  # mkdir -p build/Release
-  # pushd build/Release
-  # cmake -DCMAKE_BUILD_TYPE=Release ../../
+``` bash
+git clone http://192.168.1.101:18086/nickchenyj/wolverine-demo.git
+```
 
-  make -j8 install
-  popd
-  ```
+在`wolverine-demo`项目的根路径下执行以下语句：
+
+```bash
+# 构建debug版本
+mkdir -p build/Debug
+pushd build/Debug
+cmake -DCMAKE_BUILD_TYPE=Debug ../../
+# or Release build
+# mkdir -p build/Release
+# pushd build/Release
+# cmake -DCMAKE_BUILD_TYPE=Release ../../
+
+make -j8 install
+popd
+
+```
 
 ## 运行demo
 
-  在demos目录下有多个示例，通过`wl-sim xxx.yml`运行。
+在demos目录下有多个示例，通过`wl-sim xxx.yml`运行。

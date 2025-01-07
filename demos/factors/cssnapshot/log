@@ -1,0 +1,245 @@
+[init_env] [info] using /mnt/nas-3
+[set] [info] setting variable nas_dir=/mnt/nas-3
+[init_env] [info] detecting python environment Python 3.9.2
+[set] [info] setting variable python_runtime=libpython3.9.so
+[initialize] [info] calendar loaded 4133 dates, from 20080102 to 20241231
+[initialize] [info] using ticker_mapping HFT
+[initialize] [info] 6 dates to run, start/end 20230703/20230710
+[SharedLib] [info] loaded wlsig library wlsig-py.so 0x5639cd2c4aa0
+[SharedLib] [info] loaded wlsigsaver library wlsigsaver-csv.so 0x5639cd2e4670
+[py_initialize] [info] loading python runtime library libpython3.9.so
+[py_import_module] [info] loaded python module cfi.wlpysig.nickchenyj.cssnapshot_strat_py
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[SharedLib] [info] loaded wlsigsaver library wlsigsaver-csv.so 0x5639cd2e4670
+[initialize] [info] using seed 1.234
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 3.456
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 4.567
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 5.678
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 2.345
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 6.789
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 7.89
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 8.901
+[SharedLib] [info] loaded wlsig library wlsig-nickchenyj-cssnapshot_factor.so 0x5639cd7920a0
+[initialize] [info] using seed 9.012
+[SharedLib] [info] loaded wlmd library wlmd-cs-snapshot.so 0x5639cd792fc0
+[initialize] [info] CsSnapshotLoader: using levels 5
+[create_streams] [info] adding stream fld 3
+[create_streams] [info] adding stream fld 2
+[LevelStreams] [info] adding level fld 8,level_nr 5
+[create] [info] added loader:cs-snapshot,100,0x5639cd4ccaa0
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 1/10: fct9
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 2/10: fct1
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 3/10: fct3
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 4/10: fct4
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 5/10: fct2
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 6/10: fct8
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 7/10: fct5
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 8/10: fct7
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 9/10: fct6
+[register_clients] [info] marketdata 0x5639cd4bc890 registering client 10/10: strat
+[SharedLib] [info] loaded wlmd library wlmd-cs-mbo.so 0x5639cd8a93c0
+[check_permission] [info] host:wlsig-production
+[create] [info] added loader:cs-mbo,50,0x5639cd767340
+[register_clients] [info] marketdata 0x5639cd8a9880 registering client 1/4: fct9
+[register_clients] [info] marketdata 0x5639cd8a9880 registering client 2/4: fct8
+[register_clients] [info] marketdata 0x5639cd8a9880 registering client 3/4: fct7
+[register_clients] [info] marketdata 0x5639cd8a9880 registering client 4/4: fct6
+[PoolExecutor] [info] creating PoolExecutor, thread=5, queue size=0
+[operator()] [info] started thread 0,139706928789248
+[operator()] [info] started thread 1,139706920396544
+[operator()] [info] started thread 2,139706912003840
+[operator()] [info] started thread 3,139706830419712
+[run_date_range] [info] running 20230703 (1/6)
+[operator()] [info] started thread 4,139706822027008
+[on_sod] [info] loading file /mnt/nas-3/ProcessedData/reference_data/20230703/refdata_v2.csv
+[on_sod] [info] 20230703 refdata loadedloading config
+HAHA on_sod:20230703,ins_nr:5000
+on_cs_snapshot,34200000000000,1688347800348063680,shape:(5, 5000)
+[[2.234 2.234 2.234 ... 2.234 2.234 2.234]
+ [4.456 4.456 4.456 ... 4.456 4.456 4.456]
+ [5.567 5.567 5.567 ... 5.567 5.567 5.567]
+ [6.678 6.678 6.678 ... 6.678 6.678 6.678]
+ [7.789 7.789 7.789 ... 7.789 7.789 7.789]]
+on_cs_snapshot,34203000000000,1688347809543291950,shape:(5, 5000)
+[[3.234 3.234 3.234 ... 3.234 3.234 3.234]
+ [5.456 5.456 5.456 ... 5.456 5.456 5.456]
+ [6.567 6.567 6.567 ... 6.567 6.567 6.567]
+ [7.678 7.678 7.678 ... 7.678 7.678 7.678]
+ [8.789 8.789 8.789 ... 8.789 8.789 8.789]]
+on_cs_snapshot,34206000000000,1688347812743998171,shape:(5, 5000)
+[[4.234 4.234 4.234 ... 4.234 4.234 4.234]
+ [6.456 6.456 6.456 ... 6.456 6.456 6.456]
+ [7.567 7.567 7.567 ... 7.567 7.567 7.567]
+ [8.678 8.678 8.678 ... 8.678 8.678 8.678]
+ [9.789 9.789 9.789 ... 9.789 9.789 9.789]]
+on_cs_snapshot,34209000000000,1688347815701814276,shape:(5, 5000)
+[[ 5.234  5.234  5.234 ...  5.234  5.234  5.234]
+ [ 7.456  7.456  7.456 ...  7.456  7.456  7.456]
+ [ 8.567  8.567  8.567 ...  8.567  8.567  8.567]
+ [ 9.678  9.678  9.678 ...  9.678  9.678  9.678]
+ [10.789 10.789 10.789 ... 10.789 10.789 10.789]]
+on_cs_snapshot,34212000000000,1688347820696333994,shape:(5, 5000)
+[[ 6.234  6.234  6.234 ...  6.234  6.234  6.234]
+ [ 8.456  8.456  8.456 ...  8.456  8.456  8.456]
+ [ 9.567  9.567  9.567 ...  9.567  9.567  9.567]
+ [10.678 10.678 10.678 ... 10.678 10.678 10.678]
+ [11.789 11.789 11.789 ... 11.789 11.789 11.789]]
+on_cs_snapshot,34215000000000,1688347825197280784,shape:(5, 5000)
+[[ 7.234  7.234  7.234 ...  7.234  7.234  7.234]
+ [ 9.456  9.456  9.456 ...  9.456  9.456  9.456]
+ [10.567 10.567 10.567 ... 10.567 10.567 10.567]
+ [11.678 11.678 11.678 ... 11.678 11.678 11.678]
+ [12.789 12.789 12.789 ... 12.789 12.789 12.789]]
+on_cs_snapshot,34218000000000,1688347827401128584,shape:(5, 5000)
+[[ 8.234  8.234  8.234 ...  8.234  8.234  8.234]
+ [10.456 10.456 10.456 ... 10.456 10.456 10.456]
+ [11.567 11.567 11.567 ... 11.567 11.567 11.567]
+ [12.678 12.678 12.678 ... 12.678 12.678 12.678]
+ [13.789 13.789 13.789 ... 13.789 13.789 13.789]]
+on_cs_snapshot,34221000000000,1688347829052331150,shape:(5, 5000)
+[[ 9.234  9.234  9.234 ...  9.234  9.234  9.234]
+ [11.456 11.456 11.456 ... 11.456 11.456 11.456]
+ [12.567 12.567 12.567 ... 12.567 12.567 12.567]
+ [13.678 13.678 13.678 ... 13.678 13.678 13.678]
+ [14.789 14.789 14.789 ... 14.789 14.789 14.789]]
+on_cs_snapshot,34224000000000,1688347830706841841,shape:(5, 5000)
+[[10.234 10.234 10.234 ... 10.234 10.234 10.234]
+ [12.456 12.456 12.456 ... 12.456 12.456 12.456]
+ [13.567 13.567 13.567 ... 13.567 13.567 13.567]
+ [14.678 14.678 14.678 ... 14.678 14.678 14.678]
+ [15.789 15.789 15.789 ... 15.789 15.789 15.789]]
+on_cs_snapshot,34227000000000,1688347832416500377,shape:(5, 5000)
+[[11.234 11.234 11.234 ... 11.234 11.234 11.234]
+ [13.456 13.456 13.456 ... 13.456 13.456 13.456]
+ [14.567 14.567 14.567 ... 14.567 14.567 14.567]
+ [15.678 15.678 15.678 ... 15.678 15.678 15.678]
+ [16.789 16.789 16.789 ... 16.789 16.789 16.789]]
+on_cs_snapshot,34230000000000,1688347834107658348,shape:(5, 5000)
+[[12.234 12.234 12.234 ... 12.234 12.234 12.234]
+ [14.456 14.456 14.456 ... 14.456 14.456 14.456]
+ [15.567 15.567 15.567 ... 15.567 15.567 15.567]
+ [16.678 16.678 16.678 ... 16.678 16.678 16.678]
+ [17.789 17.789 17.789 ... 17.789 17.789 17.789]]
+on_cs_snapshot,34233000000000,1688347835855575133,shape:(5, 5000)
+[[13.234 13.234 13.234 ... 13.234 13.234 13.234]
+ [15.456 15.456 15.456 ... 15.456 15.456 15.456]
+ [16.567 16.567 16.567 ... 16.567 16.567 16.567]
+ [17.678 17.678 17.678 ... 17.678 17.678 17.678]
+ [18.789 18.789 18.789 ... 18.789 18.789 18.789]]
+on_cs_snapshot,34236000000000,1688347837595918423,shape:(5, 5000)
+[[14.234 14.234 14.234 ... 14.234 14.234 14.234]
+ [16.456 16.456 16.456 ... 16.456 16.456 16.456]
+ [17.567 17.567 17.567 ... 17.567 17.567 17.567]
+ [18.678 18.678 18.678 ... 18.678 18.678 18.678]
+ [19.789 19.789 19.789 ... 19.789 19.789 19.789]]
+on_cs_snapshot,34239000000000,1688347839438313061,shape:(5, 5000)
+[[15.234 15.234 15.234 ... 15.234 15.234 15.234]
+ [17.456 17.456 17.456 ... 17.456 17.456 17.456]
+ [18.567 18.567 18.567 ... 18.567 18.567 18.567]
+ [19.678 19.678 19.678 ... 19.678 19.678 19.678]
+ [20.789 20.789 20.789 ... 20.789 20.789 20.789]]
+on_cs_snapshot,34242000000000,1688347842282322781,shape:(5, 5000)
+[[16.234 16.234 16.234 ... 16.234 16.234 16.234]
+ [18.456 18.456 18.456 ... 18.456 18.456 18.456]
+ [19.567 19.567 19.567 ... 19.567 19.567 19.567]
+ [20.678 20.678 20.678 ... 20.678 20.678 20.678]
+ [21.789 21.789 21.789 ... 21.789 21.789 21.789]]
+on_cs_snapshot,34245000000000,1688347845117528992,shape:(5, 5000)
+[[17.234 17.234 17.234 ... 17.234 17.234 17.234]
+ [19.456 19.456 19.456 ... 19.456 19.456 19.456]
+ [20.567 20.567 20.567 ... 20.567 20.567 20.567]
+ [21.678 21.678 21.678 ... 21.678 21.678 21.678]
+ [22.789 22.789 22.789 ... 22.789 22.789 22.789]]
+on_cs_snapshot,34248000000000,1688347848140819102,shape:(5, 5000)
+[[18.234 18.234 18.234 ... 18.234 18.234 18.234]
+ [20.456 20.456 20.456 ... 20.456 20.456 20.456]
+ [21.567 21.567 21.567 ... 21.567 21.567 21.567]
+ [22.678 22.678 22.678 ... 22.678 22.678 22.678]
+ [23.789 23.789 23.789 ... 23.789 23.789 23.789]]
+on_cs_snapshot,34251000000000,1688347851146547373,shape:(5, 5000)
+[[19.234 19.234 19.234 ... 19.234 19.234 19.234]
+ [21.456 21.456 21.456 ... 21.456 21.456 21.456]
+ [22.567 22.567 22.567 ... 22.567 22.567 22.567]
+ [23.678 23.678 23.678 ... 23.678 23.678 23.678]
+ [24.789 24.789 24.789 ... 24.789 24.789 24.789]]
+on_cs_snapshot,34254000000000,1688347854119761498,shape:(5, 5000)
+[[20.234 20.234 20.234 ... 20.234 20.234 20.234]
+ [22.456 22.456 22.456 ... 22.456 22.456 22.456]
+ [23.567 23.567 23.567 ... 23.567 23.567 23.567]
+ [24.678 24.678 24.678 ... 24.678 24.678 24.678]
+ [25.789 25.789 25.789 ... 25.789 25.789 25.789]]
+on_cs_snapshot,34257000000000,1688347857196896901,shape:(5, 5000)
+[[21.234 21.234 21.234 ... 21.234 21.234 21.234]
+ [23.456 23.456 23.456 ... 23.456 23.456 23.456]
+ [24.567 24.567 24.567 ... 24.567 24.567 24.567]
+ [25.678 25.678 25.678 ... 25.678 25.678 25.678]
+ [26.789 26.789 26.789 ... 26.789 26.789 26.789]]
+on_cs_snapshot,34260000000000,1688347860137419937,shape:(5, 5000)
+[[22.234 22.234 22.234 ... 22.234 22.234 22.234]
+ [24.456 24.456 24.456 ... 24.456 24.456 24.456]
+ [25.567 25.567 25.567 ... 25.567 25.567 25.567]
+ [26.678 26.678 26.678 ... 26.678 26.678 26.678]
+ [27.789 27.789 27.789 ... 27.789 27.789 27.789]]
+on_cs_snapshot,34263000000000,1688347863133017920,shape:(5, 5000)
+[[23.234 23.234 23.234 ... 23.234 23.234 23.234]
+ [25.456 25.456 25.456 ... 25.456 25.456 25.456]
+ [26.567 26.567 26.567 ... 26.567 26.567 26.567]
+ [27.678 27.678 27.678 ... 27.678 27.678 27.678]
+ [28.789 28.789 28.789 ... 28.789 28.789 28.789]]
+on_cs_snapshot,34266000000000,1688347866127352800,shape:(5, 5000)
+[[24.234 24.234 24.234 ... 24.234 24.234 24.234]
+ [26.456 26.456 26.456 ... 26.456 26.456 26.456]
+ [27.567 27.567 27.567 ... 27.567 27.567 27.567]
+ [28.678 28.678 28.678 ... 28.678 28.678 28.678]
+ [29.789 29.789 29.789 ... 29.789 29.789 29.789]]
+on_cs_snapshot,34269000000000,1688347869139027817,shape:(5, 5000)
+[[25.234 25.234 25.234 ... 25.234 25.234 25.234]
+ [27.456 27.456 27.456 ... 27.456 27.456 27.456]
+ [28.567 28.567 28.567 ... 28.567 28.567 28.567]
+ [29.678 29.678 29.678 ... 29.678 29.678 29.678]
+ [30.789 30.789 30.789 ... 30.789 30.789 30.789]]
+on_cs_snapshot,34272000000000,1688347872140226489,shape:(5, 5000)
+[[26.234 26.234 26.234 ... 26.234 26.234 26.234]
+ [28.456 28.456 28.456 ... 28.456 28.456 28.456]
+ [29.567 29.567 29.567 ... 29.567 29.567 29.567]
+ [30.678 30.678 30.678 ... 30.678 30.678 30.678]
+ [31.789 31.789 31.789 ... 31.789 31.789 31.789]]
+on_cs_snapshot,34275000000000,1688347875139466055,shape:(5, 5000)
+[[27.234 27.234 27.234 ... 27.234 27.234 27.234]
+ [29.456 29.456 29.456 ... 29.456 29.456 29.456]
+ [30.567 30.567 30.567 ... 30.567 30.567 30.567]
+ [31.678 31.678 31.678 ... 31.678 31.678 31.678]
+ [32.789 32.789 32.789 ... 32.789 32.789 32.789]]
+on_cs_snapshot,34278000000000,1688347878123267561,shape:(5, 5000)
+[[28.234 28.234 28.234 ... 28.234 28.234 28.234]
+ [30.456 30.456 30.456 ... 30.456 30.456 30.456]
+ [31.567 31.567 31.567 ... 31.567 31.567 31.567]
+ [32.678 32.678 32.678 ... 32.678 32.678 32.678]
+ [33.789 33.789 33.789 ... 33.789 33.789 33.789]] 35467 entries
+[on_sod] [info] loading dynamic uv file /mnt/nas-3/ProcessedData/reference_data/20230703/uv.stocks.csv
+[open_impl] [info] opened output/fct1/20230703/fct1-20230703.csv
+[open_impl] [info] opened output/strat/20230703/strat-20230703.csv
+[run_date] [info] opening marketdata:0x7fff84b475c0
+[on_sod] [info] loading /mnt/nas-3/ProcessedData/wolverine/stocks/snapshot/20230703/index.bin.zst
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[run_date] [info] opening marketdata:0x7fff84b475c0
+[on_sod] [info] loading /mnt/nas-3/ProcessedData/wolverine/stocks/mbo/20230703/index.bin.zst
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000
+[on_sod] [info] ins_nr=5000

@@ -4,8 +4,6 @@ project(wolverine-demo VERSION 0.1 LANGUAGES C CXX)
 
 find_package(wolverine REQUIRED CONFIG)
 
-set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.local)
-
 message(${Python3_NumPy_INCLUDE_DIRS})
 
 add_subdirectory(demos)
