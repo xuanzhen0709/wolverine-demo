@@ -68,7 +68,7 @@ enable_wlsim_env
 
 或者可以在任何时候输入`enable_wlsim_env`来启用对应python和c++环境。
 
-## 安装wlsim和wlmd
+## 安装wlsim(主程序),wlmd(行情模块)和cfi-operators(算子库，可选)
 
 确保金刚狼环境已启用，当前环境的名称可以通过以下命令获取。
 

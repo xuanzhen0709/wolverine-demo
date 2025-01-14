@@ -1,0 +1,22 @@
+env: {}
+start: 20250109
+end: 20250109
+refdata:
+  ticker_mapping: HFT
+
+marketdata:
+  - module: snapshot
+    symbols:
+      - a.DCE
+    config: {}
+    client:
+      - operators
+
+signal:
+  name: operators
+  module: nickchenyj.operators
+  config:
+    targets:
+      - a.DCE
+
+      # user defined params can go below
