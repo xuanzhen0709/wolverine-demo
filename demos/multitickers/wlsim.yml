@@ -1,15 +1,15 @@
 env: {}
-start: 20230505
-end: 20230505
+start: 20250115
+end: 20250115
 
 refdata:
+  ticker_mapping: HFT
 
 marketdata:
   - module: snapshot
     symbols:
       - IC.CFFEX
       - IF1.CFFEX
-      - IF2.CFFEX
     config: {}
     client:
       - multitickers
