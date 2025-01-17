@@ -1,22 +1,29 @@
 env: {}
-start: 20250109
-end: 20250109
+start: 20250107
+end: 20250107
 refdata:
   ticker_mapping: HFT
 
+checkpoint:
+  dir: checkpoint/
+  auto_load: yesterday
 marketdata:
   - module: snapshot
     symbols:
-      - a.DCE
-    config: {}
+      - ZC.CME
+    config:
+      dataset: cme
     client:
       - operators
 
 signal:
   name: operators
   module: nickchenyj.operators
+  output:
+    module: csv
+    config:
+      output_dir: output/resume
   config:
     targets:
-      - a.DCE
-
+      - ZC.CME
       # user defined params can go below

@@ -1,6 +1,6 @@
 env: {}
 start: 20250106
-end: 20250106
+end: 20250107
 refdata:
   ticker_mapping: HFT
 
@@ -11,14 +11,16 @@ marketdata:
     config:
       dataset: cme
     client:
-      - snapshot-py
+      - operators
 
 signal:
-  name: snapshot-py
-  module: nickchenyj.snapshot
-  is_python: true
+  name: operators
+  module: nickchenyj.operators
+  output:
+    module: csv
+    config:
+      output_dir: output/full
   config:
     targets:
       - ZC.CME
-
       # user defined params can go below

@@ -23,6 +23,8 @@ public:
 
   void initialize(const Config *root);
   void set_apis(SignalApis);
+  void load_state(const std::string &dir);
+  void save_state(const std::string &dir);
   void on_sod(const SodEvent *ev);
   void on_eod(const EodEvent *ev);
 
@@ -32,9 +34,11 @@ private:
   SignalApis m_apis = {nullptr};
   size_t m_cnt = 0;
   // initialize with formula directory
-  cfi::Operators op1{"ts_inner_product(@x,@y,2)"};
-  // initialize with formula later
-  cfi::Operators op2;
+  // each op must be assigned a unique id
+  cfi::Operators m_op1{"ts_inner_product(@x,@y,2)", "op1"};
+  // initialize with formula and id later
+  cfi::Operators m_op2;
+  std::vector<double> m_sigval;
 };
 
 // function definitions
@@ -47,7 +51,8 @@ void Signal::initialize(const Config *root)
   const size_t len = 10;
   std::string formula;
   fmt::format_to(std::back_inserter(formula), "ts_inner_product(@x,@y,{})", len);
-  op2.initialize(formula);
+  m_op2.initialize(formula, "op2");
+  m_sigval.assign(1, NAN);
 }
 
 void Signal::set_apis(SignalApis apis) { m_apis = apis; }
@@ -61,18 +66,32 @@ void Signal::on_sod(const SodEvent *ev)
   wllog_info("ins_nr={}\n", ev->ins_nr);
 }
 
+void Signal::load_state(const std::string &dir)
+{
+  m_op1.load_checkpoint(dir);
+  m_op2.load_checkpoint(dir);
+}
+
+void Signal::save_state(const std::string &dir)
+{
+  m_op1.save_checkpoint(dir);
+  m_op2.save_checkpoint(dir);
+}
+
 void Signal::on_eod(const EodEvent *ev) { wllog_info("{} updates received\n", m_cnt); }
 
 void Signal::on_snapshot(const SnapshotEvent *ev)
 {
   ++m_cnt;
   const auto ss = ev->snapshot;
-  const auto ret1 = op1.update(double(ss->bv[0]), ss->bp[0]);
-  const auto ret2 = op2.update(double(ss->av[0]), ss->ap[0]);
+  const auto ret1 = m_op1.update(double(ss->bv[0]), ss->bp[0]);
+  const auto ret2 = m_op2.update(double(ss->av[0]), ss->ap[0]);
   wllog_info("{},{}/{},{}/{},bid:{}@{},bid_op:{}/{},ask:{}@{},ask_op:{}/{}\n", m_cnt, ss->localtime,
              cfi::wolverine::time::epoch_to_str(ss->localtime), ss->exchtime,
-             cfi::wolverine::time::exchtime_to_str(ss->exchtime), ss->bv[0], ss->bp[0], op1.size(), ret1, ss->av[0],
-             ss->ap[0], op2.size(), ret2);
+             cfi::wolverine::time::exchtime_to_str(ss->exchtime), ss->bv[0], ss->bp[0], m_op1.size(), ret1, ss->av[0],
+             ss->ap[0], m_op2.size(), ret2);
+  m_sigval[0] = ret1 + ret2;
+  m_apis.update_signal(m_apis.token, ss->exchtime, ss->localtime, 1, m_sigval.data());
 }
 
 } // namespace multitickers
@@ -96,7 +115,16 @@ void on_create(void **ptr, SignalOps *ops)
         auto *ptr = reinterpret_cast<Signal *>(hdl);
         ptr->set_apis(apis);
       },
-
+      .load_state = [](void *hdl, const std::string &dir) -> void
+      {
+        auto *ptr = reinterpret_cast<Signal *>(hdl);
+        ptr->load_state(dir);
+      },
+      .save_state = [](void *hdl, const std::string &dir) -> void
+      {
+        auto *ptr = reinterpret_cast<Signal *>(hdl);
+        ptr->save_state(dir);
+      },
       .on_sod = [](void *hdl, const SodEvent *ev) -> void
       {
         auto *ptr = reinterpret_cast<Signal *>(hdl);

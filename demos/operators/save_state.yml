@@ -4,6 +4,9 @@ end: 20250106
 refdata:
   ticker_mapping: HFT
 
+checkpoint:
+  dir: checkpoint/
+  auto_save_interval: 1
 marketdata:
   - module: snapshot
     symbols:
@@ -11,14 +14,12 @@ marketdata:
     config:
       dataset: cme
     client:
-      - snapshot-py
+      - operators
 
 signal:
-  name: snapshot-py
-  module: nickchenyj.snapshot
-  is_python: true
+  name: operators
+  module: nickchenyj.operators
   config:
     targets:
       - ZC.CME
-
       # user defined params can go below
