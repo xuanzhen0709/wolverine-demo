@@ -1,0 +1,33 @@
+env: {}
+start: 20241217
+end: 20241217
+refdata:
+
+checkpoint:
+  dir: checkpoint/
+  auto_load: yesterday
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocksv2.CHN
+    config:
+      # data_dir: /global/wlsim/data/cs_snapshot
+      skip_refdata_check: true
+      fields:
+        - bp
+        - av
+      levels: 5
+    client:
+      - csstock
+
+signal:
+  name: csstock
+  module: wjp.csops
+  output:
+    module: csv
+    config:
+      output_dir: output
+  config:
+    targets:
+      - dynamic:stocksv2.CHN
