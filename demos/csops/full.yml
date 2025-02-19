@@ -10,11 +10,9 @@ checkpoint:
 marketdata:
   - module: cs-snapshot
     symbols:
-      # - stocksv2.CHN
-      - stocks
+      - stocksv2.CHN
     config:
-      # data_dir: /global/wlsim/data/cs_snapshot
-      # data_dir: /mnt/nas-3/ProcessedData/wolverine/stocksv2.CHN/snapshot@3s
+      skip_refdata_check: true
       fields:
         - bp
         - av
@@ -31,5 +29,4 @@ signal:
       output_dir: output/full
   config:
     targets:
-      # - dynamic:stocksv2.CHN
-      - dynamic:stocks
+      - dynamic:stocksv2.CHN

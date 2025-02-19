@@ -12,7 +12,6 @@ marketdata:
     symbols:
       - stocksv2.CHN
     config:
-      # data_dir: /global/wlsim/data/cs_snapshot
       skip_refdata_check: true
       fields:
         - bp
