@@ -1,5 +1,5 @@
 add_wolverine_python_utils(
     NAME utils
     USER tools
-    SRCS calendar_utils.py
+    SRCS common_utils.pyx calendar_utils.py
 )

@@ -1,0 +1,34 @@
+env: {}
+start: 20230701
+end: 20230709
+refdata:
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks
+    config:
+      fields:
+        - ap
+        - bp
+      levels: 1
+    client:
+      - ic
+
+signal:
+  name: ic
+  module: nickchenyj.cs_ic_calculator
+  is_python: true
+  config:
+    targets:
+      - dynamic:stocks
+
+    signame: csstock-py
+    sigdir: output
+    file_type: csv
+    output_dir: output/cs_ic/
+    # support m/s/h
+    futret_bias:
+      - 15m
+    # Optional, support m/s/h, the minimum is 3s
+    # ffill_interval: 3s
