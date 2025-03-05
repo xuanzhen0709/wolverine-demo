@@ -2,6 +2,7 @@ import numpy as np
 import datetime
 import time
 import yaml
+import ctypes
 
 from cfi.wolverine.signal import *
 from cfi.wolverine.event import *
