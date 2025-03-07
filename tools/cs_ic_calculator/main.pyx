@@ -126,7 +126,7 @@ def find_all_shift_info(
 
     return ans
 
-    
+
 cdef void match_A_with_B_cs(
         const int A_nr,
         const cnp.uint64_t[:] A_localtime,
@@ -218,6 +218,8 @@ class CsICCalculator(SignalBase):
         data_path: Path = (
             self.sigdir / self.signame / str(self.today) / f"{self.signame}-{self.today}.data.npy"
         )
+        if not data_path.exists():
+            data_path = self.sigdir / self.signame / str(self.today) / f"{self.signame}-{self.today}.csv"
         reader = SignalReader(data_path, instrument="stocks.CHN")
         df = reader.read(convert_localtime=False)
         df["localtime"] = df["localtime"].astype(np.int64).astype(np.uint64)
