@@ -50,7 +50,8 @@ void Signal::initialize(const Config *root)
   // assume we get op config here
   const size_t len = 10;
   std::string formula;
-  fmt::format_to(std::back_inserter(formula), "ts_inner_product(@x,@y,{})", len);
+  fmt::format_to(std::back_inserter(formula), "ts_inner_product(@x,@y,{})",
+                 len);
   m_op2.initialize(formula, "op2");
   m_sigval.assign(1, NAN);
 }
@@ -78,7 +79,10 @@ void Signal::save_state(const std::string &dir)
   m_op2.save_checkpoint(dir);
 }
 
-void Signal::on_eod(const EodEvent *ev) { wllog_info("{} updates received\n", m_cnt); }
+void Signal::on_eod(const EodEvent *ev)
+{
+  wllog_info("{} updates received\n", m_cnt);
+}
 
 void Signal::on_snapshot(const SnapshotEvent *ev)
 {
@@ -86,12 +90,15 @@ void Signal::on_snapshot(const SnapshotEvent *ev)
   const auto ss = ev->snapshot;
   const auto ret1 = m_op1.update(double(ss->bv[0]), ss->bp[0]);
   const auto ret2 = m_op2.update(double(ss->av[0]), ss->ap[0]);
-  wllog_info("{},{}/{},{}/{},bid:{}@{},bid_op:{}/{},ask:{}@{},ask_op:{}/{}\n", m_cnt, ss->localtime,
+  wllog_info("{},{}/{},{}/{},bid:{}@{},bid_op:{}/{},ask:{}@{},ask_op:{}/{}\n",
+             m_cnt, ss->localtime,
              cfi::wolverine::time::epoch_to_str(ss->localtime), ss->exchtime,
-             cfi::wolverine::time::exchtime_to_str(ss->exchtime), ss->bv[0], ss->bp[0], m_op1.size(), ret1, ss->av[0],
-             ss->ap[0], m_op2.size(), ret2);
+             cfi::wolverine::time::exchtime_to_str(ss->exchtime), ss->bv[0],
+             ss->bp[0], m_op1.size(), ret1, ss->av[0], ss->ap[0], m_op2.size(),
+             ret2);
   m_sigval[0] = ret1 + ret2;
-  m_apis.update_signal(m_apis.token, ss->exchtime, ss->localtime, 1, m_sigval.data());
+  m_apis.update_signal(m_apis.token, ss->exchtime, ss->localtime, 1,
+                       m_sigval.data());
 }
 
 } // namespace multitickers

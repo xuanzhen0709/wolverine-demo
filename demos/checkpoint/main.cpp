@@ -42,15 +42,18 @@ void Signal::initialize(const Config *root) {}
 
 void Signal::set_apis(SignalApis apis) { m_apis = apis; }
 
-void Signal::load_state(const std::string &indir) {
+void Signal::load_state(const std::string &indir)
+{
   wllog_info("loading state from dir {}\n", indir);
 }
 
-void Signal::save_state(const std::string &outdir) {
+void Signal::save_state(const std::string &outdir)
+{
   wllog_info("saving state to dir {}\n", outdir);
 }
 
-void Signal::on_sod(const SodEvent *ev) {
+void Signal::on_sod(const SodEvent *ev)
+{
   m_cnt = 0;
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
@@ -68,11 +71,13 @@ void Signal::on_sod(const SodEvent *ev) {
   }
 }
 
-void Signal::on_eod(const EodEvent *ev) {
+void Signal::on_eod(const EodEvent *ev)
+{
   wllog_info("{} updates received\n", m_cnt);
 }
 
-void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
+void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
+{
   wllog_debug("exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
   ++m_cnt;
   // we use m_cnt as the sig value for each target
@@ -89,43 +94,51 @@ using nickchenyj::checkpoint::Signal;
 C_DECLARATION_BEGIN;
 
 static const SignalOps my_ops = {
-    .initialize = [](void *hdl, const Config *root) -> void {
+    .initialize = [](void *hdl, const Config *root) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->initialize(root);
     },
 
-    .set_apis = [](void *hdl, SignalApis apis) -> void {
+    .set_apis = [](void *hdl, SignalApis apis) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->set_apis(apis);
     },
 
-    .load_state = [](void *hdl, const std::string &indir) -> void {
+    .load_state = [](void *hdl, const std::string &indir) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->load_state(indir);
     },
 
-    .save_state = [](void *hdl, const std::string &outdir) -> void {
+    .save_state = [](void *hdl, const std::string &outdir) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->save_state(outdir);
     },
 
-    .on_sod = [](void *hdl, const SodEvent *ev) -> void {
+    .on_sod = [](void *hdl, const SodEvent *ev) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_sod(ev);
     },
 
-    .on_eod = [](void *hdl, const EodEvent *ev) -> void {
+    .on_eod = [](void *hdl, const EodEvent *ev) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_eod(ev);
     },
 
-    .on_cs_snapshot = [](void *hdl, const CsSnapshotEvent *ev) -> void {
+    .on_cs_snapshot = [](void *hdl, const CsSnapshotEvent *ev) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_snapshot(ev);
     },
 };
 
-void on_create(void **ptr, SignalOps *ops) {
+void on_create(void **ptr, SignalOps *ops)
+{
   *ptr = new Signal{};
   *ops = my_ops;
 }

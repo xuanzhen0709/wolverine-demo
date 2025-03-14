@@ -47,8 +47,10 @@ void Signal::on_sod(const SodEvent *ev)
 {
   m_cnt = 0;
   // NOTE:
-  if (ev->src_type == MdSrcType::Snapshot || ev->src_type == MdSrcType::FullSnapshot) {
-    // for snapshot/full_snapshot marketdata, only one symbol is provided at a time
+  if (ev->src_type == MdSrcType::Snapshot ||
+      ev->src_type == MdSrcType::FullSnapshot) {
+    // for snapshot/full_snapshot marketdata, only one symbol is provided at a
+    // time
     const auto *ms = ev->ms[0];
     const std::string ticker = ms->ticker;
     const std::string exch = ms->exchange;
@@ -63,7 +65,10 @@ void Signal::on_sod(const SodEvent *ev)
   }
 }
 
-void Signal::on_eod(const EodEvent *ev) { wllog_info("{} updates received\n", m_cnt); }
+void Signal::on_eod(const EodEvent *ev)
+{
+  wllog_info("{} updates received\n", m_cnt);
+}
 
 void Signal::on_snapshot(const SnapshotEvent *ev)
 {
@@ -75,7 +80,8 @@ void Signal::on_snapshot(const SnapshotEvent *ev)
   } else {
     m_sigval[2] = ss->ap[0];
   }
-  m_apis.update_signal(m_apis.token, ss->localtime, ss->exchtime, 2, m_sigval.data());
+  m_apis.update_signal(m_apis.token, ss->localtime, ss->exchtime, 2,
+                       m_sigval.data());
 }
 
 } // namespace multitickers

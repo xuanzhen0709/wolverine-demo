@@ -47,7 +47,8 @@ void Signal::initialize(const Config *root)
 {
   // get user config construct formula
   int window = 2;
-  fmt::format_to(std::back_inserter(m_f1), "ts_inner_product(@bp1,@bp2,{})", window);
+  fmt::format_to(std::back_inserter(m_f1), "ts_inner_product(@bp1,@bp2,{})",
+                 window);
   fmt::format_to(std::back_inserter(m_f2), "ts_sum(@av1,{})", window);
   m_node1.initialize(m_f1, "f1");
   m_node2.initialize(m_f2, "f2");
@@ -103,7 +104,8 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
   }
 
   ++m_cnt;
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr, ret1);
+  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
+                       ret1);
 }
 
 } // namespace csops

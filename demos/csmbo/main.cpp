@@ -39,7 +39,8 @@ private:
     size_t cnt = 0;
     int64_t last = 0;
 
-    void clear() {
+    void clear()
+    {
       cnt = 0;
       last = 0;
     }
@@ -54,7 +55,8 @@ void Signal::initialize(const Config *root) {}
 
 void Signal::set_apis(SignalApis apis) { m_apis = apis; }
 
-void Signal::on_sod(const SodEvent *ev) {
+void Signal::on_sod(const SodEvent *ev)
+{
   m_cnt = 0;
 
   // NOTE:
@@ -73,11 +75,13 @@ void Signal::on_sod(const SodEvent *ev) {
   }
 }
 
-void Signal::on_eod(const EodEvent *ev) {
+void Signal::on_eod(const EodEvent *ev)
+{
   wllog_info("{} updates received\n", m_cnt);
 }
 
-void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
+void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
+{
   // wllog_info("exchtime:{},ins_nr:{},level_nr:{}\n", ev->exchtime, ev->ins_nr,
   //          ev->level_nr);
   using FldType = CsSnapshotEvent::FldType;
@@ -106,7 +110,8 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {
                        sigs.data());
 }
 
-void Signal::on_cs_mbo(const CsMboEvent *ev) {
+void Signal::on_cs_mbo(const CsMboEvent *ev)
+{
   // wllog_info("exchtime:{},localtime:{},ins_nr:{}\n", ev->exchtime,
   // ev->localtime,
   //          ev->ins_nr);
@@ -147,7 +152,8 @@ void Signal::on_cs_mbo(const CsMboEvent *ev) {
       const auto &askid = trades->askid[ins];
       wllog_info("TRADES,ins:{},cnt:{}\n", ins, cnt);
       for (int evidx = 0; evidx < std::min<int>(cnt, 5); ++evidx) {
-        wllog_info("\t{},{}@{},bid:{},aid:{}\n", evidx, qty[evidx], price[evidx], bidid[evidx], askid[evidx]);
+        wllog_info("\t{},{}@{},bid:{},aid:{}\n", evidx, qty[evidx],
+                   price[evidx], bidid[evidx], askid[evidx]);
       }
     }
   }
@@ -185,38 +191,45 @@ using nickchenyj::csmbo::Signal;
 C_DECLARATION_BEGIN;
 
 static SignalOps my_ops = {
-    .initialize = [](void *hdl, const Config *root) -> void {
+    .initialize = [](void *hdl, const Config *root) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->initialize(root);
     },
 
-    .set_apis = [](void *hdl, SignalApis apis) -> void {
+    .set_apis = [](void *hdl, SignalApis apis) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->set_apis(apis);
     },
 
-    .on_sod = [](void *hdl, const SodEvent *ev) -> void {
+    .on_sod = [](void *hdl, const SodEvent *ev) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_sod(ev);
     },
 
-    .on_eod = [](void *hdl, const EodEvent *ev) -> void {
+    .on_eod = [](void *hdl, const EodEvent *ev) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_eod(ev);
     },
 
-    .on_cs_snapshot = [](void *hdl, const CsSnapshotEvent *ev) -> void {
+    .on_cs_snapshot = [](void *hdl, const CsSnapshotEvent *ev) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_snapshot(ev);
     },
 
-    .on_cs_mbo = [](void *hdl, const CsMboEvent *ev) -> void {
+    .on_cs_mbo = [](void *hdl, const CsMboEvent *ev) -> void
+    {
       auto *ptr = reinterpret_cast<Signal *>(hdl);
       ptr->on_cs_mbo(ev);
     },
 };
 
-void on_create(void **ptr, SignalOps *ops) {
+void on_create(void **ptr, SignalOps *ops)
+{
   *ptr = new Signal{};
   *ops = my_ops;
 }
