@@ -91,8 +91,7 @@ class MySig(SignalBase):
         cdef int ins_nr = ev.ins_nr
         dt = datetime.datetime.fromtimestamp(localtime / 1e9)
         print(f"on_cs_mbo:{exchtime},{localtime}/{dt},{ins_nr}")
-        trades: CsMboEvent.Trade = ev.get_trades()
-        cdef uint32_t* cnts = <uint32_t*><intptr_t>(ctypes.addressof(trades.cnt.contents))
+        cdef uint32_t* cnts = <uint32_t*><intptr_t>(ev.get_trades_cnt_ptr())
         cdef int ii = 0
         cdef int ti = 0
         cdef int ins_cnt = 0
@@ -104,8 +103,8 @@ class MySig(SignalBase):
             turnover = 0
             if ins_cnt == 0:
                 continue
-            bidid = <uint64_t*><intptr_t>(ctypes.addressof(trades.bidid[ii].contents))
-            askid = <uint64_t*><intptr_t>(ctypes.addressof(trades.askid[ii].contents))
+            bidid = <uint64_t*><intptr_t>(ev.get_trades_fld_ptr(CsMboEvent.Trade.FldType_BidId, ii))
+            askid = <uint64_t*><intptr_t>(ev.get_trades_fld_ptr(CsMboEvent.Trade.FldType_AskId, ii))
             print(f"ins:{ii},cnt:{ins_cnt}")
             for ti in range(ins_cnt):
                 #print(f"trade,{ti}/{ins_cnt},{bidid[ti]},{askid[ti]}")

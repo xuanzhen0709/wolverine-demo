@@ -115,41 +115,25 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
   // wllog_info("exchtime:{},localtime:{},ins_nr:{}\n", ev->exchtime,
   // ev->localtime,
   //          ev->ins_nr);
-  // {
-  //   const auto &orders = ev->orders;
-  //   for (int ins = 0; ins < 5; ++ins) {
-  //     const auto &cnt = orders->cnt[ins];
-  //     const auto &px = orders->price[ins];
-  //     const auto &size = orders->qty[ins];
-  //     wllog_info("ORDER,ins:{},cnt:{}\n", ins, cnt);
-  //     for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
-  //       wllog_info("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
-  //     }
-  //   }
-  // }
 
-  // {
-  //   const auto &cancels = ev->cancels;
-  //   for (int ins = 0; ins < 5; ++ins) {
-  //     const auto &cnt = cancels->cnt[ins];
-  //     const auto &px = cancels->price[ins];
-  //     const auto &size = cancels->qty[ins];
-  //     wllog_info("CANCELS,ins:{},cnt:{}\n", ins, cnt);
-  //     for (int evidx = 0; evidx < cnt && evidx < 5; ++evidx) {
-  //       wllog_info("\t{},{}@{}\n", evidx, size[evidx], px[evidx]);
-  //     }
-  //   }
-  // }
+  using OrderFldType = CsMboEvent::OrderFldType;
+  using CancelFldType = CsMboEvent::CancelFldType;
+  using TradeFldType = CsMboEvent::TradeFldType;
 
   const auto ins_nr = std::min<int>(5, ev->ins_nr);
   {
-    const auto &trades = ev->trades;
+    const auto *trade_cnt = CsMboUtils::get_fld<TradeFldType::Cnt>(ev);
+    const auto *trade_price = CsMboUtils::get_fld<TradeFldType::Price>(ev);
+    const auto *trade_qty = CsMboUtils::get_fld<TradeFldType::Qty>(ev);
+    const auto *trade_bidid = CsMboUtils::get_fld<TradeFldType::BidId>(ev);
+    const auto *trade_askid = CsMboUtils::get_fld<TradeFldType::AskId>(ev);
+
     for (int ins = 0; ins < ins_nr; ++ins) {
-      const auto &cnt = trades->cnt[ins];
-      const auto &price = trades->price[ins];
-      const auto &qty = trades->qty[ins];
-      const auto &bidid = trades->price[ins];
-      const auto &askid = trades->askid[ins];
+      const auto &cnt = trade_cnt[ins];
+      const auto &price = trade_price[ins];
+      const auto &qty = trade_qty[ins];
+      const auto &bidid = trade_bidid[ins];
+      const auto &askid = trade_askid[ins];
       wllog_info("TRADES,ins:{},cnt:{}\n", ins, cnt);
       for (int evidx = 0; evidx < std::min<int>(cnt, 5); ++evidx) {
         wllog_info("\t{},{}@{},bid:{},aid:{}\n", evidx, qty[evidx],
@@ -159,11 +143,13 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
   }
   {
     // a quick demo to calculate per-stock vwap
-    const auto &trades = ev->cancels;
+    const auto *trade_cnt = CsMboUtils::get_fld<TradeFldType::Cnt>(ev);
+    const auto *trade_price = CsMboUtils::get_fld<TradeFldType::Price>(ev);
+    const auto *trade_qty = CsMboUtils::get_fld<TradeFldType::Qty>(ev);
     for (int ins = 0; ins < ev->ins_nr; ++ins) {
-      const auto &cnt = trades->cnt[ins];
-      const auto &px = trades->price[ins];
-      const auto &size = trades->qty[ins];
+      const auto &cnt = trade_cnt[ins];
+      const auto &px = trade_price[ins];
+      const auto &size = trade_qty[ins];
 
       uint32_t vol = 0;
       for (int evidx = 0; evidx < cnt; ++evidx) {
