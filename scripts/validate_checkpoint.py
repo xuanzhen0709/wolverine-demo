@@ -53,9 +53,7 @@ class CheckpointValidator:
                 self.tmr,
                 {
                     "dir": str(self.chkpnt_dir),
-                    "load": [
-                        self.date,
-                    ],
+                    "load": self.date,
                 },
             ),
             TestCase(
