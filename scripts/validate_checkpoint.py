@@ -85,6 +85,7 @@ class CheckpointValidator:
 
         self.cfg.set("/signal/output/config/output_dir", str(outdir), mustexist=False)
         self.cfg.set("/signal/output/module", "npy", mustexist=True)
+        self.cfg.delete("/signal/factors/*/output", mustexist=False)
 
         self.cfg.dump(savecfg)
         case.cfgpath = savecfg
@@ -94,7 +95,7 @@ class CheckpointValidator:
     def run_test(self, case: TestCase):
         print(f"running test for {case.name},{case.cfgpath}")
         subprocess.run(
-            f"wl-sim {case.cfgpath} 2>&1 | tee {case.logpath}",
+            f"stdbuf -o0 -e0 wl-sim {case.cfgpath} 2>&1 | tee {case.logpath}",
             shell=True,
             check=True,
         )
