@@ -1,25 +1,29 @@
 <!-- TOC -->
-* [QuickStart](#quickstart)
-  * [初始化python和c++环境](#初始化python和c环境)
-    * [从v1.6.x及以前版本升级而来](#从v16x及以前版本升级而来)
-    * [全新安装](#全新安装)
-  * [安装wlsim和wlmd](#安装wlsim和wlmd)
-  * [构建本项目](#构建本项目)
-  * [运行demo](#运行demo)
+- [QuickStart](#quickstart)
+  - [初始化python和c++环境](#初始化python和c环境)
+    - [从v1.6.x及以前版本升级而来](#从v16x及以前版本升级而来)
+    - [全新安装](#全新安装)
+  - [更新cmake](#更新cmake)
+  - [安装wlsim(主程序),wlmd(行情模块)和cfi-operators(算子库，可选)](#安装wlsim主程序wlmd行情模块和cfi-operators算子库可选)
+  - [构建本项目](#构建本项目)
+  - [运行demo](#运行demo)
 <!-- TOC -->
 # QuickStart
 
 金刚狼包含两个组件，两个组件独立更新。
 
-* wlsim: 主框架
-* wlmd：行情模块
+- wlsim: 主框架
+- wlmd：行情模块
 
 安装包位于
 `/mnt/nas-3/homes/nickchenyj/packages/{wlsim|wlmd}`
 
 该目录下会以多级目录的形式区分包的版本、依赖关系、以及支持的系统环境,金刚狼目前适配了公司三种常见的操作系统环境，安装时需要选择相应的版本。
 
-注意conda可能对兼容性造成影响，因此建议完全清除conda后再安装金刚狼。
+注意
+
+- conda可能对兼容性造成影响，因此建议完全清除conda后再安装金刚狼。
+- 请关注任何命令的输出，如果有错误提示，不要继续！！！
 
 ## 初始化python和c++环境
 
@@ -67,6 +71,13 @@ enable_wlsim_env
 ```
 
 或者可以在任何时候输入`enable_wlsim_env`来启用对应python和c++环境。
+
+## 更新cmake
+
+启用环境后，升级cmake到较新版
+```bash
+pip3 install -U 'cmake<4'
+```
 
 ## 安装wlsim(主程序),wlmd(行情模块)和cfi-operators(算子库，可选)
 
