@@ -6,7 +6,7 @@ refdata:
 marketdata:
   - module: cs-snapshot
     symbols:
-      - stocks
+      - stocks.CHN
     config:
       # data_dir: /global/wlsim/data/cs_snapshot
       fields:
@@ -26,4 +26,4 @@ signal:
       output_dir: output
   config:
     targets:
-      - dynamic:stocks
+      - dynamic:stocks.CHN

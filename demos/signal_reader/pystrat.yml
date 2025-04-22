@@ -10,7 +10,7 @@ worker:
 marketdata:
   - module: cs-snapshot
     symbols:
-      - stocks
+      - stocks.CHN
     config:
       fields:
         - last_price
@@ -81,4 +81,4 @@ signal:
 
   config:
     targets:
-      - dynamic:stocks
+      - dynamic:stocks.CHN
