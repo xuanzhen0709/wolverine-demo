@@ -39,7 +39,7 @@ signal:
   config:
     targets:
       - dynamic:stocksv2.CHN
-    formula: "root = ts_corr(@bp1,@bp2,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
+    formula: "root = ts_min(@bp1,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
 
   factors:
     - name: feature1
@@ -51,7 +51,7 @@ signal:
       config:
         targets:
           - dynamic:stocksv2.CHN
-        formula: "root = ts_corr(@bp1,@bp2,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
+        formula: "root = ts_min(@bp1,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
 
     - name: feature2
       module: wenjiapeng.ops_feature
@@ -62,7 +62,7 @@ signal:
       config:
         targets:
           - dynamic:stocksv2.CHN
-        formula: "root = ts_corr(@bp1,@bp2,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
+        formula: "root = ts_min(@bp1,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
 
     - name: feature3
       module: wenjiapeng.ops_feature
@@ -73,7 +73,7 @@ signal:
       config:
         targets:
           - dynamic:stocksv2.CHN
-        formula: "root = ts_corr(@bp1,@bp2,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
+        formula: "root = ts_min(@bp1,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
 
     - name: feature4
       module: wenjiapeng.ops_feature
@@ -84,7 +84,7 @@ signal:
       config:
         targets:
           - dynamic:stocksv2.CHN
-        formula: "root = ts_corr(@bp1,@bp2,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
+        formula: "root = ts_min(@bp1,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
 
     - name: feature5
       module: wenjiapeng.ops_feature
@@ -95,4 +95,4 @@ signal:
       config:
         targets:
           - dynamic:stocksv2.CHN
-        formula: "root = ts_corr(@bp1,@bp2,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
+        formula: "root = ts_min(@bp1,10) + ts_le_alpha(ts_max(@av1,20),@bp1,30)"
