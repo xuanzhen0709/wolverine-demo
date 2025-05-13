@@ -229,6 +229,7 @@ class CsICCalculator(SignalBase):
     def initialize(self, cfg_str: str):
         print(f"loading config")
         cfg = yaml.safe_load(cfg_str)
+        self.use_stocksv2 = "stocksv2" in cfg["targets"][0]
         self.signame = str(cfg["signame"])
         self.outname = str(cfg.get("outname", self.signame))
         self.sigdir = Path(cfg["sigdir"])
@@ -271,20 +272,18 @@ class CsICCalculator(SignalBase):
             self.load_signal()
             self.cache.clear()
             self.session.clear()
-
         print(f"on_sod:{date},ins_nr:{ev.ins_nr}")
         self.targets.clear()
         for i in range(ev.ins_nr):
-            ms: MdStatic = ev.ms[i].contents
-            self.targets.append(
-                ms.ticker.decode("utf8") +
-                "." +
-                ms.exchange.decode("utf8"))
-            sessions = []
-            for j in range(ms.session_nr):
-                sessions.append(
-                    tuple([ms.session[j].begin, ms.session[j].end]))
-            self.session.add(tuple(sessions))
+            ms: MdStatic = ev.ms[i]
+            if ms:
+                ms = ms.contents
+                self.targets.append( ms.ticker.decode("utf8") + "." + ms.exchange.decode("utf8"))
+                sessions = []
+                for j in range(ms.session_nr):
+                    sessions.append(tuple([ms.session[j].begin, ms.session[j].end]))
+                self.session.add(tuple(sessions))
+
         sig_targets: List[str] = list(self.sig_df.columns)
 
         for _i, _x in enumerate(sig_targets):
@@ -297,6 +296,9 @@ class CsICCalculator(SignalBase):
         sig_targets = [
             _x for _x in sig_targets if _x not in [
                 "exchtime", "localtime"]]
+
+        if self.use_stocksv2:
+            self.targets = sig_targets
         if self.targets != sig_targets:
             if self.use_system_uv:
                 new_sigs = set(self.targets) - set(sig_targets)
@@ -412,7 +414,6 @@ class CsICCalculator(SignalBase):
 
     def on_cs_snapshot(self, ev: CsSnapshotEvent):
         self.cache.push(ev)
-
 
 def pysig_create():
     return CsICCalculator()
