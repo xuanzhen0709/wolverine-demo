@@ -103,8 +103,8 @@ class MySig(SignalBase):
             turnover = 0
             if ins_cnt == 0:
                 continue
-            bidid = <uint64_t*><intptr_t>(ev.get_trades_fld_ptr(CsMboEvent.Trade.FldType_BidId, ii))
-            askid = <uint64_t*><intptr_t>(ev.get_trades_fld_ptr(CsMboEvent.Trade.FldType_AskId, ii))
+            bidid = <uint64_t*><intptr_t>(ev.get_trades_fld_ptr(CsMboEvent.Trade.FldType_BidId.value, ii))
+            askid = <uint64_t*><intptr_t>(ev.get_trades_fld_ptr(CsMboEvent.Trade.FldType_AskId.value, ii))
             print(f"ins:{ii},cnt:{ins_cnt}")
             for ti in range(ins_cnt):
                 #print(f"trade,{ti}/{ins_cnt},{bidid[ti]},{askid[ti]}")
