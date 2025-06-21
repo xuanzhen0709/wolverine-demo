@@ -1,0 +1,40 @@
+env: {}
+start: 20230515
+end: 20230515
+refdata:
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      # - stocksv2.CHN
+      - stocks_5227.CHN
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 5
+      skip_refdata_check: true
+    client:
+      - csmbo-ops
+  - module: cs-mbo
+    symbols:
+      # - stocksv2.CHN
+      - stocks_5227.CHN
+    config:
+      skip_refdata_check: true
+    client:
+      - csmbo-ops
+
+signal:
+  name: csmbo-ops
+  module: wenjiapeng.opsmbo
+  output:
+    module: csv
+    config:
+      output_dir: output
+  config:
+    targets:
+      # - dynamic:stocksv2.CHN
+      - dynamic:stocks_5227.CHN
+    freq: 120
