@@ -76,6 +76,7 @@ void Signal::on_sod(const SodEvent *ev)
   m_mbo2.on_day_begin(ev->date, ev->ins_nr);
   m_mbo3.on_day_begin(ev->date, ev->ins_nr);
   m_mbo4.on_day_begin(ev->date, ev->ins_nr);
+  mbo_cost = 0;
 }
 
 void Signal::on_eod(const EodEvent *ev)
@@ -88,21 +89,10 @@ void Signal::on_eod(const EodEvent *ev)
   std::cout << "mbo_cost = " << mbo_cost / 1000 << " ms\n";
 }
 
-void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
-{
-  //   wllog_info("cs_snapshot,exchtime:{},localtime:{},ins_nr:{}\n",
-  //   ev->exchtime,
-  //  ev->localtime, ev->ins_nr);
-  //   std::vector<double> sigs(ev->ins_nr, double(m_cnt));
-  //   m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime,
-  //   ev->ins_nr,
-  //    sigs.data());
-}
+void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {}
 
 void Signal::on_cs_mbo(const CsMboEvent *ev)
 {
-  wllog_info("cs_mbo,exchtime:{},localtime:{},ins_nr:{}\n", ev->exchtime,
-             ev->localtime, ev->ins_nr);
   m_cnt++;
   sigs.clear();
   sigs.reserve(ev->ins_nr);
@@ -121,6 +111,7 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
     const auto qty = trade_qty[i];
     const auto side = trade_side[i];
     int cnt = trade_cnt[i];
+
 
     if (cnt > 0) {
 
@@ -152,7 +143,6 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
   auto end = std::chrono::steady_clock::now();
   auto elapsed =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  // std::cout << "Time: " << elapsed.count() << " us\n";
   mbo_cost += elapsed.count();
   m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
                        sigs.data());
