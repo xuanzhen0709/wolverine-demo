@@ -79,7 +79,7 @@ enable_wlsim_env
 pip3 install -U 'cmake<4'
 ```
 
-## 安装wlsim(主程序),wlmd(行情模块)和cfi-operators(算子库，可选)
+## 安装wlsim(主程序),wlmd(行情模块)和cfi-operators(算子库)
 
 确保金刚狼环境已启用，当前环境的名称可以通过以下命令获取。
 
@@ -87,7 +87,16 @@ pip3 install -U 'cmake<4'
 echo $WLSIM_ENV_KEY
 ````
 
-进入对应的安装目录，运行
+### 方法一：使用本repo scripts目录下的`install_wlsim.py`文件
+
+```bash
+# 安装v1.8.x最新版
+python3 install_wlsim.py -v v1.8
+```
+
+### 方法二：手动安装
+
+进入每个package对应的安装包目录，运行
 
 ```bash
 python3 install_runtime.py
