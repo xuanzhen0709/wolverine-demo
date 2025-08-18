@@ -1,7 +1,7 @@
 env: {}
 start: 20230101
 end: 20230104
-refdata:
+refdata: {}
 
 marketdata:
   - module: cs-snapshot

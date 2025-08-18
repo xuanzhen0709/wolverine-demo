@@ -1,7 +1,7 @@
 env: {}
 start: 20230703
 end: 20230710
-refdata:
+refdata: {}
 
 worker:
   type: pool

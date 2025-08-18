@@ -7,6 +7,8 @@
 #include <wolverine/logging.hpp>
 #include <wolverine/marketdata.hpp>
 #include <wolverine/signal.hpp>
+#include <wolverine/utils/time.hpp>
+
 
 #include <array>
 #include <cmath>
@@ -45,6 +47,7 @@ private:
       last = 0;
     }
   };
+  std::vector<double> sigs_;
 };
 
 // function definitions
@@ -73,6 +76,7 @@ void Signal::on_sod(const SodEvent *ev)
 
     std::string symbol = ins + "." + exch;
   }
+  sigs_.assign(ev->ins_nr, 0);
 }
 
 void Signal::on_eod(const EodEvent *ev)
@@ -82,45 +86,22 @@ void Signal::on_eod(const EodEvent *ev)
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
 {
-  // wllog_info("exchtime:{},ins_nr:{},level_nr:{}\n", ev->exchtime, ev->ins_nr,
-  //          ev->level_nr);
-  using FldType = CsSnapshotEvent::FldType;
-  // to access any field, use
-  // CsSnapshotUtils::get_fld<FldType::field_name>(ev);
-  //
-  // for level-based fields, it will return a two dimension array
-  // bp[level][insidx]
-  const auto *bp = CsSnapshotUtils::get_fld<FldType::bp>(ev);
-  // for non-level-based fields
-  // volume[insidx]
-  const auto *volume = CsSnapshotUtils::get_fld<FldType::volume>(ev);
-
-  // for (int lvl = 0; lvl < ev->level_nr; ++lvl) {
-  //   const auto *data = bp[lvl];
-  //   wllog_info("lvl {}", lvl);
-  //   for (int idx = 0; idx < 5; ++idx) {
-  //     wllog_info_cont(",{}", data[idx]);
-  //   }
-  //   wllog_info_cont("\n");
-  // }
-  ++m_cnt;
-  // we use m_cnt as the sig value for each target
-  std::vector<double> sigs(ev->ins_nr, double(m_cnt));
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
-                       sigs.data());
 }
 
 void Signal::on_cs_mbo(const CsMboEvent *ev)
 {
-  // wllog_info("exchtime:{},localtime:{},ins_nr:{}\n", ev->exchtime,
-  // ev->localtime,
-  //          ev->ins_nr);
-
-  using OrderFldType = CsMboEvent::OrderFldType;
-  using CancelFldType = CsMboEvent::CancelFldType;
+wllog_info("exchtime:{}/{},localtime:{}/{}\n", ev->exchtime,
+              time::exchtime_to_str(ev->exchtime), ev->localtime,
+              time::epoch_to_str(ev->localtime));
   using TradeFldType = CsMboEvent::TradeFldType;
 
-  const auto ins_nr = std::min<int>(5, ev->ins_nr);
+  //int64_t temp_exchtime;
+  uint64_t temp_bidid;
+  uint64_t temp_askid;
+  double temp_price;
+  int64_t temp_qty;
+
+  const auto ins_nr = ev->ins_nr;
   {
     const auto *trade_cnt = CsMboUtils::get_fld<TradeFldType::Cnt>(ev);
     const auto *trade_price = CsMboUtils::get_fld<TradeFldType::Price>(ev);
@@ -134,39 +115,17 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
       const auto &qty = trade_qty[ins];
       const auto &bidid = trade_bidid[ins];
       const auto &askid = trade_askid[ins];
-      wllog_info("TRADES,ins:{},cnt:{}\n", ins, cnt);
-      for (int evidx = 0; evidx < std::min<int>(cnt, 5); ++evidx) {
-        wllog_info("\t{},{}@{},bid:{},aid:{}\n", evidx, qty[evidx],
-                   price[evidx], bidid[evidx], askid[evidx]);
+      for (int evidx = 0; evidx < cnt; ++evidx) {
+	temp_bidid = bidid[evidx];
+	temp_askid = askid[evidx];
+	temp_price = price[evidx];
+	temp_qty = qty[evidx];
+        sigs_[ins] = double(temp_bidid) * temp_askid + temp_price * temp_qty;
       }
     }
   }
-  {
-    // a quick demo to calculate per-stock vwap
-    const auto *trade_cnt = CsMboUtils::get_fld<TradeFldType::Cnt>(ev);
-    const auto *trade_price = CsMboUtils::get_fld<TradeFldType::Price>(ev);
-    const auto *trade_qty = CsMboUtils::get_fld<TradeFldType::Qty>(ev);
-    for (int ins = 0; ins < ev->ins_nr; ++ins) {
-      const auto &cnt = trade_cnt[ins];
-      const auto &px = trade_price[ins];
-      const auto &size = trade_qty[ins];
-
-      uint32_t vol = 0;
-      for (int evidx = 0; evidx < cnt; ++evidx) {
-        vol += size[evidx];
-      }
-
-      double turnover = 0;
-      for (int evidx = 0; evidx < cnt; ++evidx) {
-        turnover += size[evidx] * px[evidx];
-      }
-
-      const double vwap = turnover / vol;
-      // wllog_info("ins:{},turnover:{},volume:{},vwap:{}\n", ins, turnover,
-      // vol,
-      //          vwap);
-    }
-  }
+  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
+                       sigs_.data());
 }
 
 } // namespace csmbo

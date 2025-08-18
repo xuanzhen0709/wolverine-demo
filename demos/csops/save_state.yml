@@ -1,7 +1,7 @@
 env: {}
 start: 20241215
 end: 20241216
-refdata:
+refdata: {}
 
 checkpoint:
   dir: checkpoint/

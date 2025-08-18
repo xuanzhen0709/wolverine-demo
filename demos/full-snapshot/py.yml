@@ -1,9 +1,9 @@
+env: {}
 start: 20231208
 end: 20231208
 
 calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
-refdata:
-  ticker_mapping: CRYPTO
+refdata: {}
 
 marketdata:
   - module: full-snapshot
