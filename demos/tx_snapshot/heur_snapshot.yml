@@ -1,0 +1,24 @@
+env: {}
+start: 20250703
+end: 20250703
+refdata:
+  ticker_mapping: HFT
+
+marketdata:
+  - module: heur-snapshot
+    symbols:
+      - WIN.B3
+    config:
+      #dataset: /mnt/nas-3/homes/nickchenyj/backtest/b3_tx_snap/
+      dataset: /mnt/nas-3/ProcessedData/wolverine/b3.heuristic/snapshot
+    client:
+      - snapshot
+
+signal:
+  name: snapshot
+  module: nickchenyj.tx_snapshot
+  config:
+    targets:
+      - WIN.B3
+
+      # user defined params can go below
