@@ -1,0 +1,10 @@
+
+* build and install the libraries
+
+* use wlsim-gen-ft feature.yml to run
+
+* current limitations:
+
+  ** all features currently subscribe to all the marketdata modules
+  ** only stocks.CHN is supported
+  ** integration with factors is still under development

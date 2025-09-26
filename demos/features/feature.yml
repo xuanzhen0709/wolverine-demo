@@ -1,0 +1,45 @@
+env: {}
+
+start: 20250703
+end: 20250703
+
+refdata: {}
+
+worker:
+  type: pool
+  threads: 128
+
+features:
+  - name: ft1
+    module: nickchenyj.ft1
+    output:
+      module: parquet
+      config:
+        output_dir: output
+    config: {}
+  - name: ft2
+    module: nickchenyj.ft2
+    output:
+      module: csv
+      config:
+        output_dir: output
+    config: {}
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks.CHN
+    config:
+      levels: 10
+      fields:
+        - last_price
+    client:
+      - ft1
+      - ft2
+  - module: cs-mbo
+    symbols:
+      - stocks.CHN
+    config:
+    client:
+      - ft1
+      - ft2
