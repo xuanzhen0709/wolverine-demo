@@ -1,0 +1,35 @@
+env: {}
+start: 20250703
+end: 20250703
+refdata: {}
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks.CHN
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 5
+    client:
+      - csmbo
+  - module: cs-mbo
+    symbols:
+      - stocks.CHN
+    config:
+    client:
+      - csmbo
+
+signal:
+  name: csmbo
+  module: nickchenyj.csmbo
+  output:
+    module: csv
+    config:
+      output_dir: output
+  config:
+    targets:
+      - dynamic:stocks.CHN
+    freq: 120

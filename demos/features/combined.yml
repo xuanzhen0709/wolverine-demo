@@ -13,7 +13,7 @@ features:
   - name: ft1
     module: nickchenyj.ft1
     output:
-      module: parquet
+      module: csv
       config:
         output_dir: output
     config: {}
@@ -33,13 +33,26 @@ marketdata:
       levels: 10
       fields:
         - last_price
-    client:
+    features:
       - ft1
       - ft2
+    client:
+      - test
   - module: cs-mbo
     symbols:
       - stocks.CHN
     config:
-    client:
+    features:
       - ft1
       - ft2
+
+signal:
+  name: test
+  module: nickchenyj.feature_factor
+  config:
+    targets:
+      - stocks.CHN
+  output:
+    module: csv
+    config:
+      output_dir: output
