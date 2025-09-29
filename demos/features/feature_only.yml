@@ -16,14 +16,21 @@ features:
       module: parquet
       config:
         output_dir: output
-    config: {}
+    config:
+      provides:
+        - order_cnt
+        - order_pxmean
   - name: ft2
     module: nickchenyj.ft2
     output:
       module: csv
       config:
         output_dir: output
-    config: {}
+    config:
+      provides:
+        - trade_mean
+        - trade_max
+        - trade_min
 
 marketdata:
   - module: cs-snapshot

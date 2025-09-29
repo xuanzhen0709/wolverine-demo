@@ -19,12 +19,6 @@ using namespace cfi::wolverine;
 namespace {
 class Feature {
 public:
-  inline static const std::vector<std::string> FEATURES = {
-      "trade_mean",
-      "trade_max",
-      "trade_min",
-  };
-
   Feature(int insidx);
 
   void initialize(const Config *root);
@@ -44,11 +38,18 @@ private:
 
 Feature::Feature(int insidx) : insidx_(insidx) {}
 
-void Feature::initialize(const Config *root) {}
+void Feature::initialize(const Config *root)
+{
+  const auto features = (*root)["provides"].as<std::vector<std::string>>();
+  sigs_.resize(features.size(), 0);
+}
 
 void Feature::set_apis(FeatureApis apis) { apis_ = apis; }
 
-void Feature::on_sod(const SodEvent *ev) { sigs_.assign(FEATURES.size(), 0); }
+void Feature::on_sod(const SodEvent *ev)
+{
+  std::fill(sigs_.begin(), sigs_.end(), 0);
+}
 
 void Feature::on_eod(const EodEvent *ev) { wllog_debug("eod\n"); }
 
@@ -130,11 +131,6 @@ void on_create(void **ptr, FeatureOps *ops, int insidx)
 {
   *ptr = new Feature{insidx};
   *ops = my_ops;
-}
-
-void on_register(std::vector<std::string> &feature_names)
-{
-  feature_names = Feature::FEATURES;
 }
 
 C_DECLARATION_END;
