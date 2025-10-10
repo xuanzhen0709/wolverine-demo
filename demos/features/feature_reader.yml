@@ -11,14 +11,26 @@ worker:
 
 features:
   - name: ft1
-    module: nickchenyj.ft1
+    module: system.ftreader
+    output:
+      module: parquet
+      config:
+        output_dir: output
     config:
+      format: parquet
+      dir: output
       provides:
         - order_cnt
         - order_pxmean
   - name: ft2
-    module: nickchenyj.ft2
+    module: system.ftreader
+    output:
+      module: csv
+      config:
+        output_dir: output
     config:
+      format: csv
+      dir: output
       provides:
         - trade_mean
         - trade_max
@@ -36,7 +48,7 @@ marketdata:
       - ft1
       - ft2
     client:
-      - test
+      - test_ftreader
   - module: cs-mbo
     symbols:
       - stocks.CHN
@@ -46,7 +58,7 @@ marketdata:
       - ft2
 
 signal:
-  name: test
+  name: test_ftreader
   module: nickchenyj.feature_factor
   config:
     targets:
