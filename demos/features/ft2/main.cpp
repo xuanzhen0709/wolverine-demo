@@ -125,6 +125,12 @@ static FeatureOps my_ops = {
       auto *ptr = reinterpret_cast<Feature *>(hdl);
       ptr->on_cs_mbo(ev);
     },
+
+    .on_destroy = [](void *hdl) -> void
+    {
+      auto *ptr = reinterpret_cast<Feature *>(hdl);
+      delete ptr;
+    },
 };
 
 void on_create(void **ptr, FeatureOps *ops, int insidx)
