@@ -7,6 +7,7 @@ from packaging.version import Version
 
 
 wlsim_ver: str = "latest"
+nas_override: str = ""
 
 
 def get_os_key():
@@ -45,12 +46,14 @@ def get_version(path: Path, ver: str):
 
 def install_package(name: str, version: str):
     root_dirs = [
-        Path("/mnt/nas-3.new/homes/nickchenyj/packages"),
-        Path("/mnt/nas-intern/homes/nickchenyj/packages"),
-        Path("/mnt/nas-3/homes/nickchenyj/packages"),
+        Path("/mnt/nas-3.new"),
+        Path("/mnt/nas-intern"),
+        Path("/mnt/nas-3"),
     ]
+    if nas_override:
+        root_dirs = [Path(nas_override)] + root_dirs
 
-    root_dir = [_x for _x in root_dirs if _x.exists()]
+    root_dir = [_x / "homes/nickchenyj/packages" for _x in root_dirs if _x.exists()]
     if not root_dir:
         raise RuntimeError(f"no root dir")
     root_dir = root_dir[0]
@@ -85,7 +88,16 @@ def main():
         default="latest",
         help="verion to use, latest/v1.8.x/v1.8/etc",
     )
+    parser.add_argument(
+        "-n",
+        "--nas",
+        type=str,
+        help="nas path, such as /mnt/nas-3",
+    )
     args = parser.parse_args()
+
+    global nas_override
+    nas_override = args.nas
     install_package("wlsim", args.version)
     install_package("wlmd", "latest")
     install_package("cfi-operators", "latest")
