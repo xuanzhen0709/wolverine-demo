@@ -28,6 +28,10 @@ class MySig(SignalBase):
         self.cnt = 0
         self.mss.clear()
 
+        factor_list = self._call_api("get_factor_list")
+        for i, fct in enumerate(factor_list):
+            tg = self._call_api("get_factor_targets", i)
+            print(f"fct target,{i},{fct},{len(tg)}")
         targets = []
         print(f"on_sod:{ev.date},ins_nr:{ev.ins_nr}")
         for i in range(ev.ins_nr):
