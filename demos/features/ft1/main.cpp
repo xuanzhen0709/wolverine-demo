@@ -1,4 +1,5 @@
 #include <cstdio>
+#include "calendar.hpp"
 #include "common.hpp"
 #include "config.hpp"
 #include "event.hpp"
@@ -49,6 +50,9 @@ void Feature::set_apis(FeatureApis apis) { apis_ = apis; }
 void Feature::on_sod(const SodEvent *ev)
 {
   std::fill(sigs_.begin(), sigs_.end(), 0);
+  const auto& targets = apis_.get_targets(apis_.token);
+  const auto ystd = wlcalendar_shift(ev->date, -1);
+  wllog_info("today:{},target size:{},ystd:{}\n", ev->date, targets.size(), ystd);
 }
 
 void Feature::on_eod(const EodEvent *ev) { wllog_debug("eod\n"); }

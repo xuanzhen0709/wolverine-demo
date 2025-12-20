@@ -1,0 +1,84 @@
+env: {}
+start: 20230703
+end: 20230704
+refdata: {}
+
+worker:
+  type: pool
+  threads: 5
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks.CHN
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 5
+    client:
+      - strat_with_reader
+      - fct1
+      - fct2
+      - fct3
+      - fct4
+      - fct5
+      - fct6
+      - fct7
+      - fct8
+      - fct9
+
+signal:
+  name: strat_with_reader
+  module: nickchenyj.cssnapshot_strat_py
+  is_python: true
+  output:
+    module: csv
+    config:
+      output_dir: output
+  factors:
+    - name: fct1
+      module: system.sigreader
+      config:
+        name: fct1 # name of the signal that was saved
+        format: csv # csv/npy
+        dir: output
+        targets:
+          - stocks.CHN
+    - name: fct2
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 2.345
+    - name: fct3
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 3.456
+    - name: fct4
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 4.567
+    - name: fct5
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 5.678
+    - name: fct6
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 6.789
+    - name: fct7
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 7.890
+    - name: fct8
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 8.901
+    - name: fct9
+      module: nickchenyj.cssnapshot_factor
+      config:
+        seed: 9.012
+
+  config:
+    targets:
+      - stocks.CHN
