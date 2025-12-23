@@ -1,3 +1,0 @@
-add_subdirectory(factor_cpp)
-add_subdirectory(strat_py)
-add_subdirectory(load_factor_history)

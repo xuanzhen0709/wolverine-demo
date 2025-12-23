@@ -1,22 +1,40 @@
 env: {}
-start: 20230703
-end: 20230704
+
+start: 20250703
+end: 20250703
+
 refdata: {}
 
 worker:
   type: pool
-  threads: 5
+  threads: 128
+
+features:
+  - name: ft1
+    module: nickchenyj.ft1
+    config:
+      provides:
+        - order_cnt
+        - order_pxmean
+  - name: ft2
+    module: nickchenyj.ft2
+    config:
+      provides:
+        - trade_mean
+        - trade_max
+        - trade_min
 
 marketdata:
   - module: cs-snapshot
     symbols:
       - stocks.CHN
     config:
+      levels: 10
       fields:
         - last_price
-        - volume
-        - ap
-      levels: 5
+    features:
+      - ft1
+      - ft2
     client:
       - strat
       - fct1
@@ -28,10 +46,17 @@ marketdata:
       - fct7
       - fct8
       - fct9
+  - module: cs-mbo
+    symbols:
+      - stocks.CHN
+    config:
+    features:
+      - ft1
+      - ft2
 
 signal:
   name: strat
-  module: nickchenyj.cssnapshot_strat_py
+  module: nickchenyj.cssnap_strat_with_feature
   is_python: true
   output:
     module: csv
@@ -39,7 +64,7 @@ signal:
       output_dir: output
   factors:
     - name: fct1
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 1.234
       output:
@@ -47,7 +72,7 @@ signal:
         config:
           output_dir: output
     - name: fct2
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 2.345
       output:
@@ -55,7 +80,7 @@ signal:
         config:
           output_dir: output
     - name: fct3
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 3.456
       output:
@@ -63,7 +88,7 @@ signal:
         config:
           output_dir: output
     - name: fct4
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 4.567
       output:
@@ -71,7 +96,7 @@ signal:
         config:
           output_dir: output
     - name: fct5
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 5.678
       output:
@@ -79,7 +104,7 @@ signal:
         config:
           output_dir: output
     - name: fct6
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 6.789
       output:
@@ -87,7 +112,7 @@ signal:
         config:
           output_dir: output
     - name: fct7
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 7.890
       output:
@@ -95,7 +120,7 @@ signal:
         config:
           output_dir: output
     - name: fct8
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 8.901
       output:
@@ -103,7 +128,7 @@ signal:
         config:
           output_dir: output
     - name: fct9
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 9.012
       output:
@@ -114,3 +139,6 @@ signal:
   config:
     targets:
       - stocks.CHN
+    need_features:
+      - trade_max
+      - order_cnt

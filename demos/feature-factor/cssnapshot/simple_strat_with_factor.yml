@@ -1,6 +1,5 @@
-env:
-  sig_store_dir: "output/{name}/{date}"
-start: 20230704
+env: {}
+start: 20230703
 end: 20230704
 refdata: {}
 
@@ -19,7 +18,7 @@ marketdata:
         - ap
       levels: 5
     client:
-      - strat_load_factor_hist
+      - strat
       - fct1
       - fct2
       - fct3
@@ -31,8 +30,8 @@ marketdata:
       - fct9
 
 signal:
-  name: strat_load_factor_hist
-  module: nickchenyj.cssnap_strat_load_factor_hist
+  name: strat
+  module: nickchenyj.cssnap_simple_strat
   is_python: true
   output:
     module: csv
@@ -40,7 +39,7 @@ signal:
       output_dir: output
   factors:
     - name: fct1
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 1.234
       output:
@@ -48,7 +47,7 @@ signal:
         config:
           output_dir: output
     - name: fct2
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 2.345
       output:
@@ -56,7 +55,7 @@ signal:
         config:
           output_dir: output
     - name: fct3
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 3.456
       output:
@@ -64,7 +63,7 @@ signal:
         config:
           output_dir: output
     - name: fct4
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 4.567
       output:
@@ -72,7 +71,7 @@ signal:
         config:
           output_dir: output
     - name: fct5
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 5.678
       output:
@@ -80,7 +79,7 @@ signal:
         config:
           output_dir: output
     - name: fct6
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 6.789
       output:
@@ -88,7 +87,7 @@ signal:
         config:
           output_dir: output
     - name: fct7
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 7.890
       output:
@@ -96,7 +95,7 @@ signal:
         config:
           output_dir: output
     - name: fct8
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 8.901
       output:
@@ -104,7 +103,7 @@ signal:
         config:
           output_dir: output
     - name: fct9
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 9.012
       output:

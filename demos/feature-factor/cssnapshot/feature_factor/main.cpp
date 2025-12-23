@@ -47,8 +47,8 @@ private:
       last = 0;
     }
   };
-  const double *ft_order_cnt_{nullptr};
-  const double *ft_order_pxmean_{nullptr};
+  const std::vector<double> *ft_order_cnt_{nullptr};
+  const std::vector<double> *ft_order_pxmean_{nullptr};
   std::vector<double> sigs_;
 };
 
@@ -86,9 +86,9 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
              time::epoch_to_str(ev->localtime));
   const auto count = std::min(10, int(ev->ins_nr));
   for (size_t i = 0; i < count; ++i) {
-    wllog_info("feature order_cnt,ins:{},val:{}\n", i, ft_order_cnt_[i]);
-    wllog_info("feature order_pxmean,ins:{},val:{}\n", i, ft_order_pxmean_[i]);
-    sigs_[i] = ft_order_pxmean_[i] * ft_order_cnt_[i];
+    wllog_info("feature order_cnt,ins:{},val:{}\n", i, (*ft_order_cnt_)[i]);
+    wllog_info("feature order_pxmean,ins:{},val:{}\n", i, (*ft_order_pxmean_)[i]);
+    sigs_[i] = (*ft_order_pxmean_)[i] * (*ft_order_cnt_)[i];
   }
   m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
                        sigs_.data());

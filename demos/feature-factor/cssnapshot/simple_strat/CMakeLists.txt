@@ -1,5 +1,5 @@
 add_wolverine_library(
-    NAME cssnapshot_strat_py
+    NAME cssnap_simple_strat
     USER nickchenyj
     TYPE pysig
     SRCS main.py
