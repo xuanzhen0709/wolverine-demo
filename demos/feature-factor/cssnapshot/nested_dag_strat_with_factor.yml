@@ -1,0 +1,145 @@
+env: {}
+start: 20230703
+end: 20230704
+refdata: {}
+
+worker:
+  type: sequential
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks.CHN
+    config:
+      fields:
+        - last_price
+        - volume
+        - ap
+      levels: 5
+    client:
+      - nested_dag_strat
+      - nested_dag_strat1
+      - nested_dag_strat2
+      - nested_dag_fct1
+      - nested_dag_fct2
+      - nested_dag_fct3
+      - nested_dag_fct4
+      - nested_dag_fct5
+      - nested_dag_fct6
+
+dag:
+  modules:
+    - name: nested_dag_strat
+      module: nickchenyj.cssnap_simple_strat
+      is_python: true
+      output:
+        module: csv
+        config:
+          output_dir: output
+      config:
+        targets:
+          - stocks.CHN
+
+    - name: nested_dag_strat1
+      module: nickchenyj.cssnap_simple_strat
+      is_python: true
+      output:
+        module: csv
+        config:
+          output_dir: output
+      config:
+        targets:
+          - stocks.CHN
+
+    - name: nested_dag_fct1
+      module: nickchenyj.cssnap_simple_factor
+      config:
+        seed: 1.234
+        targets:
+          - stocks.CHN
+      output:
+        module: csv
+        config:
+          output_dir: output
+
+    - name: nested_dag_fct2
+      module: nickchenyj.cssnap_simple_factor
+      config:
+        seed: 2.345
+        targets:
+          - stocks.CHN
+      output:
+        module: csv
+        config:
+          output_dir: output
+
+    - name: nested_dag_fct3
+      module: nickchenyj.cssnap_simple_factor
+      config:
+        seed: 3.456
+        targets:
+          - stocks.CHN
+      output:
+        module: csv
+        config:
+          output_dir: output
+
+    - name: nested_dag_strat2
+      module: nickchenyj.cssnap_simple_strat
+      is_python: true
+      output:
+        module: csv
+        config:
+          output_dir: output
+      config:
+        targets:
+          - stocks.CHN
+
+    - name: nested_dag_fct4
+      module: nickchenyj.cssnap_simple_factor
+      config:
+        seed: 4.567
+        targets:
+          - stocks.CHN
+      output:
+        module: csv
+        config:
+          output_dir: output
+
+    - name: nested_dag_fct5
+      module: nickchenyj.cssnap_simple_factor
+      config:
+        seed: 5.678
+        targets:
+          - stocks.CHN
+      output:
+        module: csv
+        config:
+          output_dir: output
+
+    - name: nested_dag_fct6
+      module: nickchenyj.cssnap_simple_factor
+      config:
+        seed: 6.789
+        targets:
+          - stocks.CHN
+      output:
+        module: csv
+        config:
+          output_dir: output
+
+  root: nested_dag_strat
+  requires:
+    nested_dag_strat:
+      - nested_dag_strat1
+      - nested_dag_strat2
+    nested_dag_strat1:
+      - nested_dag_fct1
+      - nested_dag_fct2
+      - nested_dag_fct3
+    nested_dag_strat2:
+      - nested_dag_fct4
+      - nested_dag_fct5
+      - nested_dag_fct6
+      - nested_dag_fct1
+
