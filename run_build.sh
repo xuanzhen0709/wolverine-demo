@@ -1,12 +1,15 @@
 #!/bin/bash
 #
 
-debug=""
+build_type="Release"
 # Parse options
-while getopts "d" opt; do
+while getopts "di" opt; do
   case $opt in
     d)
-      debug=1
+      build_type=Debug
+      ;;
+    i)
+      build_type=RelWithDebInfo
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -22,10 +25,11 @@ done
 # Shift past the parsed options
 shift $((OPTIND-1))
 
-if [[ -z "$debug" ]]; then
-  conan install . -pr:a ${WLSIM_CONAN_PR} -s build_type=Release --build="missing"
-  cmake --preset conan-release
-else
-  conan install . -pr:a ${WLSIM_CONAN_PR} --build="missing" -s build_type=Release -s "&:build_type=Debug"
-  cmake --preset conan-debug
-fi
+profile="${WLSIM_CONAN_PR}/${build_type}"
+build_type_lower=$(echo "${build_type}" | tr '[:upper:]' '[:lower:]')
+preset="conan-${build_type_lower}"
+
+conan install . -pr:a ${profile} --build="missing"
+cmake -G Ninja --preset "${preset}"
+cmake --build --preset "${preset}"
+
