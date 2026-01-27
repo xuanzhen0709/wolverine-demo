@@ -2,6 +2,7 @@
 #
 #
 
+rm -rf checkpoint output
 # run first job (20230103-20230104) and save checkpoint for 20230103
 wl-sim save.yml
 

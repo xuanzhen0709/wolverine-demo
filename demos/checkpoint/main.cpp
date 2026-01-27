@@ -32,10 +32,14 @@ public:
   void on_cs_snapshot(const CsSnapshotEvent *ev);
 
 private:
+  struct some_stats_t {
+    size_t total_cnt_ = 0;
+  };
+
   SignalApis apis_ = {nullptr};
   size_t cnt_ = 0;
   std::vector<double> vec_;
-  size_t total_cnt_ = 0;
+  some_stats_t stats_{};
   std::vector<std::vector<double>> d2vec_;
 };
 
@@ -53,7 +57,7 @@ void Signal::load_state(const std::string &indir)
   const auto dir = std::filesystem::path(indir);
   deserialize(dir / "d2vec.bin", d2vec_);
   wllog_info("d2vec_: loaded {},{}/{},{}/{}\n", d2vec_.size(), d2vec_.front().front(), d2vec_.front().back(), d2vec_.back().front(), d2vec_.back().back());
-  deserialize(dir / "total_cnt.bin", total_cnt_);
+  deserialize(dir / "stats.bin", stats_);
 }
 
 void Signal::save_state(const std::string &outdir)
@@ -62,7 +66,7 @@ void Signal::save_state(const std::string &outdir)
   const auto dir = std::filesystem::path(outdir);
   serialize(dir / "d2vec.bin", d2vec_);
   wllog_info("d2vec_: saved {},{}/{},{}/{}\n", d2vec_.size(), d2vec_.front().front(), d2vec_.front().back(), d2vec_.back().front(), d2vec_.back().back());
-  serialize(dir / "total_cnt.bin", total_cnt_);
+  serialize(dir / "stats.bin", stats_);
 }
 
 void Signal::on_sod(const SodEvent *ev)
@@ -93,9 +97,9 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
 {
   wllog_debug("exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
   ++cnt_;
-  ++total_cnt_;
+  ++stats_.total_cnt_;
   // we use cnt_ as the sig value for each target
-  std::vector<double> sigs(ev->ins_nr, double(cnt_) + total_cnt_);
+  std::vector<double> sigs(ev->ins_nr, double(cnt_) + stats_.total_cnt_);
   apis_.update_signal(apis_.token, ev->exchtime, ev->localtime, ev->ins_nr,
                       sigs.data());
   d2vec_.push_back(sigs);
