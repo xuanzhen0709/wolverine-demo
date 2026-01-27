@@ -1,14 +1,12 @@
 env: {}
-start: 20230103
+start: 20230104
 end: 20230104
 
 refdata: {}
 
 checkpoint:
   dir: checkpoint
-  load: 20230103
-  save:
-    - 20230104
+  auto_load: yesterday
 
 marketdata:
   - module: cs-snapshot
@@ -20,17 +18,16 @@ marketdata:
         - last_price
         - volume
       levels: 1
-      client:
-        - checkpoint
+    client:
+      - checkpoint_load
 
 signal:
-  name: checkpoint
+  name: checkpoint_load
   module: nickchenyj.checkpoint
-  # output:
-  #   module: csv
-  #   config:
-  #     output_dir: output
+  output:
+    module: csv
+    config:
+      output_dir: output
   config:
     targets:
       - dynamic:stocks.CHN
-    freq: 120

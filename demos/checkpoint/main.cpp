@@ -1,3 +1,4 @@
+#include <map>
 #include <wolverine/common.hpp>
 #include <wolverine/config.hpp>
 #include <wolverine/event.hpp>
@@ -10,6 +11,7 @@
 #include <cmath>
 #include <filesystem>
 #include <string_view>
+#include "zpp_helper.hpp"
 
 using namespace cfi::wolverine;
 
@@ -30,8 +32,11 @@ public:
   void on_cs_snapshot(const CsSnapshotEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
+  std::vector<double> vec_;
+  size_t total_cnt_ = 0;
+  std::vector<std::vector<double>> d2vec_;
 };
 
 // function definitions
@@ -40,21 +45,29 @@ Signal::Signal() {}
 
 void Signal::initialize(const Config *root) {}
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::load_state(const std::string &indir)
 {
   wllog_info("loading state from dir {}\n", indir);
+  const auto dir = std::filesystem::path(indir);
+  deserialize(dir / "d2vec.bin", d2vec_);
+  wllog_info("d2vec_: loaded {},{}/{},{}/{}\n", d2vec_.size(), d2vec_.front().front(), d2vec_.front().back(), d2vec_.back().front(), d2vec_.back().back());
+  deserialize(dir / "total_cnt.bin", total_cnt_);
 }
 
 void Signal::save_state(const std::string &outdir)
 {
   wllog_info("saving state to dir {}\n", outdir);
+  const auto dir = std::filesystem::path(outdir);
+  serialize(dir / "d2vec.bin", d2vec_);
+  wllog_info("d2vec_: saved {},{}/{},{}/{}\n", d2vec_.size(), d2vec_.front().front(), d2vec_.front().back(), d2vec_.back().front(), d2vec_.back().back());
+  serialize(dir / "total_cnt.bin", total_cnt_);
 }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
@@ -73,17 +86,22 @@ void Signal::on_sod(const SodEvent *ev)
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
 {
   wllog_debug("exchtime:{},ins_nr:{}\n", ev->exchtime, ev->ins_nr);
-  ++m_cnt;
-  // we use m_cnt as the sig value for each target
-  std::vector<double> sigs(ev->ins_nr, double(m_cnt));
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
-                       sigs.data());
+  ++cnt_;
+  ++total_cnt_;
+  // we use cnt_ as the sig value for each target
+  std::vector<double> sigs(ev->ins_nr, double(cnt_) + total_cnt_);
+  apis_.update_signal(apis_.token, ev->exchtime, ev->localtime, ev->ins_nr,
+                      sigs.data());
+  d2vec_.push_back(sigs);
+  if (d2vec_.size() > 30) {
+    d2vec_.erase(d2vec_.begin());
+  }
 }
 
 } // namespace checkpoint
