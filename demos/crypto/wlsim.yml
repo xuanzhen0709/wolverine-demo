@@ -1,21 +1,23 @@
-start: 20231208
-end: 20231208
+env: {}
+
+start: 20260202
+end: 20260202
 
 calendar: /mnt/nas-3/cta/Data/CryptoTradingDates.txt
 refdata: {}
 
 marketdata:
-  - module: snapshot
+  - module: crypto-trade
     symbols:
       - ETHUSDT.BIANUM
     config:
-      dataset: binance
+      dataset: binance-mm-tick.v3
     client:
-      - snapshot
+      - trade
 
 signal:
-  name: snapshot
-  module: nickchenyj.snapshot
+  name: trade
+  module: nickchenyj.crypto_trade
   output:
     module: csv
     config:
