@@ -54,8 +54,8 @@ void deserialize(const std::filesystem::path &path, obj_type &obj)
       wllog_fatal("failed to mmap {}\n", path.native());
     }
 
-    zpp::bits::in in(std::span{static_cast<std::byte *>(addr),
-                               static_cast<size_t>(sb.st_size)});
+    zpp::bits::in in(std::span<std::byte>{static_cast<std::byte *>(addr),
+                                          static_cast<size_t>(sb.st_size)});
 
     in(obj).or_throw();
     munmap(addr, sb.st_size);

@@ -87,79 +87,79 @@ void Signal::handle_data()
 
     if (prefix == "bid") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::bid_cnt, true>(ev, index); });
     } else if (prefix == "ask") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::ask_cnt, true>(ev, index); });
     } else if (prefix == "av") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::av, true>(ev, index); });
     } else if (prefix == "ap") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::ap, true>(ev, index); });
     } else if (prefix == "bp") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::bp, true>(ev, index); });
     } else if (prefix == "bv") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::bv, true>(ev, index); });
     } else if (name == "exchtime") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::exchtime>(ev, index); });
     } else if (name == "localtime") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::localtime>(ev, index); });
     } else if (name == "last") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::last_price>(ev, index); });
     } else if (name == "last_price") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::last_price>(ev, index); });
     } else if (name == "volume") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::volume>(ev, index); });
     } else if (name == "turnover") {
-      m_construct_data.push_back([=](const CsSnapshotEvent *ev)
+      m_construct_data.push_back([=, this](const CsSnapshotEvent *ev)
                                  { copy_data<FldType::turnover>(ev, index); });
     } else if (name == "open_interest") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::open_interest>(ev, index); });
     } else if (name == "total_ask_cnt") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::total_ask_cnt>(ev, index); });
     } else if (name == "total_bid_cnt") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::total_bid_cnt>(ev, index); });
     } else if (name == "total_ask_qty") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::total_ask_qty>(ev, index); });
     } else if (name == "total_bid_qty") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::total_bid_qty>(ev, index); });
     } else if (name == "total_ask_lvl") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::total_ask_lvl>(ev, index); });
     } else if (name == "total_bid_lvl") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::total_bid_lvl>(ev, index); });
     } else if (name == "bid_volume") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::bid_volume>(ev, index); });
     } else if (name == "ask_volume") {
       m_construct_data.push_back(
-          [=](const CsSnapshotEvent *ev)
+          [=, this](const CsSnapshotEvent *ev)
           { copy_data<FldType::ask_volume>(ev, index); });
     } else {
       wllog_fatal("Invalid data name {}\n", name);
