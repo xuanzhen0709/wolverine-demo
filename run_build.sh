@@ -1,35 +1,70 @@
 #!/bin/bash
 #
 
-build_type="Release"
-# Parse options
-while getopts "di" opt; do
-  case $opt in
-    d)
-      build_type=Debug
+set -euo pipefail
+
+do_install=""
+do_package=""
+build_type="release"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -i | --install)
+      do_install="1"
+      shift
       ;;
-    i)
-      build_type=RelWithDebInfo
+    -p | --package)
+      do_package="1"
+      shift
       ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
+    -*)
+      echo "Unknown option: $1" >&2
       exit 1
       ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      exit 1
+    *)
+      build_type="$1"
+      shift
       ;;
   esac
 done
 
-# Shift past the parsed options
-shift $((OPTIND-1))
+build_type_lower="${build_type,,}"
 
-profile="${WLSIM_CONAN_PR}/${build_type}"
-build_type_lower=$(echo "${build_type}" | tr '[:upper:]' '[:lower:]')
-preset="conan-${build_type_lower}"
+case "${build_type_lower}" in
+  release)
+    build_type="Release"
+    ;;
+  debug)
+    build_type="Debug"
+    ;;
+  relwithdebinfo)
+    build_type="RelWithDebInfo"
+    ;;
+  *)
+    echo "Invalid build type: ${build_type}. Must be one of: release, debug, relwithdebinfo" >&2
+    exit 1
+    ;;
+esac
 
-conan install . -pr:a ${profile} --build="missing"
-cmake -G Ninja --preset "${preset}"
-cmake --build --preset "${preset}"
+function build_preset() {
+  local preset=$1
+  local build_dir=$2
+  cmake -G Ninja --preset "${preset}"
+  cmake --build --preset "${preset}"
+  if [[ -n "${do_package}" ]]; then
+    cmake --build --preset "${preset}" -t package
+  fi
+  if [[ -n "${do_install}" ]]; then
+    cmake --install "${build_dir}"
+  fi
+}
+
+build_pr="wlsim/${WLSIM_ENV_KEY}/Release"
+host_pr="wlsim/${WLSIM_ENV_KEY}/${build_type}"
+build_preset="${WLSIM_ENV_KEY}-${build_type_lower}"
+
+conan install . -pr:b "${build_pr}" -pr:h "${host_pr}" --build="missing"
+
+build_preset "conan-${build_preset}" "build/${build_preset}"
 
