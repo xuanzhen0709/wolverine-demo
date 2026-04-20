@@ -1,5 +1,5 @@
 env:
-  sig_store_dir: "output/{name}/{date}"
+  sig_store_dir: "output"
 start: 20230704
 end: 20230704
 refdata: {}

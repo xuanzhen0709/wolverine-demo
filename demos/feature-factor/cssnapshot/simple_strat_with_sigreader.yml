@@ -41,6 +41,7 @@ signal:
     - name: fct1
       module: system.sigreader
       config:
+        from: strat
         name: fct1 # name of the signal that was saved
         format: csv # csv/npy
         dir: output

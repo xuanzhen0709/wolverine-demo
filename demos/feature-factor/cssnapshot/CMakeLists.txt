@@ -3,5 +3,5 @@ add_subdirectory(simple_strat)
 add_subdirectory(load_factor_history)
 add_subdirectory(ft1)
 add_subdirectory(ft2)
-
+add_subdirectory(feature_factor)
 add_subdirectory(pystrat_with_feature)

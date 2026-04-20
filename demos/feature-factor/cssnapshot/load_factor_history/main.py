@@ -28,9 +28,11 @@ class MySig(SignalBase):
         print(f"today:{ev.date},ystd:{ystd}\n")
         factors = self._call_api("get_factor_list")
 
-        for i in range(len(factors)):
-            print(f"loading factor history,{factors[i]},date:{ystd}")
-            fct_histdata = self._call_api("load_factor_history", i, ystd)
+        for fct in factors:
+            print(f"loading factor history,{fct},date:{ystd}")
+            # avoid hardcoding "strat" in your implementation
+            # pass in from configuration
+            fct_histdata = self._call_api("load_factor_history", "strat", fct, ystd)
             print(fct_histdata)
         
     def on_eod(self, ev: EodEvent):

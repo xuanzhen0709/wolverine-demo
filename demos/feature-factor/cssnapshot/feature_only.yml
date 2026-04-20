@@ -7,7 +7,7 @@ refdata: {}
 
 worker:
   type: pool
-  threads: 128
+  threads: 64
 
 features:
   - name: ft1
