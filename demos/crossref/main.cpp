@@ -13,7 +13,7 @@
 using namespace cfi::wolverine;
 
 namespace nickchenyj {
-namespace multitickers {
+namespace crossref {
 
 class Signal {
 public:
@@ -27,39 +27,29 @@ public:
   void on_snapshot(const SnapshotEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
-  // assume we only want to do arb on two symbols
-  const MdStatic *m_ms0{nullptr};
-  const MdStatic *m_ms1{nullptr};
-  std::vector<double> m_sigval;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
+  std::vector<double> sigval_;
 };
 
 // function definitions
 
 Signal::Signal() {}
 
-void Signal::initialize(const Config *root) { m_sigval.assign(2, NAN); }
+void Signal::initialize(const Config *root) { sigval_.assign(2, NAN); }
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
-  // NOTE:
+  cnt_ = 0;
   if (ev->src_type == MdSrcType::Snapshot ||
       ev->src_type == MdSrcType::FullSnapshot) {
     // for snapshot/full_snapshot marketdata, only one symbol is provided at a
     // time
     const auto *ms = ev->ms[0];
-    const std::string ticker = ms->ticker;
-    const std::string exch = ms->exchange;
-    wllog_info("ins_nr:{},ticker:{},exch:{}\n", ev->ins_nr, ticker, exch);
-    if (ticker == "BIANUM") {
-      m_ms0 = ms;
-    } else {
-      m_ms1 = ms;
-    }
+    wllog_info("ins_nr:{},ticker:{},exch:{}\n", ev->ins_nr, ms->ticker,
+               ms->exchange);
   } else {
     wllog_fatal("unsupported update type:{}\n", static_cast<int>(ev->src_type));
   }
@@ -67,27 +57,31 @@ void Signal::on_sod(const SodEvent *ev)
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Signal::on_snapshot(const SnapshotEvent *ev)
 {
-  ++m_cnt;
+  ++cnt_;
   const auto *ss = ev->snapshot;
-  if (ev->ms == m_ms0) {
-    // tgt 0
-    m_sigval[0] = ss->ap[0];
+  // route the two legs of the pair by ticker: IF/IF1 (any IF* ticker) → slot 1,
+  // the other leg (e.g. IC) → slot 0. Comparing the MdStatic pointer is
+  // unreliable across on_sod / on_snapshot; the ticker is stable.
+  const std::string ticker = ev->ms->ticker;
+  if (ticker.rfind("IF", 0) == 0) {
+    sigval_[1] = ss->ap[0];
   } else {
-    m_sigval[2] = ss->ap[0];
+    sigval_[0] = ss->ap[0];
   }
-  m_apis.update_signal(m_apis.token, ss->localtime, ss->exchtime, 2,
-                       m_sigval.data());
+  // update_signal(token, exchtime, localtime, ins_nr, sigs)
+  apis_.update_signal(apis_.token, ss->exchtime, ss->localtime, 2,
+                       sigval_.data());
 }
 
-} // namespace multitickers
+} // namespace crossref
 } // namespace nickchenyj
 
-using nickchenyj::multitickers::Signal;
+using nickchenyj::crossref::Signal;
 
 C_DECLARATION_BEGIN;
 

@@ -32,9 +32,9 @@ public:
   void on_cs_mbo(const CsMboEvent *ev);
 
 private:
-  double m_seed = 0;
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
+  double seed_ = 0;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
 };
 
 // function definitions
@@ -43,11 +43,11 @@ Factor::Factor() {}
 
 void Factor::initialize(const Config *root)
 {
-  m_seed = (*root)["seed"].as<double>();
-  wllog_info("using seed {}\n", m_seed);
+  seed_ = (*root)["seed"].as<double>();
+  wllog_info("using seed {}\n", seed_);
 }
 
-void Factor::set_apis(SignalApis apis) { m_apis = apis; }
+void Factor::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Factor::load_state(const std::string &indir)
 {
@@ -61,7 +61,7 @@ void Factor::save_state(const std::string &outdir)
 
 void Factor::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
@@ -80,7 +80,7 @@ void Factor::on_sod(const SodEvent *ev)
 
 void Factor::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Factor::on_cs_snapshot(const CsSnapshotEvent *ev)
@@ -88,10 +88,10 @@ void Factor::on_cs_snapshot(const CsSnapshotEvent *ev)
   wllog_debug("exchtime:{}/{},localtime:{}/{}\n", ev->exchtime,
               time::exchtime_to_str(ev->exchtime), ev->localtime,
               time::epoch_to_str(ev->localtime));
-  ++m_cnt;
-  // we use m_seed as the sig value for each target
-  std::vector<double> sigs(ev->ins_nr, m_seed + m_cnt);
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
+  ++cnt_;
+  // we use seed_ as the sig value for each target
+  std::vector<double> sigs(ev->ins_nr, seed_ + cnt_);
+  apis_.update_signal(apis_.token, ev->exchtime, ev->localtime, ev->ins_nr,
                        sigs.data());
 }
 

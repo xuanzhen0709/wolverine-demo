@@ -28,8 +28,8 @@ public:
   void on_crypto_trade(int64_t exchtime, int64_t localtime, const CryptoTradeEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
 };
 
 // function definitions
@@ -38,11 +38,11 @@ Signal::Signal() {}
 
 void Signal::initialize(const Config *root) {}
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
@@ -51,14 +51,14 @@ void Signal::on_sod(const SodEvent *ev)
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Signal::on_crypto_trade(int64_t exchtime, int64_t localtime, const CryptoTradeEvent *ev)
 {
-  ++m_cnt;
+  ++cnt_;
   const auto &trade = ev->trade;
-  wllog_info("{},{}/{},{}/{},{},{},{},{}\n", m_cnt,
+  wllog_info("{},{}/{},{}/{},{},{},{},{}\n", cnt_,
              localtime, cfi::wolverine::time::epoch_to_str(localtime),
              exchtime, cfi::wolverine::time::exchtime_to_str(exchtime),
              trade.seq_no, trade.price, trade.qty, trade.side);

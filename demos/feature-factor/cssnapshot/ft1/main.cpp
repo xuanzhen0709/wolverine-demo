@@ -79,7 +79,8 @@ void Feature::on_cs_mbo(const CsMboEvent *ev)
       total_price += price[evidx];
     }
     sigs_[0] = cnt;
-    sigs_[1] = total_price / cnt;
+    // guard cnt==0 to avoid NaN from 0.0/0 (no orders this tick → mean price undefined)
+    sigs_[1] = (cnt > 0) ? (total_price / cnt) : 0.0;
   }
   apis_.update(apis_.token, ev->exchtime, ev->localtime, sigs_.data());
 }

@@ -1,0 +1,33 @@
+env: {}
+
+start: 20230104
+end: 20230104
+
+refdata: {}
+
+checkpoint:
+  dir: checkpoint
+  auto_load: yesterday
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks.CHN
+    config:
+      fields:
+        - last_price
+        - volume
+    client:
+      - checkpoint_load
+
+signal:
+  name: checkpoint_load
+  module: nickchenyj.checkpoint
+  is_python: true
+  output:
+    module: csv
+    config:
+      output_dir: output
+  config:
+    targets:
+      - dynamic:stocks.CHN

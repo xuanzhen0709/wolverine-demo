@@ -15,11 +15,11 @@ marketdata:
         - ap
       levels: 1
     client:
-      - csstock-py
+      - cssnap-py
 
 signal:
-  name: csstock-py
-  module: nickchenyj.csstock
+  name: cssnap-py
+  module: nickchenyj.cssnap
   is_python: true
   output:
     module: csv

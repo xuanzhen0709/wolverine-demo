@@ -1,15 +1,14 @@
 env: {}
 
-start: 20230101
+start: 20230103
 end: 20230104
 
 refdata: {}
 
 checkpoint:
   dir: checkpoint
-  load: 20230103
   save:
-    - 20230104
+    - 20230103
 
 marketdata:
   - module: cs-snapshot
@@ -20,17 +19,16 @@ marketdata:
         - last_price
         - volume
     client:
-      - checkpoint-py
+      - checkpoint_save
 
 signal:
-  name: checkpoint-py
+  name: checkpoint_save
   module: nickchenyj.checkpoint
   is_python: true
-  # output:
-  #   module: csv
-  #   config:
-  #     output_dir: output
+  output:
+    module: csv
+    config:
+      output_dir: output
   config:
     targets:
       - dynamic:stocks.CHN
-    # user defined params can go below

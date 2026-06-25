@@ -1,6 +1,6 @@
 env: {}
 start: 20230703
-end: 20230710
+end: 20230703
 refdata:
 
 worker:
@@ -31,7 +31,7 @@ marketdata:
 
 signal:
   name: strat
-  module: nickchenyj.cssnapshot_strat_py
+  module: nickchenyj.cssnap_simple_strat
   is_python: true
   output:
     module: csv
@@ -41,39 +41,40 @@ signal:
     - name: fct1
       module: system.sigreader
       config:
+        from: strat
         name: fct1 # name of the signal that was saved
         format: csv # csv/npy
         dir: output
     - name: fct2
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 2.345
     - name: fct3
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 3.456
     - name: fct4
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 4.567
     - name: fct5
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 5.678
     - name: fct6
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 6.789
     - name: fct7
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 7.890
     - name: fct8
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 8.901
     - name: fct9
-      module: nickchenyj.cssnapshot_factor
+      module: nickchenyj.cssnap_simple_factor
       config:
         seed: 9.012
 

@@ -12,7 +12,7 @@
 using namespace cfi::wolverine;
 
 namespace nickchenyj {
-namespace multitickers {
+namespace fullsnap {
 
 class Signal {
 public:
@@ -26,8 +26,8 @@ public:
   void on_full_snapshot(const FullSnapshotEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
 };
 
 // function definitions
@@ -36,11 +36,11 @@ Signal::Signal() {}
 
 void Signal::initialize(const Config *root) {}
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
@@ -49,14 +49,14 @@ void Signal::on_sod(const SodEvent *ev)
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Signal::on_full_snapshot(const FullSnapshotEvent *ev)
 {
-  ++m_cnt;
+  ++cnt_;
   const auto ss = ev->snapshot;
-  wllog_info("{},{}/{},{}/{}, {},{},{},{} levels\n", m_cnt, ss->localtime,
+  wllog_info("{},{}/{},{}/{}, {},{},{},{} levels\n", cnt_, ss->localtime,
              cfi::wolverine::time::epoch_to_str(ss->localtime), ss->exchtime,
              cfi::wolverine::time::exchtime_to_str(ss->exchtime),
              ss->last_price, ss->total_volume, ss->total_turnover,
@@ -68,14 +68,14 @@ void Signal::on_full_snapshot(const FullSnapshotEvent *ev)
   }
 }
 
-} // namespace multitickers
+} // namespace fullsnap
 } // namespace nickchenyj
 
 C_DECLARATION_BEGIN;
 
 void on_create(void **ptr, SignalOps *ops)
 {
-  using nickchenyj::multitickers::Signal;
+  using nickchenyj::fullsnap::Signal;
   *ptr = new Signal{};
   *ops = SignalOps{
       .initialize = [](void *hdl, const Config *root) -> void

@@ -17,7 +17,7 @@
 using namespace cfi::wolverine;
 
 namespace nickchenyj {
-namespace csmbo {
+namespace opsmbo {
 
 class Signal {
 public:
@@ -35,12 +35,12 @@ public:
   void on_cs_mbo(const CsMboEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
-  cfi::Mbo m_mbo1;
-  cfi::Mbo m_mbo2;
-  cfi::Mbo m_mbo3;
-  cfi::Mbo m_mbo4;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
+  cfi::Mbo mbo1_;
+  cfi::Mbo mbo2_;
+  cfi::Mbo mbo3_;
+  cfi::Mbo mbo4_;
 
   std::vector<double> x;
   std::vector<double> y;
@@ -54,38 +54,38 @@ Signal::Signal() {}
 
 void Signal::initialize(const Config *root)
 {
-  m_mbo1.initialize("root=sum_agg(@trade_price * @trade_qty * @trade_side)",
+  mbo1_.initialize("root=sum_agg(@trade_price * @trade_qty * @trade_side)",
                     "m1");
-  m_mbo2.initialize("root=sum_agg(@trade_price*@trade_qty - "
+  mbo2_.initialize("root=sum_agg(@trade_price*@trade_qty - "
                     "@trade_price*@trade_qty*@trade_side)",
                     "m2");
-  m_mbo3.initialize("root=sum_agg(@trade_side == 0)", "m3");
-  m_mbo4.initialize("root=sum_agg(@trade_side == 1)", "m4");
+  mbo3_.initialize("root=sum_agg(@trade_side == 0)", "m3");
+  mbo4_.initialize("root=sum_agg(@trade_side == 1)", "m4");
 
   x.resize(1000, 0);
   y.resize(1000, 0);
 }
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
   wllog_info("ins_nr={}\n", ev->ins_nr);
-  m_mbo1.on_day_begin(ev->date, ev->ins_nr);
-  m_mbo2.on_day_begin(ev->date, ev->ins_nr);
-  m_mbo3.on_day_begin(ev->date, ev->ins_nr);
-  m_mbo4.on_day_begin(ev->date, ev->ins_nr);
+  mbo1_.on_day_begin(ev->date, ev->ins_nr);
+  mbo2_.on_day_begin(ev->date, ev->ins_nr);
+  mbo3_.on_day_begin(ev->date, ev->ins_nr);
+  mbo4_.on_day_begin(ev->date, ev->ins_nr);
   mbo_cost = 0;
 }
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
-  m_mbo1.on_day_end(ev->date);
-  m_mbo2.on_day_end(ev->date);
-  m_mbo3.on_day_end(ev->date);
-  m_mbo4.on_day_end(ev->date);
+  wllog_info("{} updates received\n", cnt_);
+  mbo1_.on_day_end(ev->date);
+  mbo2_.on_day_end(ev->date);
+  mbo3_.on_day_end(ev->date);
+  mbo4_.on_day_end(ev->date);
   std::cout << "mbo_cost = " << mbo_cost / 1000 << " ms\n";
 }
 
@@ -93,7 +93,7 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev) {}
 
 void Signal::on_cs_mbo(const CsMboEvent *ev)
 {
-  m_cnt++;
+  cnt_++;
   sigs.clear();
   sigs.reserve(ev->ins_nr);
 
@@ -127,12 +127,12 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
       inputs[0] = price;
       inputs[1] = x.data();
       inputs[2] = y.data();
-      auto st = m_mbo1.update(inputs, cnt, i);
-      auto bt = m_mbo2.update(inputs, cnt, i);
+      auto st = mbo1_.update(inputs, cnt, i);
+      auto bt = mbo2_.update(inputs, cnt, i);
 
       inputs[0] = y.data();
-      auto bc = m_mbo3.update(inputs, cnt, i);
-      auto sc = m_mbo4.update(inputs, cnt, i);
+      auto bc = mbo3_.update(inputs, cnt, i);
+      auto sc = mbo4_.update(inputs, cnt, i);
 
       sigs.emplace_back(st + bt + bc + sc);
 
@@ -144,14 +144,14 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
   auto elapsed =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   mbo_cost += elapsed.count();
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
+  apis_.update_signal(apis_.token, ev->exchtime, ev->localtime, ev->ins_nr,
                        sigs.data());
 }
 
-} // namespace csmbo
+} // namespace opsmbo
 } // namespace nickchenyj
 
-using nickchenyj::csmbo::Signal;
+using nickchenyj::opsmbo::Signal;
 
 C_DECLARATION_BEGIN;
 

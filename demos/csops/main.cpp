@@ -30,15 +30,15 @@ public:
   void on_cs_snapshot(const CsSnapshotEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
-  std::string m_f1;
-  std::string m_f2;
-  cfi::FactorNode m_node1;
-  cfi::FactorNode m_node2;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
+  std::string f1_;
+  std::string f2_;
+  cfi::FactorNode node1_;
+  cfi::FactorNode node2_;
 
-  std::vector<double> m_av1;
-  std::vector<double> m_ret;
+  std::vector<double> av1_;
+  std::vector<double> ret_;
 };
 
 Signal::Signal() {}
@@ -47,65 +47,68 @@ void Signal::initialize(const Config *root)
 {
   // get user config construct formula
   int window = 2;
-  fmt::format_to(std::back_inserter(m_f1), "ts_inner_product(@bp1,@bp2,{})",
+  fmt::format_to(std::back_inserter(f1_), "ts_inner_product(@bp1,@bp2,{})",
                  window);
-  fmt::format_to(std::back_inserter(m_f2), "ts_sum(@av1,{})", window);
-  m_node1.initialize(m_f1, "f1");
-  m_node2.initialize(m_f2, "f2");
+  fmt::format_to(std::back_inserter(f2_), "ts_sum(@av1,{})", window);
+  node1_.initialize(f1_, "f1");
+  node2_.initialize(f2_, "f2");
 }
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::load_state(const std::string &indir)
 {
   wllog_info("loading state from dir {}\n", indir);
-  m_node1.load_checkpoint(indir);
-  m_node2.load_checkpoint(indir);
+  node1_.load_checkpoint(indir);
+  node2_.load_checkpoint(indir);
 }
 
 void Signal::save_state(const std::string &outdir)
 {
   wllog_info("saving state to dir {}\n", outdir);
-  m_node1.save_checkpoint(outdir);
-  m_node2.save_checkpoint(outdir);
+  node1_.save_checkpoint(outdir);
+  node2_.save_checkpoint(outdir);
 }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
-  m_av1.reserve(ev->ins_nr);
-  m_ret.resize(ev->ins_nr);
+  cnt_ = 0;
+  av1_.reserve(ev->ins_nr);
+  ret_.resize(ev->ins_nr);
   // if uv is expended, internal data will be expanded automatically
-  m_node1.on_day_begin(ev->date, ev->ins_nr);
-  m_node2.on_day_begin(ev->date, ev->ins_nr);
+  node1_.on_day_begin(ev->date, ev->ins_nr);
+  node2_.on_day_begin(ev->date, ev->ins_nr);
   wllog_info("date={}, ins_nr={}\n", ev->date, ev->ins_nr);
 }
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  m_node1.on_day_end(ev->date);
-  m_node2.on_day_end(ev->date);
-  wllog_info("{} updates received\n", m_cnt);
+  node1_.on_day_end(ev->date);
+  node2_.on_day_end(ev->date);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
 {
   using FldType = CsSnapshotEvent::FldType;
   auto bp = CsSnapshotUtils::get_fld<FldType::bp>(ev);
-  const auto ret1 = m_node1.update(bp[0], bp[1], ev->ins_nr);
+  const auto ret1 = node1_.update(bp[0], bp[1], ev->ins_nr);
 
   // for non-double fields, convert to double first
+  // NOTE: must resize (not just reserve) — copy_n writes ins_nr doubles below
+  av1_.resize(ev->ins_nr);
   auto av = CsSnapshotUtils::get_fld<FldType::av>(ev);
-  std::copy_n(av[0], ev->ins_nr, m_av1.begin());
-  const auto ret2 = m_node2.update(m_av1.data(), ev->ins_nr);
+  std::copy_n(av[0], ev->ins_nr, av1_.begin());
+  const auto ret2 = node2_.update(av1_.data(), ev->ins_nr);
 
   for (size_t i = 0; i < ev->ins_nr; ++i) {
-    m_ret[i] = ret1[i] + ret2[i];
+    ret_[i] = ret1[i] + ret2[i];
   }
 
-  ++m_cnt;
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
-                       ret1);
+  ++cnt_;
+  // emit the combined result (ret1 + ret2), not the raw ret1
+  apis_.update_signal(apis_.token, ev->exchtime, ev->localtime, ev->ins_nr,
+                       ret_.data());
 }
 
 } // namespace csops

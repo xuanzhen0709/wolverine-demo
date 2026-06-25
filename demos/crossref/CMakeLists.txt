@@ -1,5 +1,5 @@
 add_wolverine_library(
-    NAME multitickers
+    NAME crossref
     USER nickchenyj
     TYPE signal
     SRCS main.cpp

@@ -15,7 +15,7 @@
 using namespace cfi::wolverine;
 
 namespace nickchenyj {
-namespace multitickers {
+namespace operators {
 
 class Signal {
 public:
@@ -31,14 +31,14 @@ public:
   void on_snapshot(const SnapshotEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
   // initialize with formula directory
   // each op must be assigned a unique id
-  cfi::Operators m_op1{"ts_inner_product(@x,@y,2)", "op1"};
+  cfi::Operators op1_{"ts_inner_product(@x,@y,2)", "op1"};
   // initialize with formula and id later
-  cfi::Operators m_op2;
-  std::vector<double> m_sigval;
+  cfi::Operators op2_;
+  std::vector<double> sigval_;
 };
 
 // function definitions
@@ -52,15 +52,15 @@ void Signal::initialize(const Config *root)
   std::string formula;
   fmt::format_to(std::back_inserter(formula), "ts_inner_product(@x,@y,{})",
                  len);
-  m_op2.initialize(formula, "op2");
-  m_sigval.assign(1, NAN);
+  op2_.initialize(formula, "op2");
+  sigval_.assign(1, NAN);
 }
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
   // on start of each day
@@ -69,46 +69,46 @@ void Signal::on_sod(const SodEvent *ev)
 
 void Signal::load_state(const std::string &dir)
 {
-  m_op1.load_checkpoint(dir);
-  m_op2.load_checkpoint(dir);
+  op1_.load_checkpoint(dir);
+  op2_.load_checkpoint(dir);
 }
 
 void Signal::save_state(const std::string &dir)
 {
-  m_op1.save_checkpoint(dir);
-  m_op2.save_checkpoint(dir);
+  op1_.save_checkpoint(dir);
+  op2_.save_checkpoint(dir);
 }
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Signal::on_snapshot(const SnapshotEvent *ev)
 {
-  ++m_cnt;
+  ++cnt_;
   const auto ss = ev->snapshot;
-  const auto ret1 = m_op1.update(double(ss->bv[0]), ss->bp[0]);
-  const auto ret2 = m_op2.update(double(ss->av[0]), ss->ap[0]);
+  const auto ret1 = op1_.update(double(ss->bv[0]), ss->bp[0]);
+  const auto ret2 = op2_.update(double(ss->av[0]), ss->ap[0]);
   wllog_info("{},{}/{},{}/{},bid:{}@{},bid_op:{}/{},ask:{}@{},ask_op:{}/{}\n",
-             m_cnt, ss->localtime,
+             cnt_, ss->localtime,
              cfi::wolverine::time::epoch_to_str(ss->localtime), ss->exchtime,
              cfi::wolverine::time::exchtime_to_str(ss->exchtime), ss->bv[0],
-             ss->bp[0], m_op1.size(), ret1, ss->av[0], ss->ap[0], m_op2.size(),
+             ss->bp[0], op1_.size(), ret1, ss->av[0], ss->ap[0], op2_.size(),
              ret2);
-  m_sigval[0] = ret1 + ret2;
-  m_apis.update_signal(m_apis.token, ss->exchtime, ss->localtime, 1,
-                       m_sigval.data());
+  sigval_[0] = ret1 + ret2;
+  apis_.update_signal(apis_.token, ss->exchtime, ss->localtime, 1,
+                       sigval_.data());
 }
 
-} // namespace multitickers
+} // namespace operators
 } // namespace nickchenyj
 
 C_DECLARATION_BEGIN;
 
 void on_create(void **ptr, SignalOps *ops)
 {
-  using nickchenyj::multitickers::Signal;
+  using nickchenyj::operators::Signal;
   *ptr = new Signal{};
   *ops = SignalOps{
       .initialize = [](void *hdl, const Config *root) -> void

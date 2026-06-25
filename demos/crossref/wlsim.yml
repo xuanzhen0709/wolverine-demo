@@ -1,7 +1,7 @@
 env: {}
-
-start: 20230101
+start: 20230109
 end: 20230109
+
 refdata:
   ticker_mapping: HFT
 
@@ -9,17 +9,15 @@ marketdata:
   - module: snapshot
     symbols:
       - IC.CFFEX
-      - IF.CFFEX
-      - IH.CFFEX
+      - IF1.CFFEX
     config:
       dataset: cffex
     client:
-      - multiticker-py
+      - crossref
 
 signal:
-  name: multiticker-py
-  module: nickchenyj.multitickers
-  is_python: true
+  name: crossref
+  module: nickchenyj.crossref
   output:
     module: csv
     config:
@@ -27,4 +25,5 @@ signal:
   config:
     targets:
       - IC.CFFEX
+      - IF1.CFFEX
     # user defined params can go below

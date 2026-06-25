@@ -17,7 +17,7 @@
 using namespace cfi::wolverine;
 
 namespace nickchenyj {
-namespace csmbo {
+namespace feature_factor {
 
 class Signal {
 public:
@@ -35,8 +35,8 @@ public:
   void on_cs_mbo(const CsMboEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
   struct Stats {
     size_t cnt = 0;
     int64_t last = 0;
@@ -58,15 +58,15 @@ Signal::Signal() {}
 
 void Signal::initialize(const Config *root) {}
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
   // we only try to get feature buffer once per day
   if (!ft_order_cnt_) {
-    ft_order_cnt_ = m_apis.get_feature_buf(m_apis.token, "order_cnt");
-    ft_order_pxmean_ = m_apis.get_feature_buf(m_apis.token, "order_pxmean");
+    ft_order_cnt_ = apis_.get_feature_buf(apis_.token, "order_cnt");
+    ft_order_pxmean_ = apis_.get_feature_buf(apis_.token, "order_pxmean");
   }
   wllog_info("ins_nr={}\n", ev->ins_nr);
   sigs_.assign(ev->ins_nr, 0);
@@ -90,14 +90,14 @@ void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
     wllog_info("feature order_pxmean,ins:{},val:{}\n", i, (*ft_order_pxmean_)[i]);
     sigs_[i] = (*ft_order_pxmean_)[i] * (*ft_order_cnt_)[i];
   }
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
+  apis_.update_signal(apis_.token, ev->exchtime, ev->localtime, ev->ins_nr,
                        sigs_.data());
 }
 
-} // namespace csmbo
+} // namespace feature_factor
 } // namespace nickchenyj
 
-using nickchenyj::csmbo::Signal;
+using nickchenyj::feature_factor::Signal;
 
 C_DECLARATION_BEGIN;
 

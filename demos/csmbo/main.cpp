@@ -35,8 +35,8 @@ public:
   void on_cs_mbo(const CsMboEvent *ev);
 
 private:
-  SignalApis m_apis = {nullptr};
-  size_t m_cnt = 0;
+  SignalApis apis_ = {nullptr};
+  size_t cnt_ = 0;
   struct Stats {
     size_t cnt = 0;
     int64_t last = 0;
@@ -56,11 +56,11 @@ Signal::Signal() {}
 
 void Signal::initialize(const Config *root) {}
 
-void Signal::set_apis(SignalApis apis) { m_apis = apis; }
+void Signal::set_apis(SignalApis apis) { apis_ = apis; }
 
 void Signal::on_sod(const SodEvent *ev)
 {
-  m_cnt = 0;
+  cnt_ = 0;
 
   // NOTE:
   // for now in cross-sectional mode, we get the full list of stock names
@@ -81,7 +81,7 @@ void Signal::on_sod(const SodEvent *ev)
 
 void Signal::on_eod(const EodEvent *ev)
 {
-  wllog_info("{} updates received\n", m_cnt);
+  wllog_info("{} updates received\n", cnt_);
 }
 
 void Signal::on_cs_snapshot(const CsSnapshotEvent *ev)
@@ -124,7 +124,7 @@ wllog_info("exchtime:{}/{},localtime:{}/{}\n", ev->exchtime,
       }
     }
   }
-  m_apis.update_signal(m_apis.token, ev->exchtime, ev->localtime, ev->ins_nr,
+  apis_.update_signal(apis_.token, ev->exchtime, ev->localtime, ev->ins_nr,
                        sigs_.data());
 }
 
