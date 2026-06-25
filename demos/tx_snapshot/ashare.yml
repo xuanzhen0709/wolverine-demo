@@ -1,0 +1,23 @@
+env: {}
+start: 20250703
+end: 20250703
+refdata:
+  ticker_mapping: HFT
+
+marketdata:
+  - module: tx-snapshot
+    symbols:
+      - 002104.SZ
+    config:
+      dataset: stocks_norm_v3.CHN
+    client:
+      - snapshot
+
+signal:
+  name: snapshot
+  module: nickchenyj.tx_snapshot
+  config:
+    targets:
+      - 002104.SZ
+
+      # user defined params can go below
