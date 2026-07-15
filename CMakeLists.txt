@@ -10,3 +10,4 @@ message(${Python3_NumPy_INCLUDE_DIRS})
 
 add_subdirectory(demos)
 add_subdirectory(tools)
+add_subdirectory(stats)

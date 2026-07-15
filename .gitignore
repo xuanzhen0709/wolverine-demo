@@ -63,3 +63,5 @@ _deps
 /output
 /thirdparty/Eigen
 /demo/zhenhu
+
+/tmp

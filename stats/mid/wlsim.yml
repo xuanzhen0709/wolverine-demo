@@ -1,0 +1,31 @@
+env: {
+  nas_dir: /mnt/nas-intern
+}
+start: 20220104
+end: 20250630
+refdata: {}
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks.CHN
+    config:
+      fields:
+        - ap
+        - bp
+      levels: 1
+    client:
+      - mid
+
+signal:
+  name: mid
+  module: stats.mid
+  output:
+    module: csv
+    config:
+      output_dir: output/stats
+  config:
+    targets:
+      - dynamic:stocks.CHN
+    # 可选：覆盖默认的 8 个时间点（HHMMSS 整数）。缺省即使用代码内置的 8 个点。
+    # label_times: [93000, 100000, 103000, 110000, 130000, 133000, 140000, 143000]
