@@ -1,0 +1,44 @@
+env: {
+  nas_dir: /mnt/nas-intern
+}
+# 只 dump 这一天的逐笔（改成你要看的交易日）。
+start: 20230103
+end: 20230103
+refdata: {}
+
+marketdata:
+  - module: cs-mbo
+    symbols:
+      - stocks.CHN
+    config:
+    client:
+      - mbo_dump
+
+signal:
+  name: mbo_dump
+  module: stats.mbo_dump
+  # 不走 update_signal，但框架仍要求一个 output sink（不会收到任何更新）。
+  output:
+    module: csv
+    config:
+      output_dir: output/_unused
+  config:
+    targets:
+      - dynamic:stocks.CHN
+    output_dir: output/mbo_dump
+
+    # ⚠ 全市场单日逐笔可能数十 GB。首次强烈建议只看几只：
+    symbols:
+      - 600000.SH
+      - 000001.SZ
+    # 留空 symbols（删掉上面两行）= dump 全市场。
+
+    # 只 dump 指定流（默认三者全开）：
+    # streams: [order, cancel, trade]
+
+    # 只保留某时间窗内的逐笔（HHMMSS 整数，缺省=全天）：
+    # start_hhmmss: 93000
+    # end_hhmmss: 100000
+
+    # human_time: true      # 是否输出可读 exchtime_str 列
+    # flush_bytes: 8388608  # buffer 刷盘阈值（字节）

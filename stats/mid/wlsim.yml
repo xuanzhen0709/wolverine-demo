@@ -2,7 +2,7 @@ env: {
   nas_dir: /mnt/nas-intern
 }
 start: 20230101
-end: 20230110
+end: 20250630
 refdata: {}
 
 marketdata:
