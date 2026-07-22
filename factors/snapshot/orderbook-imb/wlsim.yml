@@ -1,0 +1,47 @@
+env: {
+  nas_dir: /mnt/zxuan/nas-3
+}
+start: 20180102
+end: 20251231
+refdata: {}
+
+marketdata:
+  - module: cs-snapshot
+    symbols:
+      - stocks.CHN
+    config:
+      # OBI 需要买卖价（判有效）+ 买卖量（算深度）。
+      fields:
+        - bp
+        - ap
+        - bv
+        - av
+      levels: 10          # 10 档；depth_levels=0 时用全部 10 档
+    client:
+      - orderbook_imb
+
+signal:
+  name: orderbook_imb
+  module: factors.orderbook_imb
+  # 本因子不走 update_signal（自己写文件），但框架仍要求一个 output sink——
+  # 它不会收到任何更新，指向一个弃用目录即可。
+  output:
+    module: csv
+    config:
+      output_dir: output/_unused
+  config:
+    targets:
+      - dynamic:stocks.CHN
+
+    output_dir: output/factors   # → output/factors/<prefix>/<stat>/<date>/<stat>-<date>.csv
+    prefix: obi                  # → output/factors/obi/{mean,skew,twa,last}/<date>/
+    window_sec: 1800             # 滚动窗口 30 分钟
+    depth_levels: 0              # OBI 用的档数 K；0 = 用当帧全部推送档位
+
+    # 可选：只把 exchtime>=该时点的切片纳入窗口（HHMMSS），剔除开盘集合竞价。
+    # 09:30 报出点的窗口本就 [09:00,09:30]，含 09:15–09:25 竞价切片；如需干净的
+    # 连续竞价窗口可设 93000（此时 09:30 报出点窗口为空 → 全 NaN，属预期）。
+    # min_slice_hhmmss: 93000
+
+    # 可选：覆盖默认 8 个报出时点（与 stats/mid 对齐，缺省即内置 8 点）。
+    # label_times: [93000, 100000, 103000, 110000, 130000, 133000, 140000, 143000]

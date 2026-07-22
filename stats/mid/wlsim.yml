@@ -1,5 +1,5 @@
 env: {
-  nas_dir: /mnt/nas-intern
+  nas_dir: /mnt/zxuan/nas-3
 }
 start: 20230101
 end: 20250630
