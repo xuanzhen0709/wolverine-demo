@@ -1,0 +1,45 @@
+env: {
+  nas_dir: /mnt/zxuan/nas-3
+}
+start: 20180102
+end: 20251231
+refdata: {}
+
+marketdata:
+  - module: cs-mbo             # 逐笔 Order/Cancel/Trade（本因子只用 MBO）
+    symbols:
+      - stocks.CHN
+    config:
+    client:
+      - lifetime
+
+signal:
+  name: lifetime
+  module: factors.lifetime
+  # 本因子不走 update_signal（自己写文件），但框架仍要求一个 output sink——
+  # 它不会收到任何更新，指向弃用目录即可。
+  output:
+    module: csv
+    config:
+      output_dir: output/_unused
+  config:
+    targets:
+      - dynamic:stocks.CHN
+
+    output_dir: output/factors   # → output/factors/<prefix>/<series>/<date>/<series>-<date>.csv
+    prefix: lifetime             # → output/factors/lifetime/cancel_buy_loglife_q50/<date>/... 等 76 个
+    window_sec: 1800             # 回看窗口 30 分钟
+    settle_sec: 6                # cohort 冷却期 τ（fleet_order 用）；须 ≥ 最大秒撤阈值 6s
+    min_samples: 5               # 每个 (事件×方向) 分布块样本下限，不足则该块分布类因子记 NaN
+    session_time: true           # 按交易时间(仅剔除午休11:30–13:00)算窗口与lifetime；
+                                 # → 13:00 窗口=11:00–11:30，15:00 窗口=14:30–15:00；
+                                 # 跨午休lifetime不含午休；集合竞价(09:15–09:25)保留真实
+                                 # 时间戳，竞价内秒撤单有真实lifetime(不压到0)。设 false
+                                 # 退化为 wall-clock(不推荐，13:00 窗口近乎空)。
+
+    # 可选：只纳入 exchtime>=该时点的逐笔（HHMMSS），剔除开盘集合竞价委托
+    # （竞价段挂单存活时长被人为拉长，会污染 lifetime 分布）。设 93000 从连续竞价起算。
+    # min_event_hhmmss: 93000
+
+    # 可选：覆盖默认 9 个报出时点（含收盘 15:00，与 stats/mid 对齐再补末窗）。
+    # label_times: [93000, 100000, 103000, 110000, 130000, 133000, 140000, 143000, 150000]

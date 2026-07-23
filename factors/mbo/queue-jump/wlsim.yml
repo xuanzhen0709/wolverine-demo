@@ -1,0 +1,40 @@
+env: {
+  nas_dir: /mnt/zxuan/nas-3
+}
+start: 20180102
+end: 20251231
+refdata: {}
+
+marketdata:
+  - module: cs-mbo
+    symbols:
+      - stocks.CHN
+    config:
+    client:
+      - queue_jump
+
+signal:
+  name: queue_jump
+  module: factors.queue_jump
+  # 本模块一次输出多个研究序列，直接写到 output_dir；标准 sink 仅用于满足框架配置。
+  output:
+    module: csv
+    config:
+      output_dir: output/_unused
+  config:
+    targets:
+      - dynamic:stocks.CHN
+
+    output_dir: output/factors
+    prefix: queue_jump
+    window_sec: 1800
+    min_orders: 20
+    session_time: true
+    exclude_limits: true
+
+    # 默认输出 9 个时点；15:00 行补充最后一个 30 分钟窗口。
+    # queue-jump 只统计连续竞价，因此该窗口实际纳入 14:30–14:57，
+    # 不把 14:57–15:00 的收盘集合竞价混入连续竞价口径。
+    # 只有 callback 的 outer exchtime 精确命中目标才输出有效值；
+    # 错过/不对齐的目标写全 NaN，绝不使用目标后的状态回补。
+    # label_times: [93000, 100000, 103000, 110000, 130000, 133000, 140000, 143000, 150000]
