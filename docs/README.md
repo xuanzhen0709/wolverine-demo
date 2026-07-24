@@ -25,6 +25,15 @@ wolverine 仿真平台（wlsim）的 demo 仓库，展示 signal、factor、stra
 | [使用 Feature](guides/feature.md) | 特征工厂与因子组合 |
 | [横截面数据处理](guides/cross-sectional-data.md) | CsSnapshot / CsMbo 事件处理 |
 | [时间序列数据处理](guides/time-series-data.md) | Snapshot / FullSnapshot / TxSnapshot |
+| [因子市值 / 行业中性化](guides/factor-neutralization.md) | 算 IC 前剔除市值 / 行业暴露（暴露数据源 + 全流程） |
+
+## 研究 (Research)
+
+| 文档 | 说明 |
+|------|------|
+| [MBO 逐笔数据处理](research/mbo-data-handling.md) | 沪深逐笔机制、Order/Trade/Cancel 语义和实现规则 |
+| [MBO 委托生命周期状态机](research/lifetime-state-machine.md) | 集合/连续竞价、沪深 residual、部分成交与撤单的完整状态机 |
+| [A 股微结构因子研究](research/ashare-microstructure-factors.md) | 基于 MBO 与十档快照的微结构因子候选 |
 
 ## 参考 (Reference)
 

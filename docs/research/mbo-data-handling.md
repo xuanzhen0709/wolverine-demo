@@ -92,9 +92,15 @@
 | 收盘集合竞价（深/科创/创业） | 14:57–15:00 | trade-id ~100% 可链 |
 
 **因子实现规则：**
-- 生命周期/撤单类因子**从连续竞价 09:30 起算**：竞价段委托存活时长会被人为拉长（挂 5–15 分钟到开盘才撮合），混入会污染 age 分布。
-- 09:20–09:25 无撤单是**制度性**的，不要把"这段撤单率=0"当信号。
-- 集合竞价成交（09:25 / 14:57–15:00）双边可链，可单独做"竞价机构调仓足迹"类因子（研究文档视角六 #48/#49）。
+- 集合竞价的 Order 和 Cancel 都是真实生命周期事件，可以统计；竞价撮合前的撤单仍按
+  `remaining=Order.qty−Σ已成交` 和 `lifetime=cancel_time−rest_arrival` 计算。
+- 09:20–09:25 无撤单是**制度性**的，不要把"这段撤单率=0"当成市场主体主动选择。
+- 集合竞价 Trade 没有唯一 taker/maker：bid 和 ask 两腿都应作为 resting fill，不能根据
+  `Trade.side` 重置其中一侧的 arrival。
+- 是否将竞价 lifecycle 与连续竞价混成一个分布属于研究口径选择。若保留，应保存真实
+  arrival 并对交易阶段做控制；若只研究连续竞价，应显式门控，而不是因为实现限制丢弃
+  有效竞价撤单。
+- 完整转移规则见 [MBO 委托生命周期状态机](lifetime-state-machine.md)。
 
 ---
 
@@ -126,15 +132,23 @@
 在 `on_cs_mbo` 里，**每标的维护一个当日状态**（`std::vector<PerInsState>`，`on_sod` 按 `ins_nr` 重置）：
 
 1. **判市场**：由 `ev->ms[i]` 的 ticker 前缀分沪/深（6/688→沪，0/3→深），沪市禁用"主动单生命周期"分支。
-2. **LiveOrders 字典**（仅深市 + 沪市挂单侧）：`order_id → {side, price, qty0, filled, arrival_exchtime, alive}`。
-   - Order → 建记录（限价单才入；用 `exchtime` 记 arrival）。
-   - Trade → 用 `bid_id`/`ask_id` 找记录，`filled += qty`；沪市 taker 侧找不到就跳过（正常）。
-   - Cancel → 用 `order_id` 标记 `alive=false`，记 `lifespan = cancel_exchtime − arrival`；**剩余量= qty0−filled，别用 Cancel.qty**。
+2. **LiveOrders 字典**（深市全部委托 + 沪市可观测挂单侧）：
+   `order_id → {side, rest_qty0, passive_filled, rest_arrival, status, cohort}`。
+   - Order → 先按交易阶段和是否存在同时间 taker trade 判断普通挂单、纯主动或 residual。
+   - 连续竞价 Trade → maker 腿累计被动成交；沪市无对应 Order 的 taker 跳过生命周期
+     状态，但仍处理 maker。
+   - 集合竞价 Trade → bid/ask 两腿都累计被动成交，不使用 taker/maker 解释。
+   - Cancel → 记 `lifespan=cancel_exchtime−rest_arrival`；**剩余量 =
+     rest_qty0−passive_filled，不能使用 Cancel.qty**。
 3. **时间基准**：一切 age/窗口/门控用 `exchtime`；`localtime` 只用于跨日/日志。**严格 look-ahead**：t 时点出值时只用 `exchtime ≤ t` 的事件。
-4. **时段门控**：默认从 09:30 起纳入；剔除 09:20–09:25 的制度性零撤单；集合竞价单独处理。
+4. **交易阶段**：连续竞价和集合竞价使用不同 Trade 转移；09:20–09:25 的制度性禁撤应
+   作为 phase/control，而不是普通的“低撤单率”信号。
 5. **横截面**：按市场分组算，再各自 winsorize+zscore/rank；阈值用 per-stock 在线分位数（不能用当日全量→look-ahead）。
 6. **null 防御**：`ev->orders/cancels/trades` 及每个字段指针都可能为 null，逐一判空（见 mbo_dump 的写法）。
-7. **同一 3s 窗口内**：Order 与其 Cancel 可能落在同一帧（实证 17.8% 撤单在其下单后 3s 内）——增量更新时先处理完本帧全部 Order 再处理 Cancel/Trade，或严格按 `exchtime` 归并三流。
+7. **同一 3s 窗口内**：Order 与其 Cancel 可能落在同一帧（实证 17.8% 撤单在其下单后
+   3s 内）。应按 `exchtime` 归并三流；同时间戳优先使用原始序号，没有序号时采用
+   `Order → Trade → Cancel` 并检查状态不变量。完整算法见
+   [MBO 委托生命周期状态机](lifetime-state-machine.md)。
 
 ---
 

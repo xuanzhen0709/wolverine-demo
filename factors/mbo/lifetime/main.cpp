@@ -3,20 +3,23 @@
 // 思路：用逐笔 MBO 的 order_id 生命周期，刻画"被动挂单挂多久才撤 / 才被吃掉成交"的
 //   分布形态与买卖不对称。大量"秒撤单"（lifetime < 3–6s）是算法试探 / 幌骗（spoof）
 //   指纹；买方秒撤多 = 虚假买盘支撑 → 次日偏空；卖方秒撤多 = 虚假压力 → 次日偏多。
-//   被动单被吃掉的存活时长（fill lifetime）刻画"真实承诺"的排队时长，买卖不对称同理。
+//   每个被动成交片段的存活时长（fill lifetime）刻画成交发生时该委托已排队多久；
+//   部分成交后撤单的委托，其已成交部分进入 fill，剩余量仍进入 cancel。
 //
-// ============================ 被动单口径与沪深差异（关键）============================
-// 见 docs/research/mbo-data-handling.md。本因子**只统计被动单**：
-//   被动单 = 从未在任何成交中作为**主动方(taker)** 出现的委托。
+// ============================ Resting 口径与沪深差异（关键）============================
+// 见 docs/research/mbo-data-handling.md。本因子只统计订单**进入 order book 后**的生命周期：
+//   • 纯主动且全成交：没有 resting 阶段，不统计；
+//   • 主动部分成交后有剩余：从 residual 真正挂入簿子的时刻重新起算，后续被动成交/
+//     撤单正常统计；不能因为该 order_id 曾经是 taker 就永久排除。
 //   主动方由 Trade.Side 解析（实测 20250604：Side 100% 填 BID/ASK，语义为主动方）：
 //     Side==BID ⇒ 主动买 ⇒ bid_id=taker(主动)、ask_id=maker(被动)；
 //     Side==ASK ⇒ 主动卖 ⇒ ask_id=taker(主动)、bid_id=maker(被动)。
 //   （TRADED_BID/TRADED_ASK 若出现，同 BID/ASK 处理。）
-//   • 深市：Order 流广播**全部委托**（含主动/即时成交单），taker 双边 100% 可链
-//     → 主动单被精确剔除。
-//   • 沪市：Order 流**只广播挂进簿子的委托**，全成交的主动单从不作为 Order 出现
-//     （天然不在集合里）；taker 仅 ~10% 可链，故"先吃一部分再挂住"的准主动单
-//     约 90% 漏标成被动 —— 这是沪市数据固有限制，无法在信号内修复。
+//   • 深市：Order 流广播原始委托（含主动单）。taker 成交先从原始量扣除；若仍有
+//     residual，则在最后一次主动成交时刻新建 resting cohort。
+//   • 沪市：纯主动单不发 Order；主动部分成交后的 residual 挂簿时才发 Order，Order.qty
+//     已代表挂入簿子的量。因此同 order_id 的 taker 成交只用于确定 resting 起点，不能再从
+//     沪市 Order.qty 重复扣减。
 //   ⇒ 因此横截面使用时**务必分市场（6/688→SH、0/3→SZ）各自 winsorize+zscore/rank
 //      再合并**，否则残余的市场级 level/scale 差异会污染排序。本因子只输出**裸值**。
 //   • ⚠ 撤单的 volume 用 remaining = qty0 − filled（真正撤走的量），绝不用 Cancel.qty
@@ -24,12 +27,12 @@
 //   • order_id 交易所内唯一、日内不复用；按标的各维护一份字典，天然无跨股冲突。
 //
 // ============================ 计算（每标的，过去 window_sec 秒回看）============================
-// 维护 LiveOrders: order_id → {arrival, qty0, filled, is_buy, aggressive, plidx}。逐笔：
+// 维护 LiveOrders: order_id → {rest_arrival, qty0, filled, is_buy, plidx}。逐笔：
 //   Order  → 建记录；push 一条 PlacedRec 进"挂单窗口 plwin"（cohort 分母用）。
-//   Trade  → 先按 Side 标出 taker 侧 → aggressive=1（同步标 plwin）；再对 bid_id/ask_id
-//            命中记录 filled += qty；若 filled≥qty0 全成交：被动单(aggressive==0)记一条
-//            **成交寿命** life=成交完成时刻−到达，push fwin；随后删 Live 记录（PlacedRec 留存）。
-//   Cancel → 找记录；**主动单跳过**(只统计被动)；lifetime=撤单时刻−到达；
+//   Trade  → taker 腿不记 fill lifetime；若主动成交后仍有 residual，结束旧 cohort 并从
+//            本次主动成交时刻新建 resting cohort。maker 腿的每个成交片段记成交寿命，
+//            life=该次成交时刻−rest_arrival、vol=实际成交量。
+//   Cancel → 找 resting 记录；lifetime=撤单时刻−rest_arrival；
 //            push 一条**撤单寿命** cwin（vol=remaining）；若 life<阈值置 plwin 的秒撤位；删记录。
 // 时间一律用 exchtime（当日纳秒），严格无 look-ahead。
 //
@@ -39,7 +42,7 @@
 //   （收盘集合竞价成交戳≥15:00:00，可靠触发）；跨午休委托的 lifetime 自动剔除 90min。
 //
 // ============================ 两类窗口 ============================
-//   • 分布窗（cwin/fwin）：按**事件时间**（撤单/成交完成时刻）裁到 [now−W, now]。
+//   • 分布窗（cwin/fwin）：按**事件时间**（撤单/每次被动成交时刻）裁到 [now−W, now]。
 //   • cohort 窗（plwin）：按**到达时间**裁到 (now−W−τ, now−τ]。τ 是冷却期，保证 cohort
 //     内每单都有 ≥τ (≥最大秒撤阈值) 的时间暴露出是否秒撤 → fleet_order 分子分母是**同一批
 //     订单**。默认 τ=6s，可配 settle_sec。
@@ -114,6 +117,9 @@ static constexpr double kNaN = std::numeric_limits<double>::quiet_NaN();
 static constexpr int64_t kAmClose = 41400LL * 1000000000LL; // 11:30:00
 static constexpr int64_t kPmOpen = 46800LL * 1000000000LL;  // 13:00:00
 static constexpr int64_t kLunch = kPmOpen - kAmClose;       // 午休 90min
+static constexpr int64_t kPmClose = 54000LL * 1000000000LL; // 15:00:00
+// cs-mbo 没有 15:00 outer callback；15:01 才 flush 14:57 后的委托和收盘成交。
+static constexpr int64_t kCloseFlush = 54060LL * 1000000000LL; // 15:01:00
 
 // 把当日 exchtime 映射为"剔除午休后的交易时间"（当日纳秒）：
 //   • 竞价/上午(<11:30)：恒等；午休[11:30,13:00)：钉在 11:30；下午(>=13:00)：整体左移 90min。
@@ -250,32 +256,34 @@ public:
 
 private:
   struct OrderRec {
-    int64_t arrival;   // 到达时刻的交易时间（session_ns）
-    int64_t qty0;      // 原始下单量
-    int64_t filled;    // 累计成交量（走成交号匹配）
+    int64_t arrival;   // 当前 residual 进入 order book 的交易时间（session_ns）
+    int64_t qty0;      // 当前 resting cohort 的初始量
+    int64_t filled;    // 当前 resting cohort 的累计被动成交量
     uint8_t is_buy;    // 1=买(BID) 0=卖(ASK)
-    uint8_t aggressive; // 曾作为 taker(主动方) 出现即置 1
     uint64_t plidx;    // 回指 plwin_ 的绝对下标（O(1) 标 aggressive/秒撤）
   };
-  struct LifeRec {     // 撤单寿命(cwin) 与 成交寿命(fwin) 共用
-    int64_t s;         // 事件时刻的交易时间（撤单/成交完成时刻），窗口裁剪键
+  struct LifeRec {     // 撤单寿命(cwin) 与 被动成交片段寿命(fwin) 共用
+    int64_t s;         // 事件时刻的交易时间（撤单/该次成交时刻），窗口裁剪键
     float loglife;     // log(max(lifetime_sec, 1e-3))
     float life_sec;    // 交易时长秒数（撤单侧判秒撤单阈值用）
-    float vol;         // cancel: remaining=qty0−filled ; fill: qty0
+    float vol;         // cancel: remaining=qty0−filled；fill: 本次实际成交量
     uint8_t is_buy;
   };
   struct PlacedRec {   // cohort 挂单窗口，按到达排序
-    int64_t arrival;   // 到达时刻的交易时间（session_ns）
-    float vol;         // qty0
+    int64_t arrival;   // 当前 residual 真正进入 order book 的交易时间
+    float vol;         // residual qty（fleet_order 分母 = 实际挂簿量）
     uint8_t is_buy;
-    uint8_t aggressive; // 后置：该单曾主动成交则 1，cohort 中剔除
+    uint8_t aggressive; // 纯主动全成交、没有 residual resting 阶段时置 1
     uint8_t fc_mask;    // bit th 置位表示该单被以 life<kFleetThr[th] 撤单
+    float fc_vol;       // 秒撤时的 remaining=qty0−filled（fleet_order 分子 = 实际撤走量）
   };
 
   inline int64_t tclock(int64_t e) const
   {
     return use_session_ ? session_ns(e) : e;
   }
+  void trim_windows(int64_t now_s);
+  void emit_target(int64_t target, uint64_t localtime);
   std::array<double, N_SERIES> aggregate(int i, int64_t now_s) const;
   static void append_row(std::string &buf, int64_t ex, uint64_t lt,
                          const std::vector<double> &vals);
@@ -306,6 +314,8 @@ private:
   std::vector<std::deque<PlacedRec>> plwin_;                 // [ins] 挂单 cohort 窗口
   std::vector<uint64_t> plbase_;                             // [ins] plwin 已弹出数
   std::vector<uint64_t> plnext_;                             // [ins] plwin 累计推入数
+  std::vector<uint8_t> is_sh_;                               // [ins] 沪市=1，深市=0
+  uint64_t last_localtime_ = 0;                              // 最近已处理 callback
 
   // 输出：76 个 buffer + 复用的每标的行向量。
   std::array<std::string, N_SERIES> buf_;
@@ -366,14 +376,18 @@ void Signal::on_sod(const SodEvent *ev)
 {
   next_ = 0;
   ins_nr_ = ev->ins_nr;
+  last_localtime_ = 0;
 
   sym_hdr_ = "exchtime,localtime";
+  is_sh_.clear();
+  is_sh_.reserve(ev->ins_nr);
   for (std::uint16_t i = 0; i < ev->ins_nr; ++i) {
     const auto *ms = ev->ms[i];
     std::string code{ms->instrument};
     code.erase(std::find(code.begin(), code.end(), '\0'), code.end());
     std::string exch{ms->exchange};
     exch.erase(std::find(exch.begin(), exch.end(), '\0'), exch.end());
+    is_sh_.push_back(exch == "SH" ? 1 : 0);
     sym_hdr_.push_back(',');
     sym_hdr_ += code;
     sym_hdr_.push_back('.');
@@ -394,16 +408,57 @@ void Signal::on_sod(const SodEvent *ev)
   wllog_info("lifetime: date={}, ins_nr={}\n", ev->date, ev->ins_nr);
 }
 
+void Signal::trim_windows(int64_t now_s)
+{
+  const int64_t cutoff = now_s - window_ns_;
+  const int64_t plcut = now_s - window_ns_ - tau_ns_;
+  for (int i = 0; i < ins_nr_; ++i) {
+    auto &cwin = cwin_[i];
+    auto &fwin = fwin_[i];
+    auto &plwin = plwin_[i];
+    while (!cwin.empty() && cwin.front().s < cutoff) cwin.pop_front();
+    while (!fwin.empty() && fwin.front().s < cutoff) fwin.pop_front();
+    while (!plwin.empty() && plwin.front().arrival <= plcut) {
+      plwin.pop_front();
+      ++plbase_[i];
+    }
+  }
+}
+
+void Signal::emit_target(int64_t target, uint64_t localtime)
+{
+  const int64_t target_s = tclock(target);
+  trim_windows(target_s);
+  for (int i = 0; i < ins_nr_; ++i) {
+    const auto a = aggregate(i, target_s);
+    for (int s = 0; s < N_SERIES; ++s) rowvals_[s][i] = a[s];
+  }
+  for (int s = 0; s < N_SERIES; ++s)
+    append_row(buf_[s], target, localtime, rowvals_[s]);
+}
+
 void Signal::on_cs_mbo(const CsMboEvent *ev)
 {
   using O = CsMboEvent::OrderFldType;
   using C = CsMboEvent::CancelFldType;
   using T = CsMboEvent::TradeFldType;
   const int64_t ex = ev->exchtime;
-  const int64_t now_s = tclock(ex);              // 当前"交易时间"（剔除午休）
-  const int64_t cutoff = now_s - window_ns_;     // 分布窗下界（事件时间）
-  const int64_t plcut = now_s - window_ns_ - tau_ns_; // cohort 裁剪下界（到达时间）
   const auto ins_nr = ev->ins_nr;
+
+  // callback 已越过普通目标：先用上一批处理完成后的状态输出，不能让当前批穿越目标。
+  // 唯一例外是 15:01 的收盘 flush：它承载 14:57–15:00 数据，必须先处理再报 15:00。
+  while (next_ < targets_.size() && ex > targets_[next_] &&
+         !(targets_[next_] == kPmClose && ex == kCloseFlush)) {
+    emit_target(targets_[next_],
+                last_localtime_ ? last_localtime_ : ev->localtime);
+    ++next_;
+  }
+  const bool close_flush =
+      next_ < targets_.size() && targets_[next_] == kPmClose &&
+      ex == kCloseFlush;
+  const int64_t process_now_s =
+      tclock(close_flush ? targets_[next_] : ex);
+  trim_windows(process_now_s);
 
   // 取三流字段指针（各字段可能为 null，逐一判空）。
   const uint32_t *o_cnt = ev->orders ? CsMboUtils::get_fld<O::Cnt>(ev) : nullptr;
@@ -440,14 +495,6 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
     auto &fwin = fwin_[i];
     auto &plwin = plwin_[i];
 
-    // 窗口裁旧：分布窗按事件时间；cohort 窗按到达时间（左开：arrival<=plcut 出局）。
-    while (!cwin.empty() && cwin.front().s < cutoff) cwin.pop_front();
-    while (!fwin.empty() && fwin.front().s < cutoff) fwin.pop_front();
-    while (!plwin.empty() && plwin.front().arrival <= plcut) {
-      plwin.pop_front();
-      ++plbase_[i];
-    }
-
     // 1) Order：建记录 + push PlacedRec（先于 Trade/Cancel 处理，保证同批因果顺序）。
     if (o_cnt && o_ext && o_qty && o_side && o_oid) {
       const auto cnt = o_cnt[i];
@@ -463,15 +510,15 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
           const int64_t q = qty[k];
           const uint8_t is_buy = (side[k] == Side::BID) ? 1 : 0;
           const uint64_t idx = plnext_[i]++;
-          live[oid[k]] = OrderRec{arr_s, q, 0, is_buy, 0, idx};
+          live[oid[k]] = OrderRec{arr_s, q, 0, is_buy, idx};
           plwin.push_back(
-              PlacedRec{arr_s, static_cast<float>(q), is_buy, 0, 0});
+              PlacedRec{arr_s, static_cast<float>(q), is_buy, 0, 0, 0});
         }
       }
     }
 
-    // 2) Trade：先按 Side 标 taker → aggressive；再对 bid/ask 累加 filled；
-    //    全成交时被动单记成交寿命，随后删 Live（PlacedRec 留存作分母）。
+    // 2) Trade：taker 腿只负责把原始委托转换成 residual resting cohort；
+    //    maker 腿才记录 fill lifetime。
     if (t_cnt && t_ext && t_qty && t_side && t_bid && t_ask) {
       const auto cnt = t_cnt[i];
       const auto *text = t_ext[i];
@@ -482,52 +529,82 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
       if (text && qty && tside && bid && ask) {
         for (uint32_t k = 0; k < cnt; ++k) {
           const int64_t q = qty[k];
+          if (q <= 0) continue;
 
-          // taker（主动方）id：BID/TRADED_BID→bid；ASK/TRADED_ASK→ask；其余不标。
+          // BID/TRADED_BID→bid 是 taker、ask 是 maker；ASK 方向反之。
           const Side sd = tside[k];
-          uint64_t taker = 0;
-          bool has_taker = false;
+          uint64_t taker = 0, maker = 0;
           if (sd == Side::BID || sd == Side::TRADED_BID) {
-            taker = bid[k]; has_taker = true;
+            taker = bid[k];
+            maker = ask[k];
           } else if (sd == Side::ASK || sd == Side::TRADED_ASK) {
-            taker = ask[k]; has_taker = true;
+            taker = ask[k];
+            maker = bid[k];
+          } else {
+            continue; // 主动方向未知时无法唯一确定 maker，宁缺毋滥。
           }
-          if (has_taker) {
-            auto it = live.find(taker);
-            if (it != live.end()) {
-              it->second.aggressive = 1;
-              if (it->second.plidx >= plbase_[i]) {
-                const std::size_t pos = it->second.plidx - plbase_[i];
-                if (pos < plwin.size()) plwin[pos].aggressive = 1;
+
+          const int64_t fill_s = tclock(text[k]);
+
+          // taker：主动成交本身没有 resting lifetime。若成交后有 residual，则把原始
+          // cohort 就地重置为从本次主动成交结束时开始的 resting cohort。
+          if (auto it = live.find(taker); it != live.end()) {
+            OrderRec &r = it->second;
+            const int64_t before = std::max<int64_t>(r.qty0 - r.filled, 0);
+            // 沪市 Order.qty 已是主动成交后实际挂簿的 residual；深市 Order.qty 是
+            // 原始委托量，须扣除本次主动成交。
+            const int64_t residual =
+                is_sh_[i] ? before : std::max<int64_t>(before - q, 0);
+
+            PlacedRec *p = nullptr;
+            if (r.plidx >= plbase_[i]) {
+              const std::size_t pos = r.plidx - plbase_[i];
+              if (pos < plwin.size()) p = &plwin[pos];
+            }
+
+            if (residual <= 0) {
+              if (p) p->aggressive = 1; // 纯主动全成交，不进入 resting 分母。
+              live.erase(it);
+            } else {
+              r.arrival = fill_s;
+              r.qty0 = residual;
+              r.filled = 0;
+              if (p) {
+                p->arrival = fill_s;
+                p->vol = static_cast<float>(residual);
+                p->aggressive = 0;
+                p->fc_mask = 0;
+                p->fc_vol = 0;
               }
             }
           }
 
-          const uint64_t ids[2] = {bid[k], ask[k]};
-          for (uint64_t id : ids) {
-            auto it = live.find(id);
-            if (it == live.end()) continue;
-            OrderRec &r = it->second;
-            r.filled += q;
-            if (r.filled >= r.qty0) {
-              if (!r.aggressive) { // 被动单全成交 → 记成交寿命
-                const int64_t fill_s = tclock(text[k]);
-                int64_t life_ns = fill_s - r.arrival;
-                if (life_ns < 0) life_ns = 0;
-                const double life_sec = static_cast<double>(life_ns) * 1e-9;
-                const double loglife = std::log(std::max(life_sec, 1e-3));
-                fwin.push_back(LifeRec{fill_s, static_cast<float>(loglife),
-                                       static_cast<float>(life_sec),
-                                       static_cast<float>(r.qty0), r.is_buy});
-              }
-              live.erase(it);
-            }
+          // maker：当前 resting cohort 被动成交；部分成交片段均记 lifetime。
+          auto it = live.find(maker);
+          if (it == live.end()) continue;
+          OrderRec &r = it->second;
+          const int64_t remaining_before =
+              std::max<int64_t>(r.qty0 - r.filled, 0);
+          const int64_t fill_vol = std::min(q, remaining_before);
+          if (fill_vol <= 0) continue;
+
+          int64_t life_ns = fill_s - r.arrival;
+          if (life_ns < 0) life_ns = 0;
+          const double life_sec = static_cast<double>(life_ns) * 1e-9;
+          const double loglife = std::log(std::max(life_sec, 1e-3));
+          fwin.push_back(LifeRec{fill_s, static_cast<float>(loglife),
+                                 static_cast<float>(life_sec),
+                                 static_cast<float>(fill_vol), r.is_buy});
+
+          r.filled += fill_vol;
+          if (r.filled >= r.qty0) {
+            live.erase(it);
           }
         }
       }
     }
 
-    // 3) Cancel：只统计被动单；算 lifetime + remaining，push cwin；置 plwin 秒撤位；删记录。
+    // 3) Cancel：当前 live 均代表 resting residual；算 lifetime + remaining。
     if (c_cnt && c_ext && c_oid) {
       const auto cnt = c_cnt[i];
       const auto *ext = c_ext[i];
@@ -539,7 +616,6 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
           auto it = live.find(oid[k]);
           if (it == live.end()) continue; // 无对应挂单（跨市/竞价残留等）→ 跳过
           OrderRec &r = it->second;
-          if (r.aggressive) { live.erase(it); continue; } // 只统计被动单
           const int64_t remaining = r.qty0 - r.filled;
           if (remaining <= 0) { live.erase(it); continue; } // 已全成交
           const int64_t cex_s = tclock(cex);
@@ -555,7 +631,10 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
             if (life_sec < kFleetThr[th]) mask |= static_cast<uint8_t>(1u << th);
           if (mask && r.plidx >= plbase_[i]) {
             const std::size_t pos = r.plidx - plbase_[i];
-            if (pos < plwin.size()) plwin[pos].fc_mask |= mask;
+            if (pos < plwin.size()) {
+              plwin[pos].fc_mask |= mask;
+              plwin[pos].fc_vol = static_cast<float>(remaining);
+            }
           }
           live.erase(it);
         }
@@ -563,16 +642,15 @@ void Signal::on_cs_mbo(const CsMboEvent *ev)
     }
   }
 
-  // 报出时点门控（与 stats/mid 一致，用原始 exchtime）：一批可能跨过多个目标，逐一补出。
-  while (next_ < targets_.size() && ex >= targets_[next_]) {
-    for (int i = 0; i < ins_nr; ++i) {
-      const auto a = aggregate(i, now_s);
-      for (int s = 0; s < N_SERIES; ++s) rowvals_[s][i] = a[s];
-    }
-    for (int s = 0; s < N_SERIES; ++s)
-      append_row(buf_[s], ex, ev->localtime, rowvals_[s]);
+  // 精确命中目标时，当前 callback 属于该窗口，处理后输出。
+  // 15:01 收盘 flush 也在处理后标记为 15:00 输出。
+  while (next_ < targets_.size() &&
+         (ex == targets_[next_] ||
+          (targets_[next_] == kPmClose && ex == kCloseFlush))) {
+    emit_target(targets_[next_], ev->localtime);
     ++next_;
   }
+  last_localtime_ = ev->localtime;
 }
 
 std::array<double, N_SERIES> Signal::aggregate(int i, int64_t now_s) const
@@ -615,11 +693,11 @@ std::array<double, N_SERIES> Signal::aggregate(int i, int64_t now_s) const
     a[fleet_idx(th, 0, 2)] = norm_imb(rb, rs);
   }
 
-  // ---- fleet_order：cohort 扫描（到达∈(lb,ub]，剔除主动单；分子分母同用 qty0）----
+  // ---- fleet_order：cohort 扫描（到达∈(lb,ub]，剔除主动单；分母=qty0挂单量，分子=remaining实际撤走量）----
   const int64_t lb = now_s - window_ns_ - tau_ns_;
   const int64_t ub = now_s - tau_ns_;
-  double denom[2] = {0, 0};            // [side] 被动挂单量
-  double num[2][2] = {{0, 0}, {0, 0}}; // [thr][side] cohort内秒撤单量
+  double denom[2] = {0, 0};            // [side] 被动挂单量(qty0)
+  double num[2][2] = {{0, 0}, {0, 0}}; // [thr][side] cohort内秒撤单实际撤走量(remaining)
   for (const auto &p : plwin_[i]) {
     if (p.arrival > ub) break; // plwin 按到达升序 → 其余更新，跳出
     // 裁剪已保证 arrival > lb；此处 arrival <= ub。
@@ -627,7 +705,7 @@ std::array<double, N_SERIES> Signal::aggregate(int i, int64_t now_s) const
     const int sd = p.is_buy ? 0 : 1;
     denom[sd] += p.vol;
     for (int th = 0; th < 2; ++th)
-      if (p.fc_mask & static_cast<uint8_t>(1u << th)) num[th][sd] += p.vol;
+      if (p.fc_mask & static_cast<uint8_t>(1u << th)) num[th][sd] += p.fc_vol;
   }
   for (int th = 0; th < 2; ++th) {
     const double rb = (denom[0] > 0) ? num[th][0] / denom[0] : kNaN;
